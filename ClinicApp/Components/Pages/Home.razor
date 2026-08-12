@@ -1,67 +1,33 @@
 @page "/"
 
-<PageTitle>ProTouch Clinic | Physiotherapy-led fitness</PageTitle>
+<PageTitle>SRI SAI PROTOUCH | Physio & Slimming Clinic</PageTitle>
 
-<section class="public-hero">
-    <div class="hero-copy">
-        <img class="public-brand-logo" src="/images/sri-sai-protouch-logo.svg" alt="Sri Sai Protouch — Dr. Manjari, physiotherapist and slimming expert" />
-        <p class="eyebrow">PROTOUCH CLINIC • PHYSIOTHERAPY & FITNESS</p>
-        <h1>Fitness that works <em>with</em> your body.</h1>
-        <p class="hero-lead">A physiotherapist plays a major role in building workouts that are safe, effective and personal—especially when pain, injury, mobility limits or other health concerns are already part of your story.</p>
-        <div class="hero-actions">
-            <a class="btn-clinic" href="#book">Book an appointment <span>→</span></a>
-            <a class="btn-clinic-secondary" href="https://wa.me/919028027888?text=Hello%20Dr.%20Manjari%2C%20I%20would%20like%20to%20know%20about%20physiotherapy-led%20fitness." target="_blank" rel="noopener">WhatsApp Dr. Manjari</a>
-        </div>
-        <div class="trust-line"><span>✓ Movement-first care</span><span>✓ Personal diet guidance</span><span>✓ Long-lasting results</span></div>
-    </div>
-    <div class="hero-visual">
-        <img src="/images/clinic-gallery/WhatsApp Image 2026-08-12 at 12.21.53 AM (1).jpeg" alt="ProTouch clinic care" />
-        <div class="hero-note"><strong>Care beyond the scale</strong><span>Reduce weight while helping minimise the biological problems behind it.</span></div>
-    </div>
-</section>
+<div class="wellness-page">
+    <header class="wellness-header">
+        <a href="#top" class="wellness-logo"><img src="/images/sri-sai-protouch-logo.svg" alt="Sri Sai Protouch" /></a>
+        <nav><a href="#services">Services</a><a href="#approach">Our approach</a><a href="#contact">Contact</a></nav>
+        <a class="wellness-call" href="tel:9673530031">Call 96735 30031</a>
+    </header>
 
-<section class="public-section intro-section">
-    <div><p class="eyebrow">OUR APPROACH</p><h2>Your goal is bigger than weight loss.</h2></div>
-    <p class="section-lead">We look beyond a number on the scale. By addressing pain, movement patterns, strength, sleep, nutrition and day-to-day habits together, we help create results that are safer to achieve and easier to keep.</p>
-</section>
+    <main id="top">
+        <section class="wellness-hero">
+            <div class="hero-content"><p class="iso-mark">ISO 9001:2015 CERTIFIED COMPANY</p><h1>Your journey to a <em>healthier, stronger</em> you starts here.</h1><p class="hero-copy">Physiotherapy-led slimming, rehabilitation and wellness plans by <strong>Dr. Manjari</strong>—created for lasting results, not temporary fixes.</p><div class="wellness-actions"><a class="wellness-primary" href="https://wa.me/919028027888?text=Hello%20Dr.%20Manjari%2C%20I%20would%20like%20to%20book%20a%20consultation." target="_blank" rel="noopener">Book a consultation <span>→</span></a><a class="wellness-secondary" href="tel:9673530031">Talk to us</a></div><div class="hero-cert"><span>Traditional Indian Methods</span><i>+</i><span>European Technology</span></div></div>
+            <div class="hero-photo"><img src="/images/clinic-gallery/WhatsApp Image 2026-08-12 at 12.21.53 AM (1).jpeg" alt="Sri Sai Protouch wellness treatment" /><div class="hero-badge"><strong>Providing the<br />Caring Touch..!</strong><span>Dr. Manjari<br />Physiotherapist & Slimming Expert</span></div></div>
+        </section>
 
-<section class="public-section services-section" id="services">
-    <div class="section-title"><p class="eyebrow">WHAT WE SUPPORT</p><h2>Care shaped around the person, not a template.</h2></div>
-    <div class="service-grid">
-        <article class="service-card"><span>01</span><h3>Physiotherapy-led workouts</h3><p>Build strength, mobility and confidence with exercises adapted around pain, injury and current ability.</p></article>
-        <article class="service-card"><span>02</span><h3>Weight management</h3><p>Progress with clinically mindful movement and nutrition—not punishing routines or short-term fixes.</p></article>
-        <article class="service-card"><span>03</span><h3>Pain & mobility support</h3><p>Address everyday movement restrictions so fitness becomes possible, comfortable and sustainable.</p></article>
-        <article class="service-card"><span>04</span><h3>Personalised diet charts</h3><p>Receive diet guidance designed for your needs, then view it any time from your client portal.</p></article>
-    </div>
-</section>
+        <section class="guarantee-strip" aria-label="Our care promise">@foreach (var guarantee in guarantees) { <span>✓ @guarantee</span> }</section>
 
-<section class="public-section care-band">
-    <div><p class="eyebrow">CONNECTED CARE</p><h2>Your plan stays with you between visits.</h2></div>
-    <div class="care-points"><div><b>01</b><p>Book clinic appointments directly online.</p></div><div><b>02</b><p>Track morning weight and daily progress securely.</p></div><div><b>03</b><p>See treatment records, personalised diet charts and payment reminders in one client space.</p></div></div>
-</section>
+        <section id="approach" class="wellness-section split-intro"><div><p class="section-kicker">A SMARTER, SAFER APPROACH</p><h2>Loose weight,<br /><em>not money.</em></h2></div><div><p class="large-copy">We combine expert physiotherapy, personalised movement and modern body-care technology to help you feel better in your body—without extreme restrictions or invasive procedures.</p><p class="muted-copy">The intelligent alternative to liposuction and other aesthetic devices, designed around your health and your goals.</p></div></section>
 
-<section class="public-section portal-section">
-    <div class="portal-panel"><p class="eyebrow">CLIENT PORTAL</p><h2>Clear progress. Personal guidance.</h2><p>Clients can log morning weight, review their treatment plan and attendance, see diet guidance from the clinic and manage appointments.</p><a href="Account/Login" class="text-link">Open client portal →</a></div>
-    <div class="portal-panel dark"><p class="eyebrow">CLINIC MANAGEMENT</p><h2>Personal care at scale.</h2><p>Our admin workspace keeps client treatments, tailored notes, payment reminders and WhatsApp communication organised in one secure place.</p><a href="Account/Login" class="text-link">Staff sign in →</a></div>
-</section>
+        <section id="services" class="wellness-section services"><p class="section-kicker">OUR SERVICES</p><h2>Care for every stage of your wellness journey.</h2><div class="service-grid-v2"><article><span>01</span><h3>Weight Loss & Slimming</h3><p>Weight loss, inch loss, figure correction, body shaping, toning, skin tightening, breast correction and body spas.</p><ul><li>4–8 kg weight loss per month</li><li>2–5 inches loss per session/week</li></ul></article><article><span>02</span><h3>Physiotherapy & Rehabilitation</h3><p>Individual treatment for back, neck and knee pain, arthritis, spondylitis, sinusitis, paralysis, stress, strain and injury care.</p><ul><li>Muscle & ligament injury care</li><li>Orthopaedic & neurological disorders</li></ul></article><article><span>03</span><h3>Yoga & Holistic Wellness</h3><p>Personalised yoga and lifestyle support for diabetes, blood pressure, thyroid, cholesterol, varicose veins and hormonal health.</p><ul><li>Menstrual wellness support</li><li>Pre & post-natal care</li></ul></article><article><span>04</span><h3>Specialised Programs</h3><p>Focused, clinician-guided plans built around a specific goal and your current health condition.</p><ul><li>Height increase program</li><li>Up to 23 years • 1–3 inches growth</li></ul></article></div></section>
 
-<section class="public-section gallery-section">
-    <div class="section-title"><p class="eyebrow">INSIDE PROTOUCH</p><h2>Our clinic, our community, our care.</h2></div>
-    <div class="clinic-gallery">
-        @foreach (var image in galleryImages)
-        {
-            <img src="@($"/images/clinic-gallery/{image}")" alt="ProTouch Clinic" loading="lazy" />
-        }
-    </div>
-</section>
+        <section class="wellness-section care-panel"><div class="care-photo"><img src="/images/clinic-gallery/WhatsApp Image 2026-08-12 at 12.21.53 AM.jpeg" alt="Protouch clinic care" /></div><div class="care-copy"><p class="section-kicker">WHY PROTOUCH</p><h2>Because your body deserves more than a one-size-fits-all plan.</h2><div class="care-reasons"><div><b>Physiotherapy-first</b><span>Safe movement plans that respect pain, injury and existing health concerns.</span></div><div><b>Personalised guidance</b><span>Diet, treatment and wellness support shaped around your daily life.</span></div><div><b>Lasting wellbeing</b><span>We help minimise underlying biological problems—not just reduce a number.</span></div></div></div></section>
 
-<section class="public-section booking-section" id="book">
-    <div><p class="eyebrow">START WITH A CONVERSATION</p><h2>Let’s build a safer way forward.</h2><p>Contact Dr. Manjari to discuss your fitness, pain-management or weight-management needs.</p></div>
-    <div class="contact-card"><span>Call or WhatsApp</span><a href="tel:+919028027888">+91 90280 27888</a><strong>Dr. Manjari</strong><a class="btn-clinic w-100 justify-content-center mt-4" target="_blank" rel="noopener" href="https://wa.me/919028027888?text=Hello%20Dr.%20Manjari%2C%20I%20would%20like%20to%20book%20an%20appointment.">Book on WhatsApp</a></div>
-</section>
+        <section class="wellness-section programs"><div><p class="section-kicker">YOUR CARE, CONNECTED</p><h2>Support that continues between clinic visits.</h2></div><div class="program-points"><p><b>01</b> Book consultations directly with the clinic.</p><p><b>02</b> Track daily weight, treatments and wellness progress.</p><p><b>03</b> Receive personal diet guidance and appointment reminders.</p></div></section>
 
-@code {
-    private readonly string[] galleryImages = [
-        "WhatsApp Imagdde 2026-08-12 at 12.09.15 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.14 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.14 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.15 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.17 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.17 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.17 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.18 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.18 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.18 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.22 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.22 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.23 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.23 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.24 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.24 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.25 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.25 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.25 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.26 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.26 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.26 AM (3).jpeg", "WhatsApp Image 2026-08-12 at 12.09.26 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.27 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.27 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.27 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.28 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.28 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.28 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.29 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.29 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.29 AM (3).jpeg", "WhatsApp Image 2026-08-12 at 12.09.29 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.19.15 PM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.11 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.11 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.12 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.12 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.21.12 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.13 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.13 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.21.13 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.14 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.14 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.15 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.52 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.53 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.53 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.21.53 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.22.51 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.22.52 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.22.52 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.22.53 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.25.20 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.25.20 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.25.20 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.25.21 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.25.21 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg", "WhatsApp Imagwde 2026-08-12 at 12.09.14 AM.jpeg", "WhatsApp Imsage 2026-08-12 at 12.09.17 AM.jpeg"
-    ];
-}
+        <section id="contact" class="contact-section"><div><p class="section-kicker">VISIT SRI SAI PROTOUCH</p><h2>Let’s take the first step together.</h2><p>Contact Dr. Manjari to discuss a physiotherapy, slimming or wellness plan that fits you.</p></div><div class="contact-details"><a href="tel:9673530031"><strong>96735 30031</strong><span>Primary phone</span></a><a href="tel:+919028027888"><strong>+91 90280 27888</strong><span>Alternate phone / WhatsApp</span></a><a href="mailto:protouch1998@gmail.com"><strong>protouch1998@gmail.com</strong><span>Email us</span></a><p>Row H. No. 22, Kasliwal Bhagyoday,<br />Opposite Surya Lawns / Near Datta Mandir, Beed By-pass,<br />Mirajgave Nagari, Ch. Sambhajinagar – 431010</p><a class="wellness-primary directions" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Kasliwal+Bhagyoday+Beed+By-pass+Chhatrapati+Sambhajinagar">Get directions →</a></div></section>
+    </main>
+    <footer>© @DateTime.Now.Year SRI SAI PROTOUCH Physio - Slimming Clinic <span>•</span> Dr. Manjari</footer>
+</div>
+
+@code { private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"]; }

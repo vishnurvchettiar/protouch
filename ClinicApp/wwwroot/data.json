@@ -1,0 +1,7 @@
+{
+  "clinic": { "title": "SRI SAI PROTOUCH", "subtitle": "Physio - Slimming Clinic", "doctor": "Dr. Manjari", "role": "Physiotherapist & Slimming Expert", "iso": "ISO 9001:2015 Certified Company" },
+  "contacts": { "phonePrimary": "9673530031", "phoneSecondary": "+919028027888", "email": "protouch1998@gmail.com", "website": "www.protouchslimcare.com" },
+  "location": { "street": "Row H. No. 22, Kasliwal Bhagyoday", "landmark": "Opposite Surya Lawns / Near Datta Mandir, Beed By-pass", "area": "Mirajgave Nagari", "city": "Ch. Sambhajinagar", "pincode": "431010" },
+  "theme": { "green": "#008D36", "yellow": "#FFEB00", "gold": "#F4B41A", "red": "#E52321", "purple": "#7C1B68" },
+  "guarantees": ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"]
+}
