@@ -1,0 +1,509 @@
+@page "/client-dashboard"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using ClinicApp.Data
+@using ClinicApp.Services
+@attribute [Authorize(Roles = "Client,Admin")]
+
+@inject ClinicService ClinicService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavManager
+@inject IWebHostEnvironment Environment
+
+<PageTitle>Patient Portal - ProTouch Clinic</PageTitle>
+
+@if (loading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-info" role="status">
+            <span class="visually-hidden">Loading Dashboard...</span>
+        </div>
+        <p class="text-secondary mt-3">Syncing clinical records...</p>
+    </div>
+}
+else if (userProfile == null)
+{
+    <div class="clinic-alert clinic-alert-danger">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+        </svg>
+        <div>
+            <strong>Error:</strong> Profile record could not be resolved. Please log in as a registered client.
+        </div>
+    </div>
+}
+else
+{
+    <div class="container py-3">
+        <!-- Dashboard Header -->
+        <div class="glass-panel p-4 mb-4 client-hero">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="profile-photo-wrap">
+                        @if (!string.IsNullOrWhiteSpace(userProfile.ProfilePhotoUrl))
+                        { <img src="@userProfile.ProfilePhotoUrl" class="profile-photo" alt="Profile photo" /> }
+                        else { <div class="profile-photo placeholder">@(currentUser?.FullName?.FirstOrDefault() ?? 'P')</div> }
+                    </div>
+                    <div><span class="eyebrow">CLIENT PORTAL</span><h1 class="gradient-text mb-1">Hello, @(currentUser?.FullName ?? "Patient")</h1><p class="text-secondary mb-0">Your progress, appointments, diet check-ins and clinic communication.</p></div>
+                </div>
+                <div class="text-md-end"><span class="soft-pill">🟢 Joined @userProfile.JoiningDate.ToString("MMM yyyy")</span><div class="mt-2"><label class="upload-mini">📷 Change photo <InputFile OnChange="HandleProfilePhotoUpload" accept="image/*" /></label></div></div>
+            </div>
+        </div>
+
+        <!-- Reminders / Alerts -->
+        @if (activePaymentAlerts != null && activePaymentAlerts.Any())
+        {
+            @foreach (var alert in activePaymentAlerts)
+            {
+                <div class="clinic-alert clinic-alert-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi me-2" viewBox="0 0 16 16">
+                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.002-13a1 1 0 0 0-.707.293l-5.647 5.646a.5.5 0 0 0-.146.354v5.414A1 1 0 0 0 2.5 15h11a1 1 0 0 0 1-1V8.293a.5.5 0 0 0-.146-.354l-5.647-5.646A1 1 0 0 0 8.002 3z"/>
+                    </svg>
+                    <div class="w-100 d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <strong>⚠️ Billing Reminder:</strong> An outstanding payment of <strong>@alert.Amount.ToString("C")</strong> for "<em>@alert.Description</em>" is due. Please settle.
+                        </div>
+                        <button class="btn btn-clinic-secondary py-1 px-3 mt-2 mt-md-0 btn-sm text-white" @onclick="() => PayInvoice(alert.Id)">
+                            💳 Pay invoice (Demo)
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+
+        @if (!hasLoggedWeightToday)
+        {
+            <div class="clinic-alert clinic-alert-warning">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi me-2" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                </svg>
+                <div>
+                    <strong>🕒 Daily Logging Notice:</strong> You haven't recorded your weight or meals today. Keep your streak going to stay on track!
+                </div>
+            </div>
+        }
+
+        <!-- Stat Row -->
+        <div class="dashboard-grid">
+            <!-- Current Weight Card -->
+            <div class="glass-panel stat-card">
+                <div class="stat-info">
+                    <h4>Current Weight</h4>
+                    <p>@(latestWeight > 0 ? $"{latestWeight:F1} kg" : "N/A")</p>
+                    <span class="text-secondary small">Target: @userProfile.TargetWeight kg</span>
+                </div>
+                <div class="stat-icon">
+                    ⚖️
+                </div>
+            </div>
+
+            <!-- Weight Loss Progress Card -->
+            <div class="glass-panel stat-card">
+                <div class="stat-info">
+                    <h4>Weight Loss Journey</h4>
+                    @{
+                        double diff = userProfile.StartWeight - latestWeight;
+                        double totalTarget = userProfile.StartWeight - userProfile.TargetWeight;
+                        int percentage = totalTarget > 0 ? (int)Math.Clamp((diff / totalTarget) * 100, 0, 100) : 0;
+                    }
+                    <p>@($"{diff:F1} kg lost")</p>
+                    <span class="text-secondary small">@percentage% of target achieved</span>
+                </div>
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-success);">
+                    📈
+                </div>
+            </div>
+
+            <!-- Attendance Counter Card -->
+            <div class="glass-panel stat-card">
+                <div class="stat-info">
+                    <h4>Total Clinic Visits</h4>
+                    <p>@attendanceRecords.Count</p>
+                    <span class="text-secondary small">Active Check-ins: @(attendanceRecords.Any(ar => ar.Status == "Checked In") ? "1" : "0")</span>
+                </div>
+                <div class="stat-icon" style="background: rgba(127, 0, 255, 0.1); color: var(--accent-purple);">
+                    🏃
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Side: Weight Chart and Logging Tools -->
+            <div class="col-lg-8">
+                <!-- Weight Trend Chart -->
+                <div class="glass-panel p-4 mb-4">
+                    <h3 class="mb-3">Weight Progress Chart</h3>
+                    @if (dailyLogs == null || dailyLogs.Count < 2)
+                    {
+                        <div class="text-center py-5 text-secondary">
+                            <p>Not enough logs to render progress chart. Log your weight for multiple days to view history.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Beautiful SVG Line Chart -->
+                        var chartPoints = GetClientChartPoints();
+                        var pointsString = string.Join(" ", chartPoints.Select(p => $"{p.X:F1},{p.Y:F1}"));
+                        var fillPath = GetClientFillPath(chartPoints);
+                        double targetY = GetTargetY(userProfile.TargetWeight, chartPoints);
+
+                        <div class="chart-container">
+                            <svg viewBox="0 0 700 200" class="chart-svg">
+                                <!-- Grid Lines -->
+                                <line x1="35" y1="35" x2="665" y2="35" stroke="rgba(255,255,255,0.05)" />
+                                <line x1="35" y1="100" x2="665" y2="100" stroke="rgba(255,255,255,0.05)" />
+                                <line x1="35" y1="165" x2="665" y2="165" stroke="rgba(255,255,255,0.1)" />
+
+                                <!-- Target Weight Indicator Line -->
+                                @if (targetY >= 35 && targetY <= 165)
+                                {
+                                    <line x1="35" y1="@targetY" x2="665" y2="@targetY" stroke="rgba(0, 242, 254, 0.4)" stroke-dasharray="4" />
+                                    @((MarkupString)$"<text x='585' y='{targetY - 5}' fill='var(--accent-teal)' font-size='9' font-weight='bold'>Target: {userProfile.TargetWeight} kg</text>")
+                                }
+
+                                <!-- Progress line -->
+                                <polyline fill="none" stroke="url(#chartGrad)" stroke-width="4" stroke-linecap="round" points="@pointsString" />
+
+                                <!-- Gradient fill beneath the line -->
+                                <path d="@fillPath" fill="url(#areaGrad)" opacity="0.15" />
+
+                                <!-- Interactive Data Circles -->
+                                @foreach (var pt in chartPoints)
+                                {
+                                    <circle cx="@pt.X" cy="@pt.Y" r="5" class="chart-point" />
+                                    @((MarkupString)$"<text x='{pt.X}' y='{pt.Y - 10}' fill='#fff' font-size='10' text-anchor='middle' font-weight='700'>{pt.Weight}</text>")
+                                    @((MarkupString)$"<text x='{pt.X}' y='188' fill='var(--text-secondary)' font-size='9' text-anchor='middle'>{pt.Label}</text>")
+                                }
+
+                                <defs>
+                                    <linearGradient id="chartGrad" x1="0" y1="0" x2="1" y2="0">
+                                        <stop offset="0%" stop-color="var(--accent-blue)" />
+                                        <stop offset="100%" stop-color="var(--accent-teal)" />
+                                    </linearGradient>
+                                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="var(--accent-teal)" />
+                                        <stop offset="100%" stop-color="transparent" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                    }
+                </div>
+
+                <!-- Daily Checking Form -->
+        <div class="glass-panel p-4 mb-4">
+            <div class="section-heading"><div><span class="eyebrow">DAILY CHECK-IN</span><h3>Weight & Meal Update</h3></div><span class="soft-pill">Daily check-in</span></div>
+            <p class="text-secondary small mb-4">Send your weight, diet notes and a real meal photo to the clinic team. Your dietician can review the information and follow up through WhatsApp.</p>
+            <EditForm Model="logModel" OnValidSubmit="HandleLogSubmission">
+                <DataAnnotationsValidator />
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6"><label class="clinic-label">Weight today (kg)</label><InputNumber @bind-Value="logModel.Weight" class="clinic-input" step="0.1" /></div>
+                    <div class="col-md-6"><label class="clinic-label">Log date</label><InputDate @bind-Value="logModel.LogDate" class="clinic-input" /></div>
+                    <div class="col-12"><label class="clinic-label">Diet / symptoms / water / activity notes</label><InputTextArea @bind-Value="logModel.DietNotes" class="clinic-input" rows="4" placeholder="Tell your dietician what you ate, water intake, activity and how you felt today..." /></div>
+                </div>
+                <div class="meal-upload-panel mb-3">
+                    <div><span class="eyebrow">MEAL PHOTO</span><h5 class="mb-1">Upload today's meal</h5><span class="text-secondary small">Use your phone or laptop camera/photo picker.</span></div>
+                    <InputFile OnChange="HandleMealPhotoUpload" accept="image/*" />
+                </div>
+                @if (!string.IsNullOrWhiteSpace(logModel.MealPhotoUrl)) { <img src="@logModel.MealPhotoUrl" class="meal-preview" alt="Uploaded meal" /> }
+                <div class="d-flex justify-content-between align-items-center mt-3"><span class="text-secondary small">Your clinic team will review this update.</span><button class="btn-clinic" type="submit">Save today's update</button></div>
+            </EditForm>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-7">
+                <div class="glass-panel p-4 h-100">
+                    <div class="section-heading"><div><span class="eyebrow">APPOINTMENTS</span><h3>Book a Clinic Visit</h3></div><span class="soft-pill">Quick booking</span></div>
+                    <EditForm Model="apptModel" OnValidSubmit="HandleAppointmentBooking">
+                        <div class="row g-3">
+                            <div class="col-md-7"><label class="clinic-label">Date & time</label><InputDate @bind-Value="apptModel.AppointmentDate" class="clinic-input" /></div>
+                            <div class="col-md-5"><label class="clinic-label">Service</label><select class="clinic-input" @bind="apptModel.TreatmentType"><option>Slimming</option><option>Physio</option><option>Consultation</option><option>Wellness</option></select></div>
+                            <div class="col-12"><label class="clinic-label">Note</label><InputTextArea @bind-Value="apptModel.Notes" class="clinic-input" rows="2" placeholder="Any preferred time or concern..." /></div>
+                        </div>
+                        <button class="btn-clinic mt-3" type="submit">Request appointment</button>
+                    </EditForm>
+                    @if (appointments.Any())
+                    {
+                        <div class="mt-4">@foreach (var appt in appointments.Take(5)) { <div class="message-row"><div><strong>@appt.TreatmentType</strong><div class="text-secondary small">@appt.AppointmentDate.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</div></div><span class="soft-pill">@appt.Status</span></div> }</div>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="glass-panel p-4 h-100">
+                    <span class="eyebrow">DIRECT COMMUNICATION</span><h3>Talk to the Clinic</h3>
+                    <p class="text-secondary">For diet changes, fee questions, appointment changes or treatment concerns, WhatsApp is the primary communication channel.</p>
+                    @if (currentUser != null)
+                    { <a class="btn-clinic w-100 justify-content-center" target="_blank" href="@GetClinicWhatsAppLink()">💬 Open ProTouch WhatsApp</a> }
+                    <div class="text-secondary small mt-3">Keep your clinic's official WhatsApp number configured by the admin before production use.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clinic Visits & Treatments History -->
+                <div class="glass-panel p-4">
+                    <h3 class="mb-3">Clinic Attendance & Treatments</h3>
+                    <p class="text-secondary small mb-3">Record of physical check-in logs and treatments received at the center.</p>
+
+                    @if (attendanceRecords == null || !attendanceRecords.Any())
+                    {
+                        <span class="text-secondary small">No physical check-in logs recorded yet.</span>
+                    }
+                    else
+                    {
+                        <div style="max-height: 400px; overflow-y: auto; padding-right: 4px;">
+                            @foreach (var visit in attendanceRecords)
+                            {
+                                <div class="glass-panel p-3 mb-3 border-0" style="background: rgba(255,255,255,0.02); border-left: 3px solid @(visit.Status == "Checked In" ? "var(--accent-warning)" : "var(--accent-success)") !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-white small font-weight-bold">@visit.TreatmentReceived</span>
+                                        <span class="badge-clinic @(visit.Status == "Checked In" ? "badge-pending" : "badge-active") text-xs" style="font-size: 0.65rem;">
+                                            @visit.Status
+                                        </span>
+                                    </div>
+                                    <span class="text-secondary small d-block">
+                                        Check In: @visit.CheckInTime.ToLocalTime().ToString("dd MMM, h:mm tt")
+                                    </span>
+                                    @if (visit.CheckOutTime.HasValue)
+                                    {
+                                        <span class="text-secondary small d-block">
+                                            Completed: @visit.CheckOutTime.Value.ToLocalTime().ToString("h:mm tt")
+                                        </span>
+                                    }
+                                    <span class="text-secondary small d-block mt-1">
+                                        <strong>Staff:</strong> @visit.Therapist
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(visit.Notes))
+                                    {
+                                        <span class="text-muted small d-block mt-1 bg-dark p-2 rounded" style="font-size: 0.8rem; background: rgba(0,0,0,0.2) !important;">
+                                            📝 @visit.Notes
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool loading = true;
+    private ApplicationUser? currentUser;
+    private ClientProfile? userProfile;
+    private List<DailyLog> dailyLogs = new();
+    private List<AttendanceRecord> attendanceRecords = new();
+    private List<Appointment> appointments = new();
+    private List<PaymentNotification> activePaymentAlerts = new();
+
+    private double latestWeight;
+    private bool hasLoggedWeightToday;
+
+    // Form inputs models
+    private DailyLog logModel = new() { CarbsPercentage = 35, ProteinPercentage = 30, FatPercentage = 15, VegPercentage = 20 };
+    private Appointment apptModel = new() { AppointmentDate = DateTime.Today.AddDays(1).AddHours(10), TreatmentType = "Slimming" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            currentUser = await UserManager.FindByNameAsync(user.Identity.Name!);
+            if (currentUser != null)
+            {
+                // Ensure profile exists for the user (in case they just registered)
+                await ClinicService.EnsureClientProfileExistsAsync(currentUser.Id);
+                
+                // Get profile
+                userProfile = await ClinicService.GetClientProfileByUserIdAsync(currentUser.Id);
+
+                if (userProfile != null)
+                {
+                    await LoadProfileDataAsync();
+                }
+            }
+        }
+        loading = false;
+    }
+
+    private async Task LoadProfileDataAsync()
+    {
+        if (currentUser == null || userProfile == null) return;
+
+        dailyLogs = await ClinicService.GetClientDailyLogsAsync(currentUser.Id);
+        attendanceRecords = await ClinicService.GetClientAttendanceAsync(currentUser.Id);
+        appointments = await ClinicService.GetClientAppointmentsAsync(currentUser.Id);
+        
+        var invoices = await ClinicService.GetClientPaymentsAsync(currentUser.Id);
+        activePaymentAlerts = invoices.Where(i => !i.IsPaid && i.IsTriggered).ToList();
+
+        var todayLog = dailyLogs.FirstOrDefault(l => l.LogDate == DateTime.Today);
+        if (todayLog != null)
+        {
+            hasLoggedWeightToday = true;
+            latestWeight = todayLog.Weight;
+            logModel = todayLog; // load into form for editing if they want
+        }
+        else if (dailyLogs.Any())
+        {
+            hasLoggedWeightToday = false;
+            latestWeight = dailyLogs.First().Weight;
+            logModel = new DailyLog
+            {
+                UserId = currentUser.Id,
+                LogDate = DateTime.Today,
+                Weight = latestWeight, // prefill with last logged weight
+                CarbsPercentage = 35,
+                ProteinPercentage = 35,
+                FatPercentage = 15,
+                VegPercentage = 15
+            };
+        }
+        else
+        {
+            hasLoggedWeightToday = false;
+            latestWeight = userProfile.StartWeight;
+            logModel = new DailyLog
+            {
+                UserId = currentUser.Id,
+                LogDate = DateTime.Today,
+                Weight = latestWeight,
+                CarbsPercentage = 35,
+                ProteinPercentage = 35,
+                FatPercentage = 15,
+                VegPercentage = 15
+            };
+        }
+    }
+
+    private async Task<string?> SaveImageAsync(IBrowserFile file, string folder, string prefix)
+    {
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        if (!allowed.Contains(extension) || file.Size > 8 * 1024 * 1024) return null;
+        var directory = Path.Combine(Environment.WebRootPath, "uploads", folder);
+        Directory.CreateDirectory(directory);
+        var fileName = $"{prefix}_{Guid.NewGuid():N}{extension}";
+        var physical = Path.Combine(directory, fileName);
+        await using var source = file.OpenReadStream(8 * 1024 * 1024);
+        await using var target = File.Create(physical);
+        await source.CopyToAsync(target);
+        return $"/uploads/{folder}/{fileName}";
+    }
+
+    private async Task HandleMealPhotoUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (currentUser == null) return;
+        var path = await SaveImageAsync(file, "meals", currentUser.Id);
+        if (path != null) logModel.MealPhotoUrl = path;
+    }
+
+    private async Task HandleProfilePhotoUpload(InputFileChangeEventArgs e)
+    {
+        if (currentUser == null || userProfile == null) return;
+        var path = await SaveImageAsync(e.File, "profiles", currentUser.Id);
+        if (path != null) { await ClinicService.SetClientPhotoAsync(currentUser.Id, path); userProfile.ProfilePhotoUrl = path; }
+    }
+
+    private async Task HandleLogSubmission()
+    {
+        if (currentUser == null || userProfile == null) return;
+
+        logModel.UserId = currentUser.Id;
+        logModel.LoggedAt = DateTime.UtcNow;
+
+        await ClinicService.AddDailyLogAsync(logModel);
+        await LoadProfileDataAsync();
+    }
+
+    private string GetClinicWhatsAppLink()
+    {
+        var name = currentUser?.FullName ?? "Client";
+        return ClinicService.BuildClinicWhatsAppLink($"Hello ProTouch Clinic, I am {name}. I need help with my clinic plan.");
+    }
+
+    private async Task HandleAppointmentBooking()
+    {
+        if (currentUser == null) return;
+
+        apptModel.UserId = currentUser.Id;
+        apptModel.Status = "Scheduled";
+
+        await ClinicService.BookAppointmentAsync(apptModel);
+        
+        // Reset model
+        apptModel = new Appointment
+        {
+            UserId = currentUser.Id,
+            AppointmentDate = DateTime.Today.AddDays(2).AddHours(11),
+            TreatmentType = "Slimming"
+        };
+
+        await LoadProfileDataAsync();
+    }
+
+    private async Task PayInvoice(int invoiceId)
+    {
+        await ClinicService.MarkInvoiceAsPaidAsync(invoiceId);
+        await LoadProfileDataAsync();
+    }
+
+    public record ChartPoint(double X, double Y, string Label, double Weight);
+
+    private List<ChartPoint> GetClientChartPoints()
+    {
+        var points = new List<ChartPoint>();
+        if (dailyLogs == null || dailyLogs.Count < 2 || userProfile == null) return points;
+
+        var sortedLogs = dailyLogs.OrderBy(l => l.LogDate).ToList();
+        double maxWeight = sortedLogs.Max(l => l.Weight) + 1;
+        double minWeight = Math.Max(0, sortedLogs.Min(l => l.Weight) - 1);
+        double weightRange = maxWeight - minWeight;
+        if (weightRange == 0) weightRange = 1;
+
+        int svgWidth = 700;
+        int svgHeight = 200;
+        int padding = 35;
+
+        for (int i = 0; i < sortedLogs.Count; i++)
+        {
+            double x = padding + ((double)i / (sortedLogs.Count - 1)) * (svgWidth - 2 * padding);
+            double y = (svgHeight - padding) - ((sortedLogs[i].Weight - minWeight) / weightRange) * (svgHeight - 2 * padding);
+            points.Add(new ChartPoint(x, y, sortedLogs[i].LogDate.ToString("dd MMM"), sortedLogs[i].Weight));
+        }
+        return points;
+    }
+
+    private string GetClientFillPath(List<ChartPoint> points)
+    {
+        if (points == null || !points.Any()) return "";
+        string path = $"M {points.First().X:F1},{200 - 35} ";
+        foreach (var pt in points)
+        {
+            path += $"L {pt.X:F1},{pt.Y:F1} ";
+        }
+        path += $"L {points.Last().X:F1},{200 - 35} Z";
+        return path;
+    }
+
+    private double GetTargetY(double targetWeight, List<ChartPoint> points)
+    {
+        if (dailyLogs == null || !dailyLogs.Any()) return 0;
+        var sortedLogs = dailyLogs.OrderBy(l => l.LogDate).ToList();
+        double maxWeight = sortedLogs.Max(l => l.Weight) + 1;
+        double minWeight = Math.Max(0, sortedLogs.Min(l => l.Weight) - 1);
+        double weightRange = maxWeight - minWeight;
+        if (weightRange == 0) weightRange = 1;
+
+        int svgHeight = 200;
+        int padding = 35;
+
+        return (svgHeight - padding) - ((targetWeight - minWeight) / weightRange) * (svgHeight - 2 * padding);
+    }
+}

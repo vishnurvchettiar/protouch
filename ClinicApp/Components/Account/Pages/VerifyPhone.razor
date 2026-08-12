@@ -1,0 +1,117 @@
+@page "/Account/VerifyPhone"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using ClinicApp.Data
+
+@inject ClinicApp.Services.ClinicService ClinicService
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Verify phone</PageTitle>
+
+<h3>Verify your phone number</h3>
+<p class="text-secondary">Enter the OTP we sent to your phone to verify your number.</p>
+
+<StatusMessage Message="@statusMessage" />
+
+<EditForm Model="Input" OnValidSubmit="VerifyOtp">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" />
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="Input.Phone" id="Input.Phone" class="form-control" disabled />
+        <label for="Input.Phone">Phone</label>
+    </div>
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="Input.Code" id="Input.Code" class="form-control" placeholder="Enter OTP" />
+        <label for="Input.Code">OTP Code</label>
+        <ValidationMessage For="() => Input.Code" class="text-danger" />
+    </div>
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Verify</button>
+        <button type="button" class="btn btn-secondary" @onclick="ResendOtp">Resend OTP</button>
+    </div>
+</EditForm>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? phone { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? returnUrl { get; set; }
+
+    private InputModel Input { get; set; } = new();
+    private string? statusMessage;
+
+    protected override void OnInitialized()
+    {
+        Input.Phone = phone ?? "";
+    }
+
+    private async Task VerifyOtp()
+    {
+        statusMessage = null;
+        if (string.IsNullOrWhiteSpace(Input.Phone) || string.IsNullOrWhiteSpace(Input.Code))
+        {
+            statusMessage = "Please enter the OTP.";
+            return;
+        }
+
+        var ok = await ClinicService.VerifyPhoneOtpAsync(Input.Phone, Input.Code);
+        if (ok)
+        {
+            // If phone verified, attempt to find user by phone and set PhoneNumberConfirmed if found
+            var user = await UserManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == Input.Phone);
+            if (user != null)
+            {
+                user.PhoneNumberConfirmed = true;
+                await UserManager.UpdateAsync(user);
+
+                // If email already confirmed, sign them in and redirect to client dashboard
+                if (user.EmailConfirmed)
+                {
+                    await SignInManager.SignInAsync(user, isPersistent: false);
+                    RedirectManager.RedirectTo("client-dashboard");
+                    return;
+                }
+                else
+                {
+                    // Redirect to register confirmation to show email confirmation link (dev)
+                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = user.Email });
+                    return;
+                }
+            }
+
+            // No associated user found; just redirect to home
+            RedirectManager.RedirectTo(returnUrl ?? "");
+        }
+        else
+        {
+            statusMessage = "Invalid or expired OTP. Please request a new code.";
+            Input.Code = "";
+        }
+    }
+
+    private async Task ResendOtp()
+    {
+        if (string.IsNullOrWhiteSpace(Input.Phone))
+        {
+            statusMessage = "No phone number provided to resend OTP.";
+            return;
+        }
+        await ClinicService.GeneratePhoneOtpAsync(Input.Phone);
+        statusMessage = "A new OTP has been sent (simulated).";
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        public string Phone { get; set; } = "";
+
+        [Required]
+        public string Code { get; set; } = "";
+    }
+}
