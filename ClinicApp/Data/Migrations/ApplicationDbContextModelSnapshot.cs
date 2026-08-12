@@ -129,6 +129,9 @@ namespace ClinicApp.Migrations
                     b.Property<DateTime?>("CheckOutTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("NextAppointmentDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -162,11 +165,20 @@ namespace ClinicApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<double>("ArmsInches")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("ChestInches")
+                        .HasColumnType("REAL");
+
                     b.Property<string>("DoctorNotes")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<double>("Height")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("HipsInches")
                         .HasColumnType("REAL");
 
                     b.Property<bool>("IsActive")
@@ -185,6 +197,9 @@ namespace ClinicApp.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<double>("WaistInches")
+                        .HasColumnType("REAL");
+
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
@@ -198,8 +213,14 @@ namespace ClinicApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<double>("ArmsInches")
+                        .HasColumnType("REAL");
+
                     b.Property<int>("CarbsPercentage")
                         .HasColumnType("INTEGER");
+
+                    b.Property<double>("ChestInches")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("DietNotes")
                         .IsRequired()
@@ -207,6 +228,9 @@ namespace ClinicApp.Migrations
 
                     b.Property<int>("FatPercentage")
                         .HasColumnType("INTEGER");
+
+                    b.Property<double>("HipsInches")
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime>("LogDate")
                         .HasColumnType("TEXT");
@@ -227,6 +251,9 @@ namespace ClinicApp.Migrations
 
                     b.Property<int>("VegPercentage")
                         .HasColumnType("INTEGER");
+
+                    b.Property<double>("WaistInches")
+                        .HasColumnType("REAL");
 
                     b.Property<double>("Weight")
                         .HasColumnType("REAL");

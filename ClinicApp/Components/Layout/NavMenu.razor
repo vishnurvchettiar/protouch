@@ -12,18 +12,9 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2" viewBox="0 0 16 16">
-                    <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5Z"/>
-                    <path d="m8 3.293 6 6V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V9.293l6-6Z"/>
-                </svg> Home
-            </NavLink>
-        </div>
-
         <AuthorizeView>
             <Authorized>
-                <!-- Show Client Dashboard to Clients, or Admins can view for testing -->
+                <AuthorizeView Roles="Client" Context="clientContext">
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="client-dashboard">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi me-2" viewBox="0 0 16 16">
@@ -33,6 +24,7 @@
                         </svg> Client Dashboard
                     </NavLink>
                 </div>
+                </AuthorizeView>
 
                 <AuthorizeView Roles="Admin" Context="adminContext">
                     <div class="nav-item px-3">
@@ -44,11 +36,6 @@
                             </svg> Admin Dashboard
                         </NavLink>
                     </div>
-                </AuthorizeView>
-
-                <!-- If client is logged in but wants to switch or check admin dashboard during local demo, we can show it as well if they are in admin role -->
-                <AuthorizeView Roles="Client" Context="clientContext">
-                    <!-- Note: Client role doesn't see Admin link, keeping layout clean -->
                 </AuthorizeView>
 
                 <div class="nav-item px-3">

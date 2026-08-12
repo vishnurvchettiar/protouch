@@ -4,298 +4,56 @@
 @using ClinicApp.Data
 @using ClinicApp.Services
 @attribute [Authorize(Roles = "Admin")]
-
 @inject ClinicService ClinicService
 @inject UserManager<ApplicationUser> UserManager
-@inject RoleManager<IdentityRole> RoleManager
 @inject NavigationManager NavManager
 
-<PageTitle>ProTouch Admin | Clinic Management</PageTitle>
+<PageTitle>ProTouch Admin | Clinic Control Center</PageTitle>
 
 <div class="container-fluid py-4 admin-shell">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div>
-            <span class="eyebrow">PROTOUCH CLINIC • ADMIN</span>
-            <h1 class="gradient-text display-5 mb-1">Clinic Control Center</h1>
-            <p class="text-secondary mb-0">Patients, appointments, payments, photos and WhatsApp-first communication in one place.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a class="btn-clinic-secondary" href="/client-dashboard">👤 Client View</a>
-            <button class="btn-clinic" @onclick="LoadAdminDataAsync">↻ Refresh</button>
-        </div>
-    </div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4"><div><span class="eyebrow">PROTOUCH CLINIC • ADMIN</span><h1 class="gradient-text display-5 mb-1">Clinic Control Center</h1><p class="text-secondary mb-0">Clients, visits, care plans and secure WhatsApp communication.</p></div><button class="btn-clinic" @onclick="LoadAdminDataAsync">Refresh</button></div>
 
     <div class="dashboard-grid mb-4">
-        <div class="glass-panel stat-card"><div><span class="text-secondary small">Active Clients</span><h2>@clients.Count(c => c.IsActive)</h2><span class="text-muted small">@clients.Count total profiles</span></div><div class="stat-icon">👥</div></div>
-        <div class="glass-panel stat-card"><div><span class="text-secondary small">Today's Visits</span><h2>@todayAttendanceCount</h2><span class="text-muted small">@checkedInCount currently checked in</span></div><div class="stat-icon">🏥</div></div>
-        <div class="glass-panel stat-card"><div><span class="text-secondary small">Pending Fees</span><h2>@pendingInvoicesCount</h2><span class="text-muted small">Invoices awaiting payment</span></div><div class="stat-icon">₹</div></div>
-        <div class="glass-panel stat-card"><div><span class="text-secondary small">WhatsApp Activity</span><h2>@whatsappLogs.Count</h2><span class="text-muted small">Campaigns / reminders</span></div><div class="stat-icon">💬</div></div>
+        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "clients"'><div><span class="text-secondary small">Active Clients</span><h2>@clients.Count(c => c.IsActive)</h2><span class="text-muted small">Open client directory</span></div><div class="stat-icon">👥</div></button>
+        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "visits"'><div><span class="text-secondary small">Today's Visits</span><h2>@todayAttendanceCount</h2><span class="text-muted small">Open visit register</span></div><div class="stat-icon">🏥</div></button>
+        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "clients"'><div><span class="text-secondary small">Pending Fees</span><h2>@pendingInvoicesCount</h2><span class="text-muted small">Review client billing</span></div><div class="stat-icon">₹</div></button>
+        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "whatsapp"'><div><span class="text-secondary small">WhatsApp Activity</span><h2>@whatsappLogs.Count</h2><span class="text-muted small">Open broadcast center</span></div><div class="stat-icon">💬</div></button>
     </div>
 
-    <div class="glass-panel p-2 mb-4 d-flex flex-wrap gap-2">
-        <button class="btn @(activeTab == "clients" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "clients"'>👥 Clients</button>
-        <button class="btn @(activeTab == "add" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "add"'>➕ Add User</button>
-        <button class="btn @(activeTab == "whatsapp" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "whatsapp"'>💬 WhatsApp Center</button>
-        <button class="btn @(activeTab == "visits" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "visits"'>🕒 Visits</button>
-    </div>
+    <div class="glass-panel p-2 mb-4 d-flex flex-wrap gap-2"><button class="btn @(activeTab == "clients" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "clients"'>Clients</button><button class="btn @(activeTab == "add" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "add"'>Add user</button><button class="btn @(activeTab == "visits" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "visits"'>Visits</button><button class="btn @(activeTab == "whatsapp" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "whatsapp"'>WhatsApp Center</button></div>
 
     @if (activeTab == "add")
     {
-        <div class="row g-4">
-            <div class="col-xl-7">
-                <div class="glass-panel p-4">
-                    <div class="section-heading"><div><span class="eyebrow">NEW CLIENT</span><h3>Add Client & Create Login</h3></div><span class="soft-pill">Credentials generated securely</span></div>
-                    <div class="row g-3">
-                        <div class="col-md-6"><label class="clinic-label">Full name</label><input class="clinic-input" @bind="newName" placeholder="Client full name" /></div>
-                        <div class="col-md-6"><label class="clinic-label">Email / Username</label><input class="clinic-input" type="email" @bind="newEmail" placeholder="client@email.com" /></div>
-                        <div class="col-md-6"><label class="clinic-label">WhatsApp number</label><input class="clinic-input" @bind="newPhone" placeholder="+91 98765 43210" /></div>
-                        <div class="col-md-6"><label class="clinic-label">Starting weight (kg)</label><input class="clinic-input" type="number" step="0.1" @bind="newStartWeight" /></div>
-                        <div class="col-md-6"><label class="clinic-label">Target weight (kg)</label><input class="clinic-input" type="number" step="0.1" @bind="newTargetWeight" /></div>
-                        <div class="col-md-6"><label class="clinic-label">Height (cm)</label><input class="clinic-input" type="number" step="0.1" @bind="newHeight" /></div>
-                        <div class="col-12"><label class="clinic-label">Clinical / diet notes</label><textarea class="clinic-input" rows="3" @bind="newNotes" placeholder="Diet instructions, treatment notes, restrictions..." ></textarea></div>
-                    </div>
-                    <button class="btn-clinic mt-3" @onclick="CreateClient" disabled="@creatingClient">@(creatingClient ? "Creating..." : "Create Client & Login")</button>
-                    @if (!string.IsNullOrWhiteSpace(createUserMessage)) { <div class="clinic-alert @(createUserSuccess ? "clinic-alert-success" : "clinic-alert-danger") mt-3">@createUserMessage</div> }
-                </div>
-            </div>
-            <div class="col-xl-5">
-                <div class="glass-panel p-4 h-100 credential-card">
-                    <span class="eyebrow">CLIENT CREDENTIALS</span>
-                    <h3 class="mb-2">Share login details</h3>
-                    <p class="text-secondary">The temporary password is shown only after creation. Copy it and send it to the client through WhatsApp.</p>
-                    @if (!string.IsNullOrWhiteSpace(lastCreatedEmail))
-                    {
-                        <div class="credential-row"><span>Email</span><strong>@lastCreatedEmail</strong></div>
-                        <div class="credential-row"><span>Temporary password</span><strong>@lastCreatedPassword</strong></div>
-                        <div class="credential-row"><span>WhatsApp</span><strong>@lastCreatedPhone</strong></div>
-                        @if (!string.IsNullOrWhiteSpace(lastCredentialWhatsAppLink))
-                        { <a class="btn-clinic w-100 justify-content-center mt-3" target="_blank" href="@lastCredentialWhatsAppLink">💬 Send Credentials on WhatsApp</a> }
-                    }
-                    else
-                    {
-                        <div class="empty-state">Create a client to generate credentials.</div>
-                    }
-                </div>
-            </div>
-        </div>
+        <div class="row g-4"><div class="col-xl-8"><div class="glass-panel p-4"><div class="section-heading"><div><span class="eyebrow">USER ACCESS</span><h3>Add user & assign role</h3></div></div><div class="row g-3"><div class="col-md-6"><label class="clinic-label">Full name</label><input class="clinic-input" @bind="newName" /></div><div class="col-md-6"><label class="clinic-label">Role</label><select class="clinic-input" @bind="newRole"><option>Client</option><option>Admin</option></select></div><div class="col-md-6"><label class="clinic-label">Email / username</label><input class="clinic-input" type="email" @bind="newEmail" /></div><div class="col-md-6"><label class="clinic-label">WhatsApp number</label><input class="clinic-input" @bind="newPhone" /></div>@if (newRole == "Client") { <div class="col-md-4"><label class="clinic-label">Starting weight (kg)</label><input class="clinic-input" type="number" @bind="newStartWeight" /></div><div class="col-md-4"><label class="clinic-label">Target weight (kg)</label><input class="clinic-input" type="number" @bind="newTargetWeight" /></div><div class="col-md-4"><label class="clinic-label">Height (cm)</label><input class="clinic-input" type="number" @bind="newHeight" /></div> }<div class="col-12"><label class="clinic-label">Clinical / staff notes</label><textarea class="clinic-input" rows="3" @bind="newNotes"></textarea></div></div><button class="btn-clinic mt-3" @onclick="CreateUser" disabled="@creatingUser">@(creatingUser ? "Creating..." : "Create user")</button>@if (!string.IsNullOrWhiteSpace(createUserMessage)) { <div class="clinic-alert @(createUserSuccess ? "clinic-alert-success" : "clinic-alert-danger") mt-3">@createUserMessage</div> }</div></div><div class="col-xl-4"><div class="glass-panel p-4 h-100"><span class="eyebrow">ACCESS POLICY</span><h3>Roles are explicit</h3><p class="text-secondary">Admins manage clinic records. Clients can access only their own portal for logs, booking and guidance.</p>@if (!string.IsNullOrWhiteSpace(lastCreatedEmail)) { <div class="credential-row"><span>Login</span><strong>@lastCreatedEmail</strong></div><div class="credential-row"><span>Temporary password</span><strong>@lastCreatedPassword</strong></div><a class="btn-clinic mt-3" target="_blank" href="@lastCredentialWhatsAppLink">Send credentials</a> }</div></div></div>
     }
     else if (activeTab == "whatsapp")
     {
-        <div class="row g-4">
-            <div class="col-xl-5">
-                <div class="glass-panel p-4">
-                    <div class="section-heading"><div><span class="eyebrow">WHATSAPP-FIRST</span><h3>Message Center</h3></div><span class="wa-badge">WhatsApp</span></div>
-                    <p class="text-secondary small">Messages open in WhatsApp with the text already filled. This keeps communication manual and client-controlled. For true unattended bulk delivery, connect the official WhatsApp Business API/Twilio gateway later.</p>
-                    <label class="clinic-label">Audience</label>
-                    <select class="clinic-input mb-3" @bind="campaignAudience">
-                        <option>All Clients</option><option>Active Clients</option><option>Pending Fees</option><option>Diet Reminder</option><option>Appointment Reminder</option><option>Over Target Weight</option>
-                    </select>
-                    <label class="clinic-label">Message</label>
-                    <textarea class="clinic-input" rows="7" @bind="campaignText"></textarea>
-                    <div class="d-flex flex-wrap gap-2 mt-3">
-                        <button class="btn-clinic" @onclick="PrepareWhatsAppCampaign">Prepare WhatsApp Messages</button>
-                        <button class="btn-clinic-secondary" @onclick="UseFeeTemplate">Fee Reminder</button>
-                        <button class="btn-clinic-secondary" @onclick="UseDietTemplate">Diet Reminder</button>
-                        <button class="btn-clinic-secondary" @onclick="UseAppointmentTemplate">Appointment</button>
-                    </div>
-                    @if (!string.IsNullOrWhiteSpace(campaignSuccessMsg)) { <div class="clinic-alert clinic-alert-success mt-3">@campaignSuccessMsg</div> }
-                </div>
-            </div>
-            <div class="col-xl-7">
-                <div class="glass-panel p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3"><div><span class="eyebrow">READY TO SEND</span><h3>WhatsApp Queue</h3></div><span class="soft-pill">@campaignRecipients.Count recipients</span></div>
-                    @if (!campaignRecipients.Any())
-                    {
-                        <div class="empty-state">Choose an audience and prepare the messages.</div>
-                    }
-                    else
-                    {
-                        @foreach (var user in campaignRecipients)
-                        {
-                            var message = Personalize(campaignText, user);
-                            <div class="message-row">
-                                <div><strong>@user.FullName</strong><div class="text-secondary small">@user.PhoneNumber</div><div class="text-muted small text-truncate" style="max-width: 420px;">@message</div></div>
-                                <a class="btn-clinic-secondary btn-sm" target="_blank" href="@ClinicService.BuildWhatsAppLink(user.PhoneNumber ?? "", message)">Open WhatsApp ↗</a>
-                            </div>
-                        }
-                    }
-                </div>
-                <div class="glass-panel p-4 mt-4">
-                    <h4>Recent WhatsApp Activity</h4>
-                    @foreach (var log in whatsappLogs.Take(8))
-                    {
-                        <div class="activity-row"><div><strong>@log.TargetAudience</strong><div class="text-secondary small">@log.MessageTemplate</div></div><span class="soft-pill">@log.Status • @log.RecipientCount</span></div>
-                    }
-                </div>
-            </div>
-        </div>
+        <div class="row g-4"><div class="col-xl-5"><div class="glass-panel p-4"><span class="eyebrow">CSV BROADCAST</span><h3>Bulk WhatsApp Campaign</h3><p class="text-secondary small">Upload a CSV with <strong>Name</strong> and <strong>Phone</strong> columns. Use <code>{{Name}}</code> in your message to personalise it.</p><label class="clinic-label">CSV recipients</label><InputFile class="clinic-input mb-3" accept=".csv,text/csv" OnChange="ReadCsvRecipients" /><label class="clinic-label">Message template</label><textarea class="clinic-input" rows="7" @bind="campaignText"></textarea><div class="d-flex gap-2 mt-3"><button class="btn-clinic" @onclick="SendCsvCampaign" disabled="@(!csvRecipients.Any() || sendingCampaign)">@(sendingCampaign ? "Sending..." : "Send Bulk Campaign")</button><button class="btn-clinic-secondary" @onclick="UseDietTemplate">Diet template</button></div>@if (!string.IsNullOrWhiteSpace(campaignSuccessMsg)) { <div class="clinic-alert clinic-alert-success mt-3">@campaignSuccessMsg</div> }</div></div><div class="col-xl-7"><div class="glass-panel p-4"><div class="section-heading"><div><span class="eyebrow">RECIPIENT PREVIEW</span><h3>@csvRecipients.Count CSV recipients</h3></div></div>@if (!csvRecipients.Any()) { <div class="empty-state">Choose a CSV file to preview recipients.</div> } else { @foreach (var recipient in csvRecipients.Take(30)) { <div class="message-row"><div><strong>@recipient.Name</strong><div class="text-secondary small">@recipient.Phone</div></div><span class="soft-pill">Ready</span></div> } }</div><div class="glass-panel p-4 mt-4"><h4>Recent activity</h4>@foreach (var log in whatsappLogs.Take(8)) { <div class="activity-row"><div><strong>@log.TargetAudience</strong><div class="text-secondary small">@log.MessageTemplate</div></div><span class="soft-pill">@log.Status • @log.RecipientCount</span></div> }</div></div></div>
     }
     else if (activeTab == "visits")
     {
-        <div class="glass-panel p-4">
-            <div class="section-heading"><div><span class="eyebrow">TODAY</span><h3>Clinic Visits</h3></div><span class="soft-pill">@checkedInCount checked in</span></div>
-            <div class="row g-3 mb-4">
-                <div class="col-md-4"><label class="clinic-label">Client</label><select class="clinic-input" @bind="checkInUserId"><option value="">Select client</option>@foreach (var c in clients.Where(c => c.User?.PhoneNumber != null && c.User.PhoneNumber != "")) { <option value="@c.UserId">@c.User!.FullName</option> }</select></div>
-                <div class="col-md-3"><label class="clinic-label">Treatment</label><select class="clinic-input" @bind="checkInTreatment"><option>Slimming Therapy</option><option>Physiotherapy</option><option>Consultation</option><option>Detox / Wellness</option></select></div>
-                <div class="col-md-3"><label class="clinic-label">Therapist</label><input class="clinic-input" @bind="checkInTherapist" /></div>
-                <div class="col-md-2 d-flex align-items-end"><button class="btn-clinic w-100" @onclick="SubmitCheckIn" disabled="@string.IsNullOrWhiteSpace(checkInUserId)">Check In</button></div>
-            </div>
-            @foreach (var visit in attendanceLogs.Take(30))
-            {
-                <div class="message-row"><div><strong>@visit.User?.FullName</strong><div class="text-secondary small">@visit.TreatmentReceived • @visit.Therapist</div><div class="text-muted small">@visit.CheckInTime.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</div></div><div class="d-flex align-items-center gap-2"><span class="soft-pill">@visit.Status</span>@if (visit.Status == "Checked In") { <button class="btn-clinic-secondary btn-sm" @onclick="() => CheckOutClient(visit.Id)">Check out</button> }</div></div>
-            }
-        </div>
+        <div class="glass-panel p-4"><div class="section-heading"><div><span class="eyebrow">TREATMENT REGISTER</span><h3>Log a visit</h3></div><span class="soft-pill">@todayAttendanceCount today</span></div><div class="row g-3 mb-4"><div class="col-md-4"><label class="clinic-label">Client</label><select class="clinic-input" @bind="visitUserId"><option value="">Select client</option>@foreach (var c in clients) { <option value="@c.UserId">@c.User?.FullName</option> }</select></div><div class="col-md-4"><label class="clinic-label">Visit date & time</label><input class="clinic-input" type="datetime-local" @bind="visitDate" /></div><div class="col-md-4"><label class="clinic-label">Treatment given</label><select class="clinic-input" @bind="visitTreatment"><option>Physiotherapy</option><option>Skin Consultation</option><option>Diet Review</option><option>Slimming Therapy</option><option>Wellness Consultation</option></select></div><div class="col-md-4"><label class="clinic-label">Doctor / practitioner</label><input class="clinic-input" @bind="visitPractitioner" /></div><div class="col-md-4"><label class="clinic-label">Next appointment</label><input class="clinic-input" type="datetime-local" @bind="nextAppointmentDate" /></div><div class="col-md-4"><label class="clinic-label">Notes</label><input class="clinic-input" @bind="visitNotes" placeholder="Treatment response / instructions" /></div></div><button class="btn-clinic mb-4" @onclick="SaveVisit" disabled="@string.IsNullOrWhiteSpace(visitUserId)">Save visit</button><h4 class="mb-3">Service history</h4>@foreach (var visit in attendanceLogs.Take(50)) { <div class="message-row"><div><strong>@visit.User?.FullName</strong><div class="text-secondary small">@visit.TreatmentReceived • @visit.Therapist</div><div class="text-muted small">@visit.CheckInTime.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt") • Next: @(visit.NextAppointmentDate?.ToLocalTime().ToString("dd MMM yyyy") ?? "Not set")</div>@if (!string.IsNullOrWhiteSpace(visit.Notes)) { <div class="text-secondary small mt-1">@visit.Notes</div> }</div><span class="soft-pill">@visit.Status</span></div> }</div>
     }
     else
     {
-        <div class="row g-4">
-            <div class="col-xl-4">
-                <div class="glass-panel p-4 sticky-xl-top" style="top:20px;">
-                    <div class="section-heading"><div><span class="eyebrow">DIRECTORY</span><h3>Clients</h3></div><button class="btn-icon" @onclick='() => activeTab = "add"'>+</button></div>
-                    <input class="clinic-input mb-3" placeholder="Search clients..." @bind="searchQuery" />
-                    <div class="client-list">
-                        @foreach (var client in FilteredClients)
-                        {
-                            <button class="client-list-item @(selectedClient?.Id == client.Id ? "selected" : "")" @onclick="() => InspectClient(client)">
-                                <span class="avatar-sm">@(client.User?.FullName?.FirstOrDefault() ?? '?')</span><span class="text-start flex-grow-1"><strong>@client.User?.FullName</strong><small>@client.User?.PhoneNumber</small></span><span class="status-dot @(client.IsActive ? "on" : "off")"></span>
-                            </button>
-                        }
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-8">
-                @if (selectedClient == null)
-                {
-                    <div class="glass-panel p-5 text-center"><div class="hero-orb">👋</div><h2>Select a client</h2><p class="text-secondary">View progress, upload/view profile details, manage appointments and fees, then communicate through WhatsApp.</p></div>
-                }
-                else
-                {
-                    <div class="glass-panel p-4 mb-4">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-                            <div class="d-flex align-items-center gap-3"><div class="profile-avatar">@(selectedClient.User?.FullName?.FirstOrDefault() ?? '?')</div><div><span class="eyebrow">CLIENT PROFILE</span><h2 class="mb-0">@selectedClient.User?.FullName</h2><span class="text-secondary">@selectedClient.User?.Email • @selectedClient.User?.PhoneNumber</span></div></div>
-                            <div class="d-flex gap-2"><a class="btn-clinic" target="_blank" href="@ClinicService.BuildWhatsAppLink(selectedClient.User?.PhoneNumber ?? "", $"Hello {selectedClient.User?.FullName}, this is ProTouch Clinic. How can we help you today?")">💬 WhatsApp</a><button class="btn-clinic-secondary" @onclick="ToggleClientStatus">@(selectedClient.IsActive ? "Suspend" : "Activate")</button></div>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-3"><label class="clinic-label">Height</label><input class="clinic-input" type="number" @bind="selectedClient.Height" /></div>
-                            <div class="col-md-3"><label class="clinic-label">Start weight</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.StartWeight" /></div>
-                            <div class="col-md-3"><label class="clinic-label">Target weight</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.TargetWeight" /></div>
-                            <div class="col-md-3"><label class="clinic-label">Current weight</label><div class="clinic-input readonly">@(selectedClientLogs.Any() ? $"{selectedClientLogs.First().Weight:F1} kg" : "—")</div></div>
-                            <div class="col-12"><label class="clinic-label">Doctor / Dietician notes</label><textarea class="clinic-input" rows="3" @bind="selectedClient.DoctorNotes"></textarea></div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-3"><span class="text-success small">@profileSaveMsg</span><button class="btn-clinic" @onclick="SaveClientProfile">Save profile</button></div>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-md-6"><div class="glass-panel p-4 h-100"><h4>Progress</h4><div class="mini-stat"><span>Weight change</span><strong>@((selectedClient.StartWeight - (selectedClientLogs.Any() ? selectedClientLogs.First().Weight : selectedClient.StartWeight)).ToString("F1")) kg</strong></div><div class="progress mt-3"><div class="progress-bar" style="width:@ProgressPercent%"></div></div><div class="d-flex justify-content-between text-secondary small mt-2"><span>Start @selectedClient.StartWeight kg</span><span>Target @selectedClient.TargetWeight kg</span></div></div></div>
-                        <div class="col-md-6"><div class="glass-panel p-4 h-100"><h4>Latest Diet Check</h4>@if (selectedClientLogs.Any()) { var latest = selectedClientLogs.First(); <div class="text-secondary small mb-2">@latest.LogDate.ToString("dd MMM yyyy") • @latest.Weight kg</div><p class="mb-0">@latest.DietNotes</p>@if (!string.IsNullOrWhiteSpace(latest.MealPhotoUrl)) { <img src="@latest.MealPhotoUrl" class="meal-thumb mt-3" alt="Meal" /> } } else { <span class="text-secondary">No daily log yet.</span> }</div></div>
-                    </div>
-
-                    <div class="glass-panel p-4 mt-4">
-                        <div class="section-heading"><div><span class="eyebrow">FEES</span><h4>Billing & WhatsApp Reminders</h4></div></div>
-                        <div class="row g-2 mb-3"><div class="col-md-5"><input class="clinic-input" placeholder="Description" @bind="newInvoiceDesc" /></div><div class="col-md-3"><input class="clinic-input" type="number" step="0.01" @bind="newInvoiceAmount" /></div><div class="col-md-4"><button class="btn-clinic w-100" @onclick="CreateClientInvoice">Create invoice</button></div></div>
-                        @foreach (var invoice in selectedClientPayments)
-                        {
-                            var feeMsg = $"Hello {selectedClient.User?.FullName}, this is a reminder from ProTouch Clinic regarding your pending fee of ₹{invoice.Amount:N0} for {invoice.Description}. Please contact us if you need assistance.";
-                            <div class="message-row"><div><strong>₹@invoice.Amount.ToString("N0")</strong><div class="text-secondary small">@invoice.Description • @invoice.BillingDate.ToLocalTime().ToString("dd MMM yyyy")</div></div><div class="d-flex gap-2"><span class="soft-pill">@(invoice.IsPaid ? "Paid" : "Pending")</span>@if (!invoice.IsPaid) { <a class="btn-clinic-secondary btn-sm" target="_blank" href="@ClinicService.BuildWhatsAppLink(selectedClient.User?.PhoneNumber ?? "", feeMsg)">💬 Fee reminder</a><button class="btn-clinic-secondary btn-sm" @onclick="() => MarkPaid(invoice.Id)">Mark paid</button> }</div></div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
+        <div class="row g-4"><div class="col-xl-4"><div class="glass-panel p-4 sticky-xl-top" style="top:20px"><div class="section-heading"><div><span class="eyebrow">DIRECTORY</span><h3>Clients</h3></div><button class="btn-icon" @onclick='() => activeTab = "add"'>+</button></div><input class="clinic-input mb-3" placeholder="Search clients..." @bind="searchQuery" /><div class="client-list">@foreach (var client in FilteredClients) { <button class="client-list-item @(selectedClient?.Id == client.Id ? "selected" : "")" @onclick="() => InspectClient(client)"><span class="avatar-sm">@(client.User?.FullName?.FirstOrDefault() ?? '?')</span><span class="text-start flex-grow-1"><strong>@client.User?.FullName</strong><small>@client.User?.PhoneNumber</small></span></button> }</div></div></div><div class="col-xl-8">@if (selectedClient == null) { <div class="glass-panel p-5 text-center"><h2>Select a client</h2><p class="text-secondary">Review treatment, weight and full measurement progress.</p></div> } else { <div class="glass-panel p-4"><div class="d-flex justify-content-between align-items-center gap-3 mb-4"><div><span class="eyebrow">CLIENT PROFILE</span><h2>@selectedClient.User?.FullName</h2><span class="text-secondary">@selectedClient.User?.Email • @selectedClient.User?.PhoneNumber</span></div><a class="btn-clinic" target="_blank" href='@ClinicService.BuildWhatsAppLink(selectedClient.User?.PhoneNumber ?? "", $"Hello {selectedClient.User?.FullName}, this is ProTouch Clinic.")'>WhatsApp</a></div><div class="row g-3"><div class="col-md-4"><label class="clinic-label">Access role</label><select class="clinic-input" @bind="selectedRole"><option>Client</option><option>Admin</option></select></div><div class="col-md-4"><label class="clinic-label">Height (cm)</label><input class="clinic-input" type="number" @bind="selectedClient.Height" /></div><div class="col-md-4"><label class="clinic-label">Current weight</label><div class="clinic-input readonly">@(selectedClientLogs.FirstOrDefault()?.Weight.ToString("F1") ?? "—") kg</div></div><div class="col-md-4"><label class="clinic-label">Waist (in)</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.WaistInches" /></div><div class="col-md-4"><label class="clinic-label">Chest (in)</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.ChestInches" /></div><div class="col-md-4"><label class="clinic-label">Hips (in)</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.HipsInches" /></div><div class="col-md-4"><label class="clinic-label">Arms (in)</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.ArmsInches" /></div><div class="col-md-8"><label class="clinic-label">Doctor / dietician notes</label><textarea class="clinic-input" rows="2" @bind="selectedClient.DoctorNotes"></textarea></div></div><div class="d-flex gap-2 mt-3"><button class="btn-clinic" @onclick="SaveClient">Save profile & role</button><button class="btn-clinic-secondary" @onclick="ToggleClientStatus">@(selectedClient.IsActive ? "Suspend" : "Activate")</button></div>@if (!string.IsNullOrWhiteSpace(profileSaveMsg)) { <div class="text-success small mt-2">@profileSaveMsg</div> }</div> }</div></div>
     }
 </div>
 
 @code {
-    private List<ClientProfile> clients = new();
-    private List<AttendanceRecord> attendanceLogs = new();
-    private List<WhatsAppLog> whatsappLogs = new();
-    private ClientProfile? selectedClient;
-    private List<DailyLog> selectedClientLogs = new();
-    private List<PaymentNotification> selectedClientPayments = new();
-    private string activeTab = "clients";
-    private string searchQuery = "";
-    private int todayAttendanceCount, checkedInCount, pendingInvoicesCount;
-    private string checkInUserId = "", checkInTreatment = "Slimming Therapy", checkInTherapist = "Dr. Anita Sharma";
-    private string newInvoiceDesc = "", campaignAudience = "All Clients";
-    private decimal newInvoiceAmount = 250;
-    private string campaignText = "Hello {Name}, this is ProTouch Clinic. Please remember to update your daily weight and diet check today.";
-    private List<ApplicationUser> campaignRecipients = new();
-    private string campaignSuccessMsg = "", profileSaveMsg = "";
-    private bool creatingClient;
-    private string newName = "", newEmail = "", newPhone = "", newNotes = "";
-    private double newStartWeight = 70, newTargetWeight = 65, newHeight = 170;
-    private string createUserMessage = "";
-    private bool createUserSuccess;
-    private string lastCreatedEmail = "", lastCreatedPassword = "", lastCreatedPhone = "", lastCredentialWhatsAppLink = "";
-
-    private IEnumerable<ClientProfile> FilteredClients => string.IsNullOrWhiteSpace(searchQuery) ? clients : clients.Where(c => (c.User?.FullName ?? "").Contains(searchQuery, StringComparison.OrdinalIgnoreCase) || (c.User?.PhoneNumber ?? "").Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
-    private int ProgressPercent => selectedClient == null || !selectedClientLogs.Any() || selectedClient.StartWeight <= selectedClient.TargetWeight ? 0 : Math.Clamp((int)(((selectedClient.StartWeight - selectedClientLogs.First().Weight) / (selectedClient.StartWeight - selectedClient.TargetWeight)) * 100), 0, 100);
-
+    private List<ClientProfile> clients = new(); private List<AttendanceRecord> attendanceLogs = new(); private List<WhatsAppLog> whatsappLogs = new(); private ClientProfile? selectedClient; private List<DailyLog> selectedClientLogs = new(); private string activeTab = "clients", searchQuery = "", selectedRole = "Client"; private int todayAttendanceCount, pendingInvoicesCount;
+    private string newName = "", newEmail = "", newPhone = "", newNotes = "", newRole = "Client", createUserMessage = "", lastCreatedEmail = "", lastCreatedPassword = "", lastCredentialWhatsAppLink = ""; private double newStartWeight = 70, newTargetWeight = 65, newHeight = 170; private bool creatingUser, createUserSuccess;
+    private string campaignText = "Hello {{Name}}, this is ProTouch Clinic. Please remember to update your daily weight and diet check today.", campaignSuccessMsg = ""; private List<CsvRecipient> csvRecipients = new(); private bool sendingCampaign;
+    private string visitUserId = "", visitTreatment = "Physiotherapy", visitPractitioner = "", visitNotes = ""; private DateTime visitDate = DateTime.Now, nextAppointmentDate = DateTime.Now.AddDays(7); private string profileSaveMsg = "";
+    private IEnumerable<ClientProfile> FilteredClients => string.IsNullOrWhiteSpace(searchQuery) ? clients : clients.Where(c => (c.User?.FullName ?? "").Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
     protected override async Task OnInitializedAsync() => await LoadAdminDataAsync();
-
-    private async Task LoadAdminDataAsync()
-    {
-        clients = await ClinicService.GetAllClientsAsync();
-        attendanceLogs = await ClinicService.GetAllAttendanceAsync();
-        whatsappLogs = await ClinicService.GetWhatsAppLogsAsync();
-        var payments = await ClinicService.GetAllPaymentsAsync();
-        pendingInvoicesCount = payments.Count(x => !x.IsPaid);
-        todayAttendanceCount = attendanceLogs.Count(x => x.CheckInTime.ToLocalTime().Date == DateTime.Today);
-        checkedInCount = attendanceLogs.Count(x => x.Status == "Checked In");
-        if (selectedClient != null)
-        {
-            selectedClient = clients.FirstOrDefault(x => x.Id == selectedClient.Id);
-            if (selectedClient != null) { selectedClientLogs = await ClinicService.GetClientDailyLogsAsync(selectedClient.UserId); selectedClientPayments = await ClinicService.GetClientPaymentsAsync(selectedClient.UserId); }
-        }
-    }
-
-    private async Task InspectClient(ClientProfile client) { selectedClient = client; selectedClientLogs = await ClinicService.GetClientDailyLogsAsync(client.UserId); selectedClientPayments = await ClinicService.GetClientPaymentsAsync(client.UserId); profileSaveMsg = ""; }
-    private async Task SaveClientProfile() { if (selectedClient == null) return; await ClinicService.UpdateClientProfileAsync(selectedClient); profileSaveMsg = "Saved ✓"; await LoadAdminDataAsync(); }
+    private async Task LoadAdminDataAsync() { clients = await ClinicService.GetAllClientsAsync(); attendanceLogs = await ClinicService.GetAllAttendanceAsync(); whatsappLogs = await ClinicService.GetWhatsAppLogsAsync(); pendingInvoicesCount = (await ClinicService.GetAllPaymentsAsync()).Count(x => !x.IsPaid); todayAttendanceCount = attendanceLogs.Count(x => x.CheckInTime.ToLocalTime().Date == DateTime.Today); }
+    private async Task InspectClient(ClientProfile client) { selectedClient = client; selectedClientLogs = await ClinicService.GetClientDailyLogsAsync(client.UserId); selectedRole = (await UserManager.GetRolesAsync(client.User!)).FirstOrDefault() ?? "Client"; profileSaveMsg = ""; }
+    private async Task SaveClient() { if (selectedClient?.User == null) return; await ClinicService.UpdateClientProfileAsync(selectedClient); var roles = await UserManager.GetRolesAsync(selectedClient.User); if (!roles.SequenceEqual([selectedRole])) { await UserManager.RemoveFromRolesAsync(selectedClient.User, roles); await UserManager.AddToRoleAsync(selectedClient.User, selectedRole); } profileSaveMsg = "Profile and access role saved."; await LoadAdminDataAsync(); }
     private async Task ToggleClientStatus() { if (selectedClient == null) return; selectedClient.IsActive = !selectedClient.IsActive; await ClinicService.UpdateClientProfileAsync(selectedClient); await LoadAdminDataAsync(); }
-    private async Task SubmitCheckIn() { if (string.IsNullOrWhiteSpace(checkInUserId)) return; await ClinicService.LogCheckInAsync(checkInUserId, checkInTreatment, checkInTherapist, ""); checkInUserId = ""; await LoadAdminDataAsync(); }
-    private async Task CheckOutClient(int id) { await ClinicService.LogCheckOutAsync(id, "Session completed."); await LoadAdminDataAsync(); }
-    private async Task CreateClientInvoice() { if (selectedClient == null || string.IsNullOrWhiteSpace(newInvoiceDesc) || newInvoiceAmount <= 0) return; await ClinicService.CreateInvoiceAsync(selectedClient.UserId, newInvoiceAmount, newInvoiceDesc); newInvoiceDesc = ""; await LoadAdminDataAsync(); }
-    private async Task MarkPaid(int id) { await ClinicService.MarkInvoiceAsPaidAsync(id); await LoadAdminDataAsync(); }
-
-    private async Task CreateClient()
-    {
-        createUserMessage = ""; creatingClient = true; lastCreatedPassword = ""; lastCredentialWhatsAppLink = "";
-        try
-        {
-            if (string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newEmail) || string.IsNullOrWhiteSpace(newPhone)) { createUserMessage = "Name, email and WhatsApp number are required."; createUserSuccess = false; return; }
-            if (await UserManager.FindByEmailAsync(newEmail.Trim()) != null) { createUserMessage = "A user with this email already exists."; createUserSuccess = false; return; }
-            var password = GenerateTemporaryPassword();
-            var user = new ApplicationUser { UserName = newEmail.Trim(), Email = newEmail.Trim(), EmailConfirmed = true, FullName = newName.Trim(), PhoneNumber = newPhone.Trim() };
-            var result = await UserManager.CreateAsync(user, password);
-            if (!result.Succeeded) { createUserMessage = string.Join(" ", result.Errors.Select(e => e.Description)); createUserSuccess = false; return; }
-            await UserManager.AddToRoleAsync(user, "Client");
-            await ClinicService.EnsureClientProfileExistsAsync(user.Id, newStartWeight, newTargetWeight, newHeight);
-            var profile = await ClinicService.GetClientProfileByUserIdAsync(user.Id);
-            if (profile != null) { profile.DoctorNotes = newNotes; await ClinicService.UpdateClientProfileAsync(profile); }
-            lastCreatedEmail = user.Email!; lastCreatedPassword = password; lastCreatedPhone = user.PhoneNumber!;
-            lastCredentialWhatsAppLink = ClinicService.BuildWhatsAppLink(user.PhoneNumber!, $"Hello {user.FullName}, welcome to ProTouch Clinic. Your client portal credentials are:\nEmail: {user.Email}\nTemporary password: {password}\nLogin: {NavManager.BaseUri}Account/Login\nPlease change your password after your first login.");
-            createUserMessage = "Client created successfully."; createUserSuccess = true;
-            newName = newEmail = newPhone = newNotes = ""; newStartWeight = 70; newTargetWeight = 65; newHeight = 170;
-            await LoadAdminDataAsync();
-        }
-        finally { creatingClient = false; }
-    }
-
-    private static string GenerateTemporaryPassword() => $"PT{Random.Shared.Next(100000, 999999)}!a";
-
-    private async Task PrepareWhatsAppCampaign()
-    {
-        var all = clients.Where(c => c.User?.PhoneNumber != null && c.User.PhoneNumber != "").Select(c => c.User!).ToList();
-        if (campaignAudience == "Active Clients") campaignRecipients = clients.Where(c => c.IsActive && c.User?.PhoneNumber != null && c.User.PhoneNumber != "").Select(c => c.User!).ToList();
-        else if (campaignAudience == "Pending Fees") { var payments = await ClinicService.GetAllPaymentsAsync(); var ids = payments.Where(p => !p.IsPaid).Select(p => p.UserId).Distinct().ToHashSet(); campaignRecipients = all.Where(u => ids.Contains(u.Id)).ToList(); }
-        else if (campaignAudience == "Over Target Weight") { campaignRecipients = new(); foreach (var c in clients.Where(c => c.User?.PhoneNumber != null && c.User.PhoneNumber != "")) { var logs = await ClinicService.GetClientDailyLogsAsync(c.UserId); var weight = logs.FirstOrDefault()?.Weight ?? c.StartWeight; if (weight > c.TargetWeight) campaignRecipients.Add(c.User!); } }
-        else campaignRecipients = all;
-        campaignSuccessMsg = campaignRecipients.Count == 0 ? "No recipients found." : $"Prepared {campaignRecipients.Count} WhatsApp messages.";
-        if (campaignRecipients.Any()) await ClinicService.LogManualWhatsAppCampaignAsync(campaignAudience, campaignText, campaignRecipients);
-        await LoadAdminDataAsync();
-    }
-    private string Personalize(string template, ApplicationUser u) => template.Replace("{Name}", u.FullName ?? "Client").Replace("{Phone}", u.PhoneNumber ?? "");
-    private void UseFeeTemplate() => campaignText = "Hello {Name}, this is ProTouch Clinic. This is a friendly reminder about your pending clinic fee. Please contact us on WhatsApp if you need assistance.";
-    private void UseDietTemplate() => campaignText = "Hello {Name}, this is your ProTouch Clinic diet reminder. Please follow your prescribed diet plan, stay hydrated and update today's weight/meal check on the portal.";
-    private void UseAppointmentTemplate() => campaignText = "Hello {Name}, this is ProTouch Clinic. This is a reminder for your upcoming appointment. Please reply here if you need to reschedule.";
+    private async Task CreateUser() { creatingUser = true; try { if (string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newEmail)) { createUserMessage = "Name and email are required."; createUserSuccess = false; return; } if (await UserManager.FindByEmailAsync(newEmail.Trim()) != null) { createUserMessage = "A user with this email already exists."; createUserSuccess = false; return; } var password = $"PT{Random.Shared.Next(100000, 999999)}!a"; var user = new ApplicationUser { UserName = newEmail.Trim(), Email = newEmail.Trim(), EmailConfirmed = true, FullName = newName.Trim(), PhoneNumber = newPhone.Trim() }; var result = await UserManager.CreateAsync(user, password); if (!result.Succeeded) { createUserMessage = string.Join(" ", result.Errors.Select(x => x.Description)); createUserSuccess = false; return; } await UserManager.AddToRoleAsync(user, newRole); if (newRole == "Client") { await ClinicService.EnsureClientProfileExistsAsync(user.Id, newStartWeight, newTargetWeight, newHeight); var profile = await ClinicService.GetClientProfileByUserIdAsync(user.Id); if (profile != null) { profile.DoctorNotes = newNotes; await ClinicService.UpdateClientProfileAsync(profile); } } lastCreatedEmail = user.Email!; lastCreatedPassword = password; lastCredentialWhatsAppLink = ClinicService.BuildWhatsAppLink(user.PhoneNumber!, $"Hello {user.FullName}, your ProTouch login is {user.Email}. Temporary password: {password}"); createUserMessage = $"{newRole} created successfully."; createUserSuccess = true; newName = newEmail = newPhone = newNotes = ""; await LoadAdminDataAsync(); } finally { creatingUser = false; } }
+    private async Task ReadCsvRecipients(InputFileChangeEventArgs e) { using var reader = new StreamReader(e.File.OpenReadStream(2 * 1024 * 1024)); var lines = (await reader.ReadToEndAsync()).Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries); csvRecipients = lines.Skip(1).Select(line => line.Split(',')).Where(parts => parts.Length >= 2).Select(parts => new CsvRecipient(parts[0].Trim().Trim('"'), parts[1].Trim().Trim('"'))).Where(x => !string.IsNullOrWhiteSpace(x.Phone)).ToList(); campaignSuccessMsg = csvRecipients.Any() ? $"Loaded {csvRecipients.Count} CSV recipients." : "No valid recipients found. Use Name,Phone headings."; }
+    private async Task SendCsvCampaign() { sendingCampaign = true; try { await ClinicService.SendCsvWhatsAppCampaignAsync("CSV broadcast", campaignText, csvRecipients); campaignSuccessMsg = $"Bulk campaign dispatched to {csvRecipients.Count} recipients."; await LoadAdminDataAsync(); } finally { sendingCampaign = false; } }
+    private void UseDietTemplate() => campaignText = "Hello {{Name}}, this is your ProTouch Clinic diet reminder. Please follow your prescribed diet plan and update today's morning weight.";
+    private async Task SaveVisit() { await ClinicService.LogCheckInAsync(visitUserId, visitTreatment, visitPractitioner, visitNotes, nextAppointmentDate, visitDate); visitUserId = visitNotes = ""; await LoadAdminDataAsync(); }
 }
