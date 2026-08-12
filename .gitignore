@@ -1,0 +1,8 @@
+.vs/
+**/bin/
+**/obj/
+ClinicApp/Data/app.db
+ClinicApp/wwwroot/uploads/
+*.user
+/protouch/
+/vishnurvchettiar/

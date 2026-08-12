@@ -1,0 +1,66 @@
+@page "/"
+
+<PageTitle>ProTouch Clinic | Physiotherapy-led fitness</PageTitle>
+
+<section class="public-hero">
+    <div class="hero-copy">
+        <p class="eyebrow">PROTOUCH CLINIC • PHYSIOTHERAPY & FITNESS</p>
+        <h1>Fitness that works <em>with</em> your body.</h1>
+        <p class="hero-lead">A physiotherapist plays a major role in building workouts that are safe, effective and personal—especially when pain, injury, mobility limits or other health concerns are already part of your story.</p>
+        <div class="hero-actions">
+            <a class="btn-clinic" href="#book">Book an appointment <span>→</span></a>
+            <a class="btn-clinic-secondary" href="https://wa.me/919028027888?text=Hello%20Dr.%20Manjari%2C%20I%20would%20like%20to%20know%20about%20physiotherapy-led%20fitness." target="_blank" rel="noopener">WhatsApp Dr. Manjari</a>
+        </div>
+        <div class="trust-line"><span>✓ Movement-first care</span><span>✓ Personal diet guidance</span><span>✓ Long-lasting results</span></div>
+    </div>
+    <div class="hero-visual">
+        <img src="/images/clinic-gallery/WhatsApp Image 2026-08-12 at 12.21.53 AM (1).jpeg" alt="ProTouch clinic care" />
+        <div class="hero-note"><strong>Care beyond the scale</strong><span>Reduce weight while helping minimise the biological problems behind it.</span></div>
+    </div>
+</section>
+
+<section class="public-section intro-section">
+    <div><p class="eyebrow">OUR APPROACH</p><h2>Your goal is bigger than weight loss.</h2></div>
+    <p class="section-lead">We look beyond a number on the scale. By addressing pain, movement patterns, strength, sleep, nutrition and day-to-day habits together, we help create results that are safer to achieve and easier to keep.</p>
+</section>
+
+<section class="public-section services-section" id="services">
+    <div class="section-title"><p class="eyebrow">WHAT WE SUPPORT</p><h2>Care shaped around the person, not a template.</h2></div>
+    <div class="service-grid">
+        <article class="service-card"><span>01</span><h3>Physiotherapy-led workouts</h3><p>Build strength, mobility and confidence with exercises adapted around pain, injury and current ability.</p></article>
+        <article class="service-card"><span>02</span><h3>Weight management</h3><p>Progress with clinically mindful movement and nutrition—not punishing routines or short-term fixes.</p></article>
+        <article class="service-card"><span>03</span><h3>Pain & mobility support</h3><p>Address everyday movement restrictions so fitness becomes possible, comfortable and sustainable.</p></article>
+        <article class="service-card"><span>04</span><h3>Personalised diet charts</h3><p>Receive diet guidance designed for your needs, then view it any time from your client portal.</p></article>
+    </div>
+</section>
+
+<section class="public-section care-band">
+    <div><p class="eyebrow">CONNECTED CARE</p><h2>Your plan stays with you between visits.</h2></div>
+    <div class="care-points"><div><b>01</b><p>Book clinic appointments directly online.</p></div><div><b>02</b><p>Track morning weight and daily progress securely.</p></div><div><b>03</b><p>See treatment records, personalised diet charts and payment reminders in one client space.</p></div></div>
+</section>
+
+<section class="public-section portal-section">
+    <div class="portal-panel"><p class="eyebrow">CLIENT PORTAL</p><h2>Clear progress. Personal guidance.</h2><p>Clients can log morning weight, review their treatment plan and attendance, see diet guidance from the clinic and manage appointments.</p><a href="Account/Login" class="text-link">Open client portal →</a></div>
+    <div class="portal-panel dark"><p class="eyebrow">CLINIC MANAGEMENT</p><h2>Personal care at scale.</h2><p>Our admin workspace keeps client treatments, tailored notes, payment reminders and WhatsApp communication organised in one secure place.</p><a href="Account/Login" class="text-link">Staff sign in →</a></div>
+</section>
+
+<section class="public-section gallery-section">
+    <div class="section-title"><p class="eyebrow">INSIDE PROTOUCH</p><h2>Our clinic, our community, our care.</h2></div>
+    <div class="clinic-gallery">
+        @foreach (var image in galleryImages)
+        {
+            <img src="@($"/images/clinic-gallery/{image}")" alt="ProTouch Clinic" loading="lazy" />
+        }
+    </div>
+</section>
+
+<section class="public-section booking-section" id="book">
+    <div><p class="eyebrow">START WITH A CONVERSATION</p><h2>Let’s build a safer way forward.</h2><p>Contact Dr. Manjari to discuss your fitness, pain-management or weight-management needs.</p></div>
+    <div class="contact-card"><span>Call or WhatsApp</span><a href="tel:+919028027888">+91 90280 27888</a><strong>Dr. Manjari</strong><a class="btn-clinic w-100 justify-content-center mt-4" target="_blank" rel="noopener" href="https://wa.me/919028027888?text=Hello%20Dr.%20Manjari%2C%20I%20would%20like%20to%20book%20an%20appointment.">Book on WhatsApp</a></div>
+</section>
+
+@code {
+    private readonly string[] galleryImages = [
+        "WhatsApp Imagdde 2026-08-12 at 12.09.15 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.14 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.14 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.15 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.17 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.17 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.17 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.18 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.18 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.18 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.22 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.22 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.23 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.23 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.24 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.24 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.25 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.25 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.25 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.26 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.26 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.26 AM (3).jpeg", "WhatsApp Image 2026-08-12 at 12.09.26 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.27 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.27 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.27 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.28 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.28 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.28 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.09.29 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.09.29 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.09.29 AM (3).jpeg", "WhatsApp Image 2026-08-12 at 12.09.29 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.19.15 PM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.11 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.11 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.12 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.12 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.21.12 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.13 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.13 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.21.13 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.14 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.14 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.15 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.52 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.21.53 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.21.53 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.21.53 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.22.51 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.22.52 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.22.52 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.22.53 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.25.20 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.25.20 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.25.20 AM.jpeg", "WhatsApp Image 2026-08-12 at 12.25.21 AM (1).jpeg", "WhatsApp Image 2026-08-12 at 12.25.21 AM (2).jpeg", "WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg", "WhatsApp Imagwde 2026-08-12 at 12.09.14 AM.jpeg", "WhatsApp Imsage 2026-08-12 at 12.09.17 AM.jpeg"
+    ];
+}
