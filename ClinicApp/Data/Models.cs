@@ -19,6 +19,10 @@ public class ClientProfile
     public double Height { get; set; } // in cm
     public double StartWeight { get; set; } // in kg
     public double TargetWeight { get; set; } // in kg
+    public double WaistInches { get; set; }
+    public double ChestInches { get; set; }
+    public double HipsInches { get; set; }
+    public double ArmsInches { get; set; }
     public string DoctorNotes { get; set; } = string.Empty;
     // Stored as a relative path in runtime settings to avoid a database migration for media files.
     [NotMapped]
@@ -40,6 +44,10 @@ public class DailyLog
 
     public DateTime LogDate { get; set; } = DateTime.Today;
     public double Weight { get; set; } // in kg
+    public double WaistInches { get; set; }
+    public double ChestInches { get; set; }
+    public double HipsInches { get; set; }
+    public double ArmsInches { get; set; }
     public string DietNotes { get; set; } = string.Empty;
     public string MealPhotoUrl { get; set; } = string.Empty; // Store base64 or path
 
@@ -68,6 +76,7 @@ public class AttendanceRecord
     public string TreatmentReceived { get; set; } = string.Empty; // e.g., Slimming Therapy, Physio Session
     public string Therapist { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
+    public DateTime? NextAppointmentDate { get; set; }
     public string Status { get; set; } = "Checked In"; // Checked In, Completed, Absent
 }
 

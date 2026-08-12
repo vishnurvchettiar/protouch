@@ -11,6 +11,8 @@ using Twilio.Rest.Api.V2010.Account;
 
 namespace ClinicApp.Services;
 
+public record CsvRecipient(string Name, string Phone);
+
 public class ClinicService
 {
     private readonly ApplicationDbContext _db;
@@ -99,6 +101,10 @@ public class ClinicService
             existing.Height = profile.Height;
             existing.StartWeight = profile.StartWeight;
             existing.TargetWeight = profile.TargetWeight;
+            existing.WaistInches = profile.WaistInches;
+            existing.ChestInches = profile.ChestInches;
+            existing.HipsInches = profile.HipsInches;
+            existing.ArmsInches = profile.ArmsInches;
             existing.DoctorNotes = profile.DoctorNotes;
             existing.IsActive = profile.IsActive;
             await _db.SaveChangesAsync();
@@ -188,15 +194,16 @@ public class ClinicService
             .ToListAsync();
     }
 
-    public async Task LogCheckInAsync(string userId, string treatment, string therapist, string notes)
+    public async Task LogCheckInAsync(string userId, string treatment, string therapist, string notes, DateTime? nextAppointmentDate = null, DateTime? visitDate = null)
     {
         var record = new AttendanceRecord
         {
             UserId = userId,
-            CheckInTime = DateTime.UtcNow,
+            CheckInTime = visitDate?.ToUniversalTime() ?? DateTime.UtcNow,
             TreatmentReceived = treatment,
             Therapist = therapist,
             Notes = notes,
+            NextAppointmentDate = nextAppointmentDate,
             Status = "Checked In"
         };
         _db.AttendanceRecords.Add(record);
@@ -216,6 +223,19 @@ public class ClinicService
             }
             await _db.SaveChangesAsync();
         }
+    }
+
+    public async Task SendCsvWhatsAppCampaignAsync(string campaignName, string template, IEnumerable<CsvRecipient> recipients)
+    {
+        var sent = 0;
+        foreach (var recipient in recipients.Where(r => !string.IsNullOrWhiteSpace(r.Phone)))
+        {
+            var message = template.Replace("{{Name}}", recipient.Name ?? "Client").Replace("{Name}", recipient.Name ?? "Client");
+            await SendWhatsAppMessageAsync(recipient.Phone, message);
+            sent++;
+        }
+        _db.WhatsAppLogs.Add(new WhatsAppLog { TargetAudience = campaignName, MessageTemplate = template, RecipientCount = sent, Status = "Bulk campaign dispatched", LogDetail = "CSV broadcast" });
+        await _db.SaveChangesAsync();
     }
 
     // ==========================================
