@@ -70,19 +70,10 @@
                 user.PhoneNumberConfirmed = true;
                 await UserManager.UpdateAsync(user);
 
-                // If email already confirmed, sign them in and redirect to client dashboard
-                if (user.EmailConfirmed)
-                {
-                    await SignInManager.SignInAsync(user, isPersistent: false);
-                    RedirectManager.RedirectTo("client-dashboard");
-                    return;
-                }
-                else
-                {
-                    // Redirect to register confirmation to show email confirmation link (dev)
-                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = user.Email });
-                    return;
-                }
+                // Phone OTP is the verification mechanism; sign in directly after successful OTP
+                await SignInManager.SignInAsync(user, isPersistent: false);
+                RedirectManager.RedirectTo("client-dashboard");
+                return;
             }
 
             // No associated user found; just redirect to home

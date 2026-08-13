@@ -111,10 +111,11 @@ public static class DbInitializer
                     double weightOffset = (5 - i) * 0.3 + (rand.NextDouble() * 0.1);
                     double weightVal = c.StartW - weightOffset;
 
-                    var carb = rand.Next(25, 45);
-                    var prot = rand.Next(30, 45);
-                    var fat = rand.Next(15, 25);
-                    var veg = 100 - (carb + prot + fat);
+                    var carb = rand.Next(25, 35);
+                    var prot = rand.Next(25, 35);
+                    var fat = rand.Next(10, 20);
+                    var veg = 100 - carb - prot - fat;
+                    if (veg < 0) { carb = 30; prot = 30; fat = 20; veg = 20; }
 
                     db.DailyLogs.Add(new DailyLog
                     {

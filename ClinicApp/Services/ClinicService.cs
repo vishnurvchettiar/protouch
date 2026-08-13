@@ -145,6 +145,7 @@ public class ClinicService
     {
         var normalized = new string((phone ?? string.Empty).Where(char.IsDigit).ToArray());
         if (normalized.StartsWith("00")) normalized = normalized[2..];
+        if (normalized.Length > 12 && normalized.StartsWith("91")) normalized = normalized[2..];
         if (normalized.Length == 10) normalized = "91" + normalized;
         return $"https://wa.me/{normalized}?text={Uri.EscapeDataString(message ?? string.Empty)}";
     }
@@ -173,6 +174,27 @@ public class ClinicService
     {
         _db.DailyLogs.Add(log);
         await _db.SaveChangesAsync();
+    }
+
+    public async Task UpdateDailyLogAsync(DailyLog log)
+    {
+        var existing = await _db.DailyLogs.FindAsync(log.Id);
+        if (existing != null)
+        {
+            existing.Weight = log.Weight;
+            existing.WaistInches = log.WaistInches;
+            existing.ChestInches = log.ChestInches;
+            existing.HipsInches = log.HipsInches;
+            existing.ArmsInches = log.ArmsInches;
+            existing.DietNotes = log.DietNotes;
+            existing.MealPhotoUrl = log.MealPhotoUrl;
+            existing.CarbsPercentage = log.CarbsPercentage;
+            existing.ProteinPercentage = log.ProteinPercentage;
+            existing.FatPercentage = log.FatPercentage;
+            existing.VegPercentage = log.VegPercentage;
+            existing.LoggedAt = log.LoggedAt;
+            await _db.SaveChangesAsync();
+        }
     }
 
     // ==========================================
@@ -352,6 +374,30 @@ public class ClinicService
     // ==========================================
     // Bulk WhatsApp Logs & Operations
     // ==========================================
+    public async Task DeleteClientDataAsync(string userId)
+    {
+        var logs = _db.DailyLogs.Where(d => d.UserId == userId);
+        _db.DailyLogs.RemoveRange(logs);
+
+        var visits = _db.AttendanceRecords.Where(a => a.UserId == userId);
+        _db.AttendanceRecords.RemoveRange(visits);
+
+        var appts = _db.Appointments.Where(a => a.UserId == userId);
+        _db.Appointments.RemoveRange(appts);
+
+        var payments = _db.PaymentNotifications.Where(p => p.UserId == userId);
+        _db.PaymentNotifications.RemoveRange(payments);
+
+        var profiles = _db.ClientProfiles.Where(c => c.UserId == userId);
+        _db.ClientProfiles.RemoveRange(profiles);
+
+        var photoKey = $"ClientPhoto:{userId}";
+        var photoSetting = await _db.Settings.FirstOrDefaultAsync(s => s.Key == photoKey);
+        if (photoSetting != null) _db.Settings.Remove(photoSetting);
+
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<List<WhatsAppLog>> GetWhatsAppLogsAsync()
     {
         return await _db.WhatsAppLogs

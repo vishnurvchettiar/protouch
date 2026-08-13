@@ -329,6 +329,30 @@ else
             }
         }
         loading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || currentUser != null) return;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true) return;
+
+        loading = true;
+        StateHasChanged();
+
+        currentUser = await UserManager.FindByNameAsync(authState.User.Identity.Name!);
+        if (currentUser != null)
+        {
+            await ClinicService.EnsureClientProfileExistsAsync(currentUser.Id);
+            userProfile = await ClinicService.GetClientProfileByUserIdAsync(currentUser.Id);
+            if (userProfile != null)
+                await LoadProfileDataAsync();
+        }
+
+        loading = false;
+        StateHasChanged();
     }
 
     private async Task LoadProfileDataAsync()
@@ -418,7 +442,10 @@ else
         logModel.UserId = currentUser.Id;
         logModel.LoggedAt = DateTime.UtcNow;
 
-        await ClinicService.AddDailyLogAsync(logModel);
+        if (logModel.Id > 0)
+            await ClinicService.UpdateDailyLogAsync(logModel);
+        else
+            await ClinicService.AddDailyLogAsync(logModel);
         await LoadProfileDataAsync();
     }
 
