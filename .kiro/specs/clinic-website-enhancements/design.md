@@ -393,6 +393,153 @@ End-to-end flows to validate against the running app (Playwright or bUnit):
 
 ---
 
+## Correctness Properties
+
+These properties are derived from the invariants and constraints described in the design. They are expressed as universally quantified statements that must hold for all valid inputs and are intended to be validated via property-based testing (xUnit + FsCheck).
+
+---
+
+### CP-1: Macro Sum Invariant
+
+For any `DailyLog` record accepted by the system:
+
+```
+∀ log ∈ DailyLog:
+  log.CarbsPercentage + log.ProteinPercentage + log.FatPercentage + log.VegPercentage = 100
+```
+
+**Rationale**: The macro slider UI enforces this at input time, but the service layer must also reject any log where the sum is not exactly 100 to prevent corrupted records. This applies to both new submissions and edits via `UpdateDailyLogAsync`.
+
+---
+
+### CP-2: Booking Request Default Status
+
+For any `BookingRequest` created via `SubmitBookingRequestAsync`:
+
+```
+∀ request ∈ BookingRequest (newly persisted):
+  request.Status = "Pending"
+  ∧ request.SubmittedAt is UTC
+  ∧ request.SubmittedAt ≤ DateTime.UtcNow (at time of creation)
+```
+
+**Rationale**: The status lifecycle starts at "Pending"; no path through the public booking page should produce a record with any other initial status. `SubmittedAt` must always be UTC to avoid timezone-related display bugs in the admin Bookings tab.
+
+---
+
+### CP-3: Booking Date Must Be in the Future
+
+For any `BookingRequest` accepted by the system:
+
+```
+∀ request ∈ BookingRequest:
+  request.PreferredDate > request.SubmittedAt
+```
+
+**Rationale**: Visitors cannot request an appointment in the past. The validation rule requires `PreferredDate` to be at least 1 hour ahead of submission time. This must be enforced at the service layer, not just the UI.
+
+---
+
+### CP-4: Phone Normalisation Idempotency
+
+For any phone number string `p`:
+
+```
+∀ p ∈ String:
+  NormalisePhone(NormalisePhone(p)) = NormalisePhone(p)
+```
+
+**Rationale**: The `BuildWhatsAppLink` helper normalises Indian phone numbers (stripping `+91`/`91` prefixes, removing spaces). Applying normalisation twice must yield the same result as applying it once. This guarantees safe repeated processing of stored phone numbers.
+
+---
+
+### CP-5: CSV Preview Produces No Side Effects
+
+For any message template `t` and recipient list `rs`:
+
+```
+∀ t ∈ String, rs ∈ List<CsvRecipient>, n ∈ ℕ (n ≥ 1):
+  |WhatsAppLog| after n calls to PreviewCsvCampaignAsync(t, rs)
+  = |WhatsAppLog| before any call
+```
+
+**Rationale**: `PreviewCsvCampaignAsync` must be a pure read operation. It must not create any `WhatsAppLog` entries, trigger any Twilio API calls, or mutate any database state, regardless of how many times it is invoked.
+
+---
+
+### CP-6: Meal Log Upsert — No Duplicates per User per Day
+
+For any user `u` and log date `d`:
+
+```
+∀ u ∈ User, d ∈ Date:
+  |{ log ∈ DailyLog | log.UserId = u.Id ∧ log.LogDate = d }| ≤ 1
+```
+
+**Rationale**: Submitting a daily log for a date that already has a record must update the existing record, not insert a new one. After any number of `UpdateDailyLogAsync` calls for the same `UserId + LogDate`, exactly one record must exist.
+
+---
+
+### CP-7: Meal Review Returns Only Logs With Photos
+
+For any result set returned by `GetAllMealLogsAsync`:
+
+```
+∀ log ∈ GetAllMealLogsAsync():
+  log.MealPhotoUrl ≠ null ∧ log.MealPhotoUrl ≠ ""
+```
+
+**Rationale**: The admin Meal Review tab must only display logs where a photo was uploaded. Logs without a `MealPhotoUrl` must be excluded from the results. Conversely, any log with a non-empty `MealPhotoUrl` must appear in the results (completeness).
+
+---
+
+### CP-8: File Upload Extension Allowlist Enforcement
+
+For any file upload attempt with name `f`:
+
+```
+∀ f ∈ UploadedFileName:
+  extension(f) ∉ {".jpg", ".jpeg", ".png", ".webp"}
+  ⟹ upload is rejected and no file is persisted
+```
+
+**Rationale**: Only the four approved image extensions must be stored on the filesystem. Any other extension (`.exe`, `.pdf`, `.gif`, etc.) must be rejected at the server layer even if the client-side check is bypassed.
+
+---
+
+### CP-9: Opt-Out Footer Always Present in Bulk Messages
+
+For any bulk WhatsApp message dispatched via the CSV broadcast:
+
+```
+∀ msg ∈ BulkDispatchedMessages:
+  msg.Body contains WhatsApp:OptOutFooter value
+```
+
+**Rationale**: Every message sent through the bulk broadcast channel must include the opt-out clause (default: `"Reply STOP to unsubscribe."`). This applies to all recipients regardless of template content. The footer must be appended even if the admin omits it from the template.
+
+---
+
+### CP-10: BookingRequest Status Transitions Are Monotone
+
+For any `BookingRequest` across its lifecycle:
+
+```
+∀ request ∈ BookingRequest:
+  valid transitions are:
+    "Pending" → "Confirmed"
+    "Pending" → "Cancelled"
+    "Confirmed" → "Cancelled"
+  
+  invalid (must be rejected):
+    "Confirmed" → "Pending"
+    "Cancelled" → any status
+```
+
+**Rationale**: Once a booking is confirmed or cancelled, it should not regress to "Pending". Cancelled bookings are terminal — they cannot be reactivated. The `UpdateBookingRequestStatusAsync` method must validate the transition before persisting it.
+
+---
+
 ## Dependencies
 
 | Dependency | Purpose | Status |
