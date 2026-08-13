@@ -33,7 +33,7 @@ builder.Services.AddScoped<ClinicApp.Services.ClinicService>();
 builder.Services.AddIdentityCore<ApplicationUser>(options => 
     {
         // Security focused defaults
-        options.SignIn.RequireConfirmedAccount = true; // require email confirmation
+        options.SignIn.RequireConfirmedAccount = false; // Phone OTP is used for verification instead of email
         options.Password.RequireDigit = true;
         options.Password.RequiredLength = 8;
         options.Password.RequireNonAlphanumeric = false;
