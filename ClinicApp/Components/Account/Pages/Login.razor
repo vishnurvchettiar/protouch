@@ -6,6 +6,7 @@
 @using ClinicApp.Data
 
 @inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
@@ -95,7 +96,20 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-            RedirectManager.RedirectTo(ReturnUrl);
+
+            // Role-based routing when no ReturnUrl is provided
+            if (!string.IsNullOrEmpty(ReturnUrl))
+            {
+                RedirectManager.RedirectTo(ReturnUrl);
+            }
+            else
+            {
+                var loggedInUser = await UserManager.FindByEmailAsync(Input.Email);
+                if (loggedInUser != null && await UserManager.IsInRoleAsync(loggedInUser, "Admin"))
+                    RedirectManager.RedirectTo("/admin-dashboard");
+                else
+                    RedirectManager.RedirectTo("/client-dashboard");
+            }
         }
         else if (result.RequiresTwoFactor)
         {
