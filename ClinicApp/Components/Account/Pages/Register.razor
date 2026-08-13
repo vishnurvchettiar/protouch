@@ -128,16 +128,10 @@
             return;
         }
 
-        if (UserManager.Options.SignIn.RequireConfirmedAccount)
-        {
-            RedirectManager.RedirectTo(
-                "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
-            return;
-        }
-
+        // Bug 18: No phone number — sign in directly since email confirmation is disabled
+        // Avoids leaving the user stuck on RegisterConfirmation with no way to proceed
         await SignInManager.SignInAsync(user, isPersistent: false);
-        RedirectManager.RedirectTo(ReturnUrl);
+        RedirectManager.RedirectTo(ReturnUrl ?? "client-dashboard");
     }
 
     private ApplicationUser CreateUser()

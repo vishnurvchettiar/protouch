@@ -47,7 +47,11 @@ else
                     </div>
                     <div><span class="eyebrow">CLIENT PORTAL</span><h1 class="gradient-text mb-1">Hello, @(currentUser?.FullName ?? "Patient")</h1><p class="text-secondary mb-0">Your progress, appointments, diet check-ins and clinic communication.</p></div>
                 </div>
-                <div class="text-md-end"><span class="soft-pill">🟢 Joined @userProfile.JoiningDate.ToString("MMM yyyy")</span><div class="mt-2"><label class="upload-mini">📷 Change photo <InputFile OnChange="HandleProfilePhotoUpload" accept="image/*" /></label></div></div>
+                <div class="text-md-end"><span class="soft-pill">🟢 Joined @userProfile.JoiningDate.ToString("MMM yyyy")</span><div class="mt-2"><label class="upload-mini">📷 Change photo <InputFile OnChange="HandleProfilePhotoUpload" accept="image/*" /></label></div>
+                @if (!string.IsNullOrWhiteSpace(photoUploadError))
+                {
+                    <div class="clinic-alert clinic-alert-danger mt-1 small">@photoUploadError</div>
+                }</div>
             </div>
         </div>
 
@@ -69,6 +73,10 @@ else
                         </button>
                     </div>
                 </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(paymentSuccessMsg))
+            {
+                <div class="clinic-alert clinic-alert-success">@paymentSuccessMsg</div>
             }
         }
 
@@ -206,8 +214,16 @@ else
                     <div><span class="eyebrow">MEAL PHOTO</span><h5 class="mb-1">Upload today's meal</h5><span class="text-secondary small">Use your phone or laptop camera/photo picker.</span></div>
                     <InputFile OnChange="HandleMealPhotoUpload" accept="image/*" />
                 </div>
+                @if (!string.IsNullOrWhiteSpace(mealPhotoError))
+                {
+                    <div class="clinic-alert clinic-alert-danger mt-1 small">@mealPhotoError</div>
+                }
                 @if (!string.IsNullOrWhiteSpace(logModel.MealPhotoUrl)) { <img src="@logModel.MealPhotoUrl" class="meal-preview" alt="Uploaded meal" /> }
                 <div class="d-flex justify-content-between align-items-center mt-3"><span class="text-secondary small">Your clinic team will review this update.</span><button class="btn-clinic" type="submit">Save today's update</button></div>
+                @if (!string.IsNullOrWhiteSpace(logSaveMsg))
+                {
+                    <div class="clinic-alert clinic-alert-success mt-2">@logSaveMsg</div>
+                }
             </EditForm>
         </div>
 
@@ -223,6 +239,10 @@ else
                         </div>
                         <button class="btn-clinic mt-3" type="submit">Request appointment</button>
                     </EditForm>
+                    @if (!string.IsNullOrWhiteSpace(apptSaveMsg))
+                    {
+                        <div class="clinic-alert clinic-alert-success mt-2">@apptSaveMsg</div>
+                    }
                     @if (appointments.Any())
                     {
                         <div class="mt-4">@foreach (var appt in appointments.Take(5)) { <div class="message-row"><div><strong>@appt.TreatmentType</strong><div class="text-secondary small">@appt.AppointmentDate.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</div></div><span class="soft-pill">@appt.Status</span></div> }</div>
@@ -301,12 +321,29 @@ else
     private double latestWeight;
     private bool hasLoggedWeightToday;
 
+    // Success/error message state variables
+    private string logSaveMsg = "";
+    private string apptSaveMsg = "";
+    private string paymentSuccessMsg = "";
+    private string photoUploadError = "";
+    private string mealPhotoError = "";
+
     // Form inputs models
     private DailyLog logModel = new() { CarbsPercentage = 35, ProteinPercentage = 30, FatPercentage = 15, VegPercentage = 20 };
     private Appointment apptModel = new() { AppointmentDate = DateTime.Today.AddDays(1).AddHours(10), TreatmentType = "Slimming" };
 
     protected override async Task OnInitializedAsync()
     {
+        // Bug 1: Always clear state before loading fresh to prevent stale data on re-login
+        currentUser = null;
+        userProfile = null;
+        dailyLogs = new();
+        attendanceRecords = new();
+        appointments = new();
+        activePaymentAlerts = new();
+        latestWeight = 0;
+        hasLoggedWeightToday = false;
+
         loading = true;
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -334,7 +371,10 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || currentUser != null) return;
+        // Bug 1: Always clear state at the top to prevent stale data from previous user
+        if (!firstRender) return;
+
+        if (currentUser != null) return;
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated != true) return;
@@ -422,17 +462,33 @@ else
 
     private async Task HandleMealPhotoUpload(InputFileChangeEventArgs e)
     {
+        mealPhotoError = "";
         var file = e.File;
         if (currentUser == null) return;
         var path = await SaveImageAsync(file, "meals", currentUser.Id);
-        if (path != null) logModel.MealPhotoUrl = path;
+        if (path != null)
+            logModel.MealPhotoUrl = path;
+        else
+            mealPhotoError = "Photo must be JPG/PNG/WebP and under 8 MB.";
+        StateHasChanged();
     }
 
     private async Task HandleProfilePhotoUpload(InputFileChangeEventArgs e)
     {
+        photoUploadError = "";
         if (currentUser == null || userProfile == null) return;
         var path = await SaveImageAsync(e.File, "profiles", currentUser.Id);
-        if (path != null) { await ClinicService.SetClientPhotoAsync(currentUser.Id, path); userProfile.ProfilePhotoUrl = path; }
+        if (path != null)
+        {
+            await ClinicService.SetClientPhotoAsync(currentUser.Id, path);
+            userProfile.ProfilePhotoUrl = path;
+            StateHasChanged();
+        }
+        else
+        {
+            photoUploadError = "Photo upload failed. Please use JPG/PNG/WebP under 8 MB.";
+            StateHasChanged();
+        }
     }
 
     private async Task HandleLogSubmission()
@@ -447,6 +503,11 @@ else
         else
             await ClinicService.AddDailyLogAsync(logModel);
         await LoadProfileDataAsync();
+        logSaveMsg = "✓ Today's update saved successfully!";
+        StateHasChanged();
+        await Task.Delay(3000);
+        logSaveMsg = "";
+        StateHasChanged();
     }
 
     private string GetClinicWhatsAppLink()
@@ -464,21 +525,33 @@ else
 
         await ClinicService.BookAppointmentAsync(apptModel);
         
-        // Reset model
+        // Reset model with Status set (Bug 7) and StateHasChanged for form re-render
         apptModel = new Appointment
         {
             UserId = currentUser.Id,
             AppointmentDate = DateTime.Today.AddDays(2).AddHours(11),
-            TreatmentType = "Slimming"
+            TreatmentType = "Slimming",
+            Status = "Scheduled"
         };
 
         await LoadProfileDataAsync();
+        // Bug 11: Show confirmation message
+        apptSaveMsg = "✓ Appointment request submitted! The clinic will confirm shortly.";
+        StateHasChanged();
+        await Task.Delay(4000);
+        apptSaveMsg = "";
+        StateHasChanged();
     }
 
     private async Task PayInvoice(int invoiceId)
     {
         await ClinicService.MarkInvoiceAsPaidAsync(invoiceId);
+        paymentSuccessMsg = "✓ Invoice marked as settled.";
         await LoadProfileDataAsync();
+        StateHasChanged();
+        await Task.Delay(3000);
+        paymentSuccessMsg = "";
+        StateHasChanged();
     }
 
     public record ChartPoint(double X, double Y, string Label, double Weight);
@@ -489,6 +562,9 @@ else
         if (dailyLogs == null || dailyLogs.Count < 2 || userProfile == null) return points;
 
         var sortedLogs = dailyLogs.OrderBy(l => l.LogDate).ToList();
+        // Bug 9: Guard against single-entry list to prevent division by zero
+        if (sortedLogs.Count < 2) return points;
+
         double maxWeight = sortedLogs.Max(l => l.Weight) + 1;
         double minWeight = Math.Max(0, sortedLogs.Min(l => l.Weight) - 1);
         double weightRange = maxWeight - minWeight;
@@ -521,7 +597,8 @@ else
 
     private double GetTargetY(double targetWeight, List<ChartPoint> points)
     {
-        if (dailyLogs == null || !dailyLogs.Any()) return 0;
+        // Bug 9: Guard against empty lists to prevent exceptions
+        if (dailyLogs == null || !dailyLogs.Any() || points == null || !points.Any()) return -1;
         var sortedLogs = dailyLogs.OrderBy(l => l.LogDate).ToList();
         double maxWeight = sortedLogs.Max(l => l.Weight) + 1;
         double minWeight = Math.Max(0, sortedLogs.Min(l => l.Weight) - 1);

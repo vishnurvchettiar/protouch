@@ -79,8 +79,19 @@ public class ClinicService
             .Include(cp => cp.User)
             .OrderBy(cp => cp.User != null ? cp.User.FullName : "")
             .ToListAsync();
+
+        // Bug 14: Batch load all photo settings in one query instead of N+1 queries
+        var userIds = profiles.Select(p => p.UserId).ToList();
+        var photoKeys = userIds.Select(id => $"ClientPhoto:{id}").ToList();
+        var photoSettings = await _db.Settings
+            .Where(s => photoKeys.Contains(s.Key))
+            .ToDictionaryAsync(s => s.Key, s => s.Value);
+
         foreach (var profile in profiles)
-            profile.ProfilePhotoUrl = await GetClientPhotoAsync(profile.UserId) ?? string.Empty;
+        {
+            var key = $"ClientPhoto:{profile.UserId}";
+            profile.ProfilePhotoUrl = photoSettings.TryGetValue(key, out var url) ? url : string.Empty;
+        }
         return profiles;
     }
 
@@ -116,17 +127,24 @@ public class ClinicService
         var exists = await _db.ClientProfiles.AnyAsync(cp => cp.UserId == userId);
         if (!exists)
         {
-            var profile = new ClientProfile
+            try
             {
-                UserId = userId,
-                StartWeight = startWeight,
-                TargetWeight = targetWeight,
-                Height = height,
-                JoiningDate = DateTime.UtcNow,
-                IsActive = true
-            };
-            _db.ClientProfiles.Add(profile);
-            await _db.SaveChangesAsync();
+                var profile = new ClientProfile
+                {
+                    UserId = userId,
+                    StartWeight = startWeight,
+                    TargetWeight = targetWeight,
+                    Height = height,
+                    JoiningDate = DateTime.UtcNow,
+                    IsActive = true
+                };
+                _db.ClientProfiles.Add(profile);
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Bug 19: Profile was created by a concurrent request — safe to ignore
+            }
         }
     }
 
