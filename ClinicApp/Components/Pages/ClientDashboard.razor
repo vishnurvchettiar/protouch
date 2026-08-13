@@ -4,6 +4,7 @@
 @using ClinicApp.Data
 @using ClinicApp.Services
 @attribute [Authorize(Roles = "Client,Admin")]
+@rendermode InteractiveServer
 
 @inject ClinicService ClinicService
 @inject AuthenticationStateProvider AuthStateProvider
