@@ -1,0 +1,214 @@
+@page "/book"
+@using ClinicApp.Data
+@using ClinicApp.Services
+@* Task 14.1: NO [Authorize] — page must be accessible anonymously *@
+@rendermode InteractiveServer
+
+@inject ClinicService ClinicService
+@inject NavigationManager NavManager
+
+<PageTitle>Book an Appointment | Sri Sai Protouch</PageTitle>
+
+<div class="wellness-page">
+    <header class="wellness-header">
+        <a href="/" class="wellness-logo"><img src="/images/sri-sai-protouch-logo.svg" alt="Sri Sai Protouch" /></a>
+        <nav><a href="/">Home</a><a href="/#services">Services</a><a href="/#contact">Contact</a></nav>
+        <a class="wellness-call" href="tel:9673530031">Call 96735 30031</a>
+    </header>
+
+    <div style="max-width: 800px; margin: 4rem auto; padding: 0 1.5rem;">
+        @if (bookingSuccess)
+        {
+            <!-- Task 14.2: Success panel -->
+            <div class="booking-success">
+                <div class="checkmark-circle">✓</div>
+                <h2>Booking Request Received!</h2>
+                <p>Thank you, <strong>@submittedName</strong>. We've received your appointment request for <strong>@submittedService</strong> on <strong>@submittedDate</strong>. The clinic team will contact you on <strong>@submittedPhone</strong> to confirm.</p>
+                <div style="margin-top: 2rem;">
+                    <a class="wellness-primary" href="/" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">← Back to Home</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="glass-panel p-5">
+                <span class="eyebrow">BOOK AN APPOINTMENT</span>
+                <h1 class="gradient-text mb-2">Request a Consultation</h1>
+                <p class="text-secondary mb-4">Choose a service and fill in your details. Our team will confirm your appointment shortly.</p>
+
+                @if (!string.IsNullOrWhiteSpace(submitError))
+                {
+                    <div class="clinic-alert clinic-alert-danger mb-4">@submitError</div>
+                }
+
+                <!-- Service Selection (Task 14.1) -->
+                <label class="clinic-label mb-2">Select a Service</label>
+                @if (!serviceCategories.Any())
+                {
+                    <p class="text-secondary mb-4">Service categories are currently unavailable. Please call us directly.</p>
+                }
+                else
+                {
+                    <div class="row g-3 mb-4">
+                        @foreach (var svc in serviceCategories)
+                        {
+                            <div class="col-md-6">
+                                <button class="service-card @(selectedService == svc.Name ? "selected" : "")" type="button" @onclick="() => SelectService(svc.Name)">
+                                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">@svc.Icon</div>
+                                    <h5>@svc.Name</h5>
+                                    <p>@svc.Description</p>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(serviceError))
+                {
+                    <div class="text-danger small mb-3">@serviceError</div>
+                }
+
+                <!-- Booking Form -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="clinic-label">Full Name *</label>
+                        <input class="clinic-input" type="text" @bind="fullName" @bind:event="oninput" placeholder="Your full name" maxlength="100" />
+                        @if (!string.IsNullOrWhiteSpace(nameError)) { <div class="text-danger small mt-1">@nameError</div> }
+                    </div>
+                    <div class="col-md-6">
+                        <label class="clinic-label">Mobile Number (India) *</label>
+                        <input class="clinic-input" type="tel" @bind="phoneNumber" @bind:event="oninput" placeholder="10-digit mobile number" maxlength="15" />
+                        @if (!string.IsNullOrWhiteSpace(phoneError)) { <div class="text-danger small mt-1">@phoneError</div> }
+                    </div>
+                    <div class="col-md-6">
+                        <label class="clinic-label">Preferred Date & Time *</label>
+                        <input class="clinic-input" type="datetime-local" @bind="preferredDate" />
+                        @if (!string.IsNullOrWhiteSpace(dateError)) { <div class="text-danger small mt-1">@dateError</div> }
+                    </div>
+                    <div class="col-12">
+                        <label class="clinic-label">Additional Notes (optional)</label>
+                        <textarea class="clinic-input" rows="3" @bind="notes" placeholder="Any specific concerns, preferred time slots, or health information..." maxlength="1000"></textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <span class="text-secondary small">* Required fields</span>
+                    <button class="btn-clinic" @onclick="HandleSubmit" disabled="@(submitting || !serviceCategories.Any())">
+                        @(submitting ? "Submitting..." : "Request Appointment →")
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <footer style="background: #2e2030; color: #d7cad6; text-align: center; padding: 20px; font-size: 0.8rem;">
+        © @DateTime.Now.Year SRI SAI PROTOUCH Physio - Slimming Clinic
+    </footer>
+</div>
+
+@code {
+    // Task 14.1: Form fields always blank on load — no session/account data prefilled
+    private string fullName = "";
+    private string phoneNumber = "";
+    private DateTime preferredDate = DateTime.Today.AddDays(1).AddHours(10);
+    private string notes = "";
+    private string selectedService = "";
+
+    // Validation errors
+    private string nameError = "";
+    private string phoneError = "";
+    private string dateError = "";
+    private string serviceError = "";
+    private string submitError = "";
+
+    // Success state
+    private bool bookingSuccess = false;
+    private bool submitting = false;
+    private string submittedName = "";
+    private string submittedService = "";
+    private string submittedDate = "";
+    private string submittedPhone = "";
+
+    // Services
+    private List<ServiceInfo> serviceCategories = new();
+
+    private record ServiceInfo(string Name, string Description, string Icon);
+
+    protected override void OnInitialized()
+    {
+        // Static service list — no DB read, always blank form (Req 13.1, 13.6)
+        serviceCategories = new List<ServiceInfo>
+        {
+            new("Weight Loss & Slimming", "Figure correction, body shaping, inch loss and skin tightening.", "⚖️"),
+            new("Physiotherapy & Rehabilitation", "Back, neck, knee pain, arthritis, paralysis and injury care.", "🦴"),
+            new("Yoga & Holistic Wellness", "Diabetes, blood pressure, thyroid, hormonal and lifestyle support.", "🧘"),
+            new("Specialised Programs", "Height increase, pre & post-natal, and specialised health plans.", "⭐"),
+        };
+    }
+
+    private void SelectService(string name)
+    {
+        selectedService = selectedService == name ? "" : name;
+        serviceError = "";
+    }
+
+    private async Task HandleSubmit()
+    {
+        // Clear previous errors
+        nameError = phoneError = dateError = serviceError = submitError = "";
+
+        var valid = true;
+
+        // Validate name (2–100 chars)
+        var trimmedName = (fullName ?? "").Trim();
+        if (trimmedName.Length < 2 || trimmedName.Length > 100) { nameError = "Full name must be between 2 and 100 characters."; valid = false; }
+
+        // Validate Indian phone number
+        var phoneDigits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+        if (phoneDigits.Length != 10 || phoneDigits[0] < '6') { phoneError = "Please enter a valid 10-digit Indian mobile number (starts with 6–9)."; valid = false; }
+
+        // Validate service selected
+        if (string.IsNullOrWhiteSpace(selectedService)) { serviceError = "Please select a service."; valid = false; }
+
+        // Validate preferred date: 1 hour to 90 days in future
+        var now = DateTime.UtcNow;
+        var preferredUtc = preferredDate.ToUniversalTime();
+        if (preferredUtc < now.AddHours(1)) { dateError = "Please select a date and time at least 1 hour in the future."; valid = false; }
+        else if (preferredUtc > now.AddDays(90)) { dateError = "Preferred date must be within the next 90 days."; valid = false; }
+
+        if (!valid) return;
+
+        submitting = true;
+        try
+        {
+            var request = new BookingRequest
+            {
+                FullName = trimmedName,
+                PhoneNumber = phoneDigits,
+                ServiceType = selectedService,
+                PreferredDate = preferredUtc,
+                Notes = (notes ?? "").Trim()
+            };
+
+            await ClinicService.SubmitBookingRequestAsync(request);
+
+            // Show success
+            submittedName = trimmedName;
+            submittedService = selectedService;
+            submittedDate = preferredDate.ToString("dd MMM yyyy, hh:mm tt");
+            submittedPhone = phoneNumber;
+            bookingSuccess = true;
+        }
+        catch (ArgumentException ex)
+        {
+            submitError = ex.Message;
+        }
+        catch (Exception)
+        {
+            submitError = "We could not submit your request at this time. Please try calling us directly.";
+        }
+        finally
+        {
+            submitting = false;
+        }
+    }
+}

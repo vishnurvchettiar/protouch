@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 using ClinicApp.Components;
 using ClinicApp.Components.Account;
 using ClinicApp.Data;
@@ -51,6 +53,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<ClinicApp.Services.ClinicService>();
+builder.Services.AddScoped<ClinicApp.Services.FileUploadService>();
+
+// Task 14.3: Rate limiter for /book - 5 requests per IP per 60-minute window
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddSlidingWindowLimiter("BookingLimit", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(60);
+        limiterOptions.SegmentsPerWindow = 6;
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = 429;
+});
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => 
     {
@@ -86,6 +103,7 @@ else
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+app.UseRateLimiter();
 app.UseWebSockets(new WebSocketOptions
 {
     KeepAliveInterval = TimeSpan.FromSeconds(30)
@@ -110,6 +128,18 @@ app.UseHttpsRedirection();
 
 
 app.UseAntiforgery();
+
+// Task 8.4: Cache-Control for static images (max-age 1 year, immutable)
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        if (ctx.Context.Request.Path.StartsWithSegments("/images"))
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
+        }
+    }
+});
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

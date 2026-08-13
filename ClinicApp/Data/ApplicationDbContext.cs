@@ -17,5 +17,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     // Simple runtime settings
     public DbSet<Setting> Settings { get; set; }
+
+    // Public booking requests from the /book page
+    public DbSet<BookingRequest> BookingRequests { get; set; }
 }
 
