@@ -7,6 +7,7 @@
 @rendermode InteractiveServer
 
 @inject ClinicService ClinicService
+@inject FileUploadService FileUploadService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager NavManager
@@ -202,30 +203,123 @@ else
 
                 <!-- Daily Checking Form -->
         <div class="glass-panel p-4 mb-4">
-            <div class="section-heading"><div><span class="eyebrow">DAILY CHECK-IN</span><h3>Weight & Meal Update</h3></div><span class="soft-pill">Daily check-in</span></div>
-            <p class="text-secondary small mb-4">Send your weight, diet notes and a real meal photo to the clinic team. Your dietician can review the information and follow up through WhatsApp.</p>
-            <EditForm Model="logModel" OnValidSubmit="HandleLogSubmission">
-                <DataAnnotationsValidator />
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6"><label class="clinic-label">Weight today (kg)</label><InputNumber @bind-Value="logModel.Weight" class="clinic-input" step="0.1" /></div>
-                    <div class="col-md-6"><label class="clinic-label">Log date</label><InputDate @bind-Value="logModel.LogDate" class="clinic-input" /></div>
-                    <div class="col-12"><label class="clinic-label">Diet / symptoms / water / activity notes</label><InputTextArea @bind-Value="logModel.DietNotes" class="clinic-input" rows="4" placeholder="Tell your dietician what you ate, water intake, activity and how you felt today..." /></div>
+            <div class="section-heading"><div><span class="eyebrow">DAILY CHECK-IN</span><h3>Weight & Meal Update</h3></div>
+                <div class="d-flex gap-2">
+                    <button class="btn-clinic-secondary @(portalView == "log" ? "active" : "")" @onclick='() => portalView = "log"'>Log Entry</button>
+                    <button class="btn-clinic-secondary @(portalView == "history" ? "active" : "")" @onclick='() => portalView = "history"'>Photo History</button>
                 </div>
-                <div class="meal-upload-panel mb-3">
-                    <div><span class="eyebrow">MEAL PHOTO</span><h5 class="mb-1">Upload today's meal</h5><span class="text-secondary small">Use your phone or laptop camera/photo picker.</span></div>
-                    <InputFile OnChange="HandleMealPhotoUpload" accept="image/*" />
-                </div>
-                @if (!string.IsNullOrWhiteSpace(mealPhotoError))
+            </div>
+
+            @if (portalView == "history")
+            {
+                <!-- Task 12.7: Meal photo timeline -->
+                @if (!dailyLogs.Where(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)).Any())
                 {
-                    <div class="clinic-alert clinic-alert-danger mt-1 small">@mealPhotoError</div>
+                    <div class="empty-state">No meal photos uploaded yet.</div>
                 }
-                @if (!string.IsNullOrWhiteSpace(logModel.MealPhotoUrl)) { <img src="@logModel.MealPhotoUrl" class="meal-preview" alt="Uploaded meal" /> }
-                <div class="d-flex justify-content-between align-items-center mt-3"><span class="text-secondary small">Your clinic team will review this update.</span><button class="btn-clinic" type="submit">Save today's update</button></div>
-                @if (!string.IsNullOrWhiteSpace(logSaveMsg))
+                else
                 {
-                    <div class="clinic-alert clinic-alert-success mt-2">@logSaveMsg</div>
+                    <div class="meal-timeline">
+                        @foreach (var log in dailyLogs.Where(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)).Take(20))
+                        {
+                            <div class="meal-timeline-item">
+                                <img src="@log.MealPhotoUrl" alt="Meal photo" />
+                                <div class="meal-info">
+                                    <div class="meal-date">@log.LogDate.ToString("dd MMM yyyy")</div>
+                                    <div class="meal-notes">@log.DietNotes</div>
+                                    <div class="macro-bar mt-1">
+                                        <div class="seg-carbs" style="width: @log.CarbsPercentage%"></div>
+                                        <div class="seg-protein" style="width: @log.ProteinPercentage%"></div>
+                                        <div class="seg-fat" style="width: @log.FatPercentage%"></div>
+                                        <div class="seg-veg" style="width: @log.VegPercentage%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
                 }
-            </EditForm>
+            }
+            else
+            {
+                <p class="text-secondary small mb-4">Send your weight, diet notes and a real meal photo to the clinic team. Your dietician can review the information and follow up through WhatsApp.</p>
+                <EditForm Model="logModel" OnValidSubmit="HandleLogSubmission">
+                    <DataAnnotationsValidator />
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6"><label class="clinic-label">Weight today (kg)</label><InputNumber @bind-Value="logModel.Weight" class="clinic-input" step="0.1" /></div>
+                        <div class="col-md-6"><label class="clinic-label">Log date</label><InputDate @bind-Value="logModel.LogDate" class="clinic-input" /></div>
+                        <!-- Task 12.4: Optional measurement fields -->
+                        <div class="col-md-3"><label class="clinic-label">Waist (in) <span class="text-muted small">optional</span></label><input type="number" class="clinic-input" step="0.1" min="0.1" max="999.9" @bind="waistInput" @bind:event="oninput" /></div>
+                        <div class="col-md-3"><label class="clinic-label">Chest (in) <span class="text-muted small">optional</span></label><input type="number" class="clinic-input" step="0.1" min="0.1" max="999.9" @bind="chestInput" @bind:event="oninput" /></div>
+                        <div class="col-md-3"><label class="clinic-label">Hips (in) <span class="text-muted small">optional</span></label><input type="number" class="clinic-input" step="0.1" min="0.1" max="999.9" @bind="hipsInput" @bind:event="oninput" /></div>
+                        <div class="col-md-3"><label class="clinic-label">Arms (in) <span class="text-muted small">optional</span></label><input type="number" class="clinic-input" step="0.1" min="0.1" max="999.9" @bind="armsInput" @bind:event="oninput" /></div>
+                        @if (!string.IsNullOrWhiteSpace(measurementError)) { <div class="col-12"><span class="text-danger small">@measurementError</span></div> }
+                        <div class="col-12"><label class="clinic-label">Diet / symptoms / water / activity notes</label><InputTextArea @bind-Value="logModel.DietNotes" class="clinic-input" rows="4" placeholder="Tell your dietician what you ate, water intake, activity and how you felt today..." /></div>
+                    </div>
+
+                    <!-- Task 12.1: Macro sliders -->
+                    <div class="mb-3">
+                        <label class="clinic-label mb-2">Macro Distribution (must total 100%)</label>
+                        <div class="macro-slider-group">
+                            <div class="slider-row">
+                                <label>Carbs</label>
+                                <input type="range" min="0" max="100" value="@logModel.CarbsPercentage" @oninput="OnCarbsChange" />
+                                <span class="pct-label">@logModel.CarbsPercentage%</span>
+                            </div>
+                            <div class="slider-row">
+                                <label>Protein</label>
+                                <input type="range" min="0" max="100" value="@logModel.ProteinPercentage" @oninput="OnProteinChange" />
+                                <span class="pct-label">@logModel.ProteinPercentage%</span>
+                            </div>
+                            <div class="slider-row">
+                                <label>Fat</label>
+                                <input type="range" min="0" max="100" value="@logModel.FatPercentage" @oninput="OnFatChange" />
+                                <span class="pct-label">@logModel.FatPercentage%</span>
+                            </div>
+                            <div class="slider-row">
+                                <label>Veg</label>
+                                <input type="range" min="0" max="100" value="@logModel.VegPercentage" @oninput="OnVegChange" />
+                                <span class="pct-label">@logModel.VegPercentage%</span>
+                            </div>
+                        </div>
+                        <!-- Task 12.2: Live macro bar -->
+                        <div class="macro-bar mt-2">
+                            <div class="seg-carbs" style="width: @logModel.CarbsPercentage%"></div>
+                            <div class="seg-protein" style="width: @logModel.ProteinPercentage%"></div>
+                            <div class="seg-fat" style="width: @logModel.FatPercentage%"></div>
+                            <div class="seg-veg" style="width: @logModel.VegPercentage%"></div>
+                        </div>
+                        <div class="text-secondary small mt-1">Total: @(logModel.CarbsPercentage + logModel.ProteinPercentage + logModel.FatPercentage + logModel.VegPercentage)%</div>
+                        <!-- Task 12.3: macro sum validation -->
+                        @if (!string.IsNullOrWhiteSpace(macroSumError)) { <div class="clinic-alert clinic-alert-danger mt-1 small">@macroSumError</div> }
+                    </div>
+
+                    <div class="meal-upload-panel mb-3">
+                        <div><span class="eyebrow">MEAL PHOTO</span><h5 class="mb-1">Upload today's meal</h5><span class="text-secondary small">Use your phone or laptop camera/photo picker.</span></div>
+                        <InputFile OnChange="HandleMealPhotoUpload" accept="image/*" />
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(mealPhotoError))
+                    {
+                        <div class="clinic-alert clinic-alert-danger mt-1 small">@mealPhotoError</div>
+                    }
+                    <!-- Task 12.6: Client-side preview before submit -->
+                    @if (!string.IsNullOrWhiteSpace(mealPhotoPreviewUrl))
+                    {
+                        <div class="mb-3">
+                            <span class="clinic-label">Preview</span>
+                            <img src="@mealPhotoPreviewUrl" class="meal-preview" alt="Meal preview" />
+                        </div>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(logModel.MealPhotoUrl))
+                    {
+                        <img src="@logModel.MealPhotoUrl" class="meal-preview" alt="Uploaded meal" />
+                    }
+                    <div class="d-flex justify-content-between align-items-center mt-3"><span class="text-secondary small">Your clinic team will review this update.</span><button class="btn-clinic" type="submit">Save today's update</button></div>
+                    @if (!string.IsNullOrWhiteSpace(logSaveMsg))
+                    {
+                        <div class="clinic-alert clinic-alert-info mt-2">@logSaveMsg</div>
+                    }
+                </EditForm>
+            }
         </div>
 
         <div class="row g-4 mb-4">
@@ -321,6 +415,19 @@ else
 
     private double latestWeight;
     private bool hasLoggedWeightToday;
+
+    // Portal view toggle (Task 12.7)
+    private string portalView = "log";
+
+    // Macro sum validation (Task 12.3)
+    private string macroSumError = "";
+
+    // Measurement fields (Task 12.4)
+    private string? waistInput, chestInput, hipsInput, armsInput;
+    private string measurementError = "";
+
+    // Meal photo preview (Task 12.6)
+    private string mealPhotoPreviewUrl = "";
 
     // Success/error message state variables
     private string logSaveMsg = "";
@@ -446,31 +553,26 @@ else
         }
     }
 
-    private async Task<string?> SaveImageAsync(IBrowserFile file, string folder, string prefix)
-    {
-        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
-        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-        if (!allowed.Contains(extension) || file.Size > 8 * 1024 * 1024) return null;
-        var directory = Path.Combine(Environment.WebRootPath, "uploads", folder);
-        Directory.CreateDirectory(directory);
-        var fileName = $"{prefix}_{Guid.NewGuid():N}{extension}";
-        var physical = Path.Combine(directory, fileName);
-        await using var source = file.OpenReadStream(8 * 1024 * 1024);
-        await using var target = File.Create(physical);
-        await source.CopyToAsync(target);
-        return $"/uploads/{folder}/{fileName}";
-    }
-
+    // Task 12.8: Use hardened FileUploadService (Tasks 6.4, 6.5, 6.6, 19.1-19.3)
     private async Task HandleMealPhotoUpload(InputFileChangeEventArgs e)
     {
-        mealPhotoError = "";
+        mealPhotoError = ""; mealPhotoPreviewUrl = "";
         var file = e.File;
         if (currentUser == null) return;
-        var path = await SaveImageAsync(file, "meals", currentUser.Id);
-        if (path != null)
-            logModel.MealPhotoUrl = path;
-        else
-            mealPhotoError = "Photo must be JPG/PNG/WebP and under 8 MB.";
+
+        // Task 12.6: client-side data URL preview
+        try {
+            using var memStream = new MemoryStream();
+            await file.OpenReadStream(8 * 1024 * 1024).CopyToAsync(memStream);
+            var base64 = Convert.ToBase64String(memStream.ToArray());
+            var mime = file.ContentType ?? "image/jpeg";
+            mealPhotoPreviewUrl = $"data:{mime};base64,{base64}";
+            StateHasChanged();
+        } catch { /* preview failure is non-blocking */ }
+
+        var (path, error) = await FileUploadService.SaveImageAsync(file, "meals", currentUser.Id);
+        if (path != null) { logModel.MealPhotoUrl = path; mealPhotoPreviewUrl = ""; }
+        else { mealPhotoError = error ?? "Photo must be JPG/PNG/WebP and under 8 MB."; }
         StateHasChanged();
     }
 
@@ -478,37 +580,118 @@ else
     {
         photoUploadError = "";
         if (currentUser == null || userProfile == null) return;
-        var path = await SaveImageAsync(e.File, "profiles", currentUser.Id);
+        var (path, error) = await FileUploadService.SaveImageAsync(e.File, "profiles", currentUser.Id);
         if (path != null)
         {
             await ClinicService.SetClientPhotoAsync(currentUser.Id, path);
             userProfile.ProfilePhotoUrl = path;
-            StateHasChanged();
         }
         else
         {
-            photoUploadError = "Photo upload failed. Please use JPG/PNG/WebP under 8 MB.";
-            StateHasChanged();
+            photoUploadError = error ?? "Photo upload failed. Please use JPG/PNG/WebP under 8 MB.";
         }
+        StateHasChanged();
+    }
+
+    // Task 12.1: Macro slider handlers — proportional adjustment to keep sum = 100
+    private void OnCarbsChange(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var v)) return;
+        var delta = v - logModel.CarbsPercentage;
+        logModel.CarbsPercentage = v;
+        var (np, nf, nv) = AdjustRemaining(logModel.ProteinPercentage, logModel.FatPercentage, logModel.VegPercentage, -delta);
+        logModel.ProteinPercentage = np; logModel.FatPercentage = nf; logModel.VegPercentage = nv;
+        macroSumError = ""; StateHasChanged();
+    }
+    private void OnProteinChange(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var v)) return;
+        var delta = v - logModel.ProteinPercentage;
+        logModel.ProteinPercentage = v;
+        var (nc, nf, nv) = AdjustRemaining(logModel.CarbsPercentage, logModel.FatPercentage, logModel.VegPercentage, -delta);
+        logModel.CarbsPercentage = nc; logModel.FatPercentage = nf; logModel.VegPercentage = nv;
+        macroSumError = ""; StateHasChanged();
+    }
+    private void OnFatChange(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var v)) return;
+        var delta = v - logModel.FatPercentage;
+        logModel.FatPercentage = v;
+        var (nc, np, nv) = AdjustRemaining(logModel.CarbsPercentage, logModel.ProteinPercentage, logModel.VegPercentage, -delta);
+        logModel.CarbsPercentage = nc; logModel.ProteinPercentage = np; logModel.VegPercentage = nv;
+        macroSumError = ""; StateHasChanged();
+    }
+    private void OnVegChange(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var v)) return;
+        var delta = v - logModel.VegPercentage;
+        logModel.VegPercentage = v;
+        var (nc, np, nf) = AdjustRemaining(logModel.CarbsPercentage, logModel.ProteinPercentage, logModel.FatPercentage, -delta);
+        logModel.CarbsPercentage = nc; logModel.ProteinPercentage = np; logModel.FatPercentage = nf;
+        macroSumError = ""; StateHasChanged();
+    }
+    private static (int, int, int) AdjustRemaining(int a, int b, int c, int delta)
+    {
+        var total = a + b + c;
+        if (total == 0 || delta == 0) return (Math.Clamp(a, 0, 100), Math.Clamp(b, 0, 100), Math.Clamp(c, 0, 100));
+        var da = (int)Math.Round((double)a / total * delta);
+        var db = (int)Math.Round((double)b / total * delta);
+        var dc = delta - da - db;
+        return (Math.Clamp(a + da, 0, 100), Math.Clamp(b + db, 0, 100), Math.Clamp(c + dc, 0, 100));
     }
 
     private async Task HandleLogSubmission()
     {
         if (currentUser == null || userProfile == null) return;
 
+        // Task 12.3: validate macro sum
+        var macroSum = logModel.CarbsPercentage + logModel.ProteinPercentage + logModel.FatPercentage + logModel.VegPercentage;
+        if (macroSum != 100) { macroSumError = $"Macro percentages must sum to 100% (currently {macroSum}%). Adjust the sliders."; return; }
+        macroSumError = "";
+
+        // Task 12.4: validate optional measurement fields
+        measurementError = "";
+        if (!ValidateMeasurementInput(waistInput, out var w)) { measurementError = "Waist must be between 0.1 and 999.9 inches."; return; }
+        if (!ValidateMeasurementInput(chestInput, out var ch)) { measurementError = "Chest must be between 0.1 and 999.9 inches."; return; }
+        if (!ValidateMeasurementInput(hipsInput, out var h)) { measurementError = "Hips must be between 0.1 and 999.9 inches."; return; }
+        if (!ValidateMeasurementInput(armsInput, out var ar)) { measurementError = "Arms must be between 0.1 and 999.9 inches."; return; }
+        if (w.HasValue) logModel.WaistInches = w.Value;
+        if (ch.HasValue) logModel.ChestInches = ch.Value;
+        if (h.HasValue) logModel.HipsInches = h.Value;
+        if (ar.HasValue) logModel.ArmsInches = ar.Value;
+
         logModel.UserId = currentUser.Id;
         logModel.LoggedAt = DateTime.UtcNow;
 
-        if (logModel.Id > 0)
-            await ClinicService.UpdateDailyLogAsync(logModel);
-        else
-            await ClinicService.AddDailyLogAsync(logModel);
+        // Task 12.5: always use upsert (UpdateDailyLogAsync)
+        bool wasUpdate = logModel.Id > 0 || await HasLogForToday();
+        await ClinicService.UpdateDailyLogAsync(logModel);
         await LoadProfileDataAsync();
-        logSaveMsg = "✓ Today's update saved successfully!";
+        logSaveMsg = wasUpdate ? "✓ Updated today's log successfully!" : "✓ Today's update saved successfully!";
         StateHasChanged();
         await Task.Delay(3000);
         logSaveMsg = "";
         StateHasChanged();
+    }
+
+    private async Task<bool> HasLogForToday()
+    {
+        if (currentUser == null) return false;
+        var logs = await ClinicService.GetClientDailyLogsAsync(currentUser.Id);
+        return logs.Any(l => l.LogDate == logModel.LogDate);
+    }
+
+    private static bool ValidateMeasurementInput(string? input, out double? value)
+    {
+        value = null;
+        if (string.IsNullOrWhiteSpace(input)) return true;
+        if (double.TryParse(input, out var d))
+        {
+            if (d < 0.1 || d > 999.9) return false;
+            value = Math.Round(d, 1);
+            return true;
+        }
+        return false;
     }
 
     private string GetClinicWhatsAppLink()

@@ -158,3 +158,32 @@ public class Setting
 
     public string Value { get; set; } = string.Empty;
 }
+
+public class BookingRequest
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(20)]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(150)]
+    public string ServiceType { get; set; } = string.Empty;
+
+    public DateTime PreferredDate { get; set; }
+
+    [MaxLength(1000)]
+    public string Notes { get; set; } = string.Empty;
+
+    public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
+
+    [Required]
+    [MaxLength(50)]
+    public string Status { get; set; } = "Pending";
+}

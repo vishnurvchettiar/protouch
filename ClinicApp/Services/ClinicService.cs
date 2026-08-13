@@ -2,26 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ClinicApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
 
 namespace ClinicApp.Services;
 
 public record CsvRecipient(string Name, string Phone);
+public record CsvPreviewRow(string RecipientName, string RecipientPhone, string PersonalisedMessage);
 
 public class ClinicService
 {
     private readonly ApplicationDbContext _db;
     private readonly IConfiguration _config;
+    private readonly ILogger<ClinicService> _logger;
 
-    public ClinicService(ApplicationDbContext db, IConfiguration config)
+    public ClinicService(ApplicationDbContext db, IConfiguration config, ILogger<ClinicService> logger)
     {
         _db = db;
         _config = config;
+        _logger = logger;
     }
 
     // New: read runtime setting from DB; fallback to configuration
@@ -80,7 +85,6 @@ public class ClinicService
             .OrderBy(cp => cp.User != null ? cp.User.FullName : "")
             .ToListAsync();
 
-        // Bug 14: Batch load all photo settings in one query instead of N+1 queries
         var userIds = profiles.Select(p => p.UserId).ToList();
         var photoKeys = userIds.Select(id => $"ClientPhoto:{id}").ToList();
         var photoSettings = await _db.Settings
@@ -143,11 +147,10 @@ public class ClinicService
             }
             catch (DbUpdateException)
             {
-                // Bug 19: Profile was created by a concurrent request — safe to ignore
+                // Profile was created by a concurrent request — safe to ignore
             }
         }
     }
-
 
     public async Task<string?> GetClientPhotoAsync(string userId)
     {
@@ -159,12 +162,41 @@ public class ClinicService
         await SetSettingAsync($"ClientPhoto:{userId}", relativePath);
     }
 
+    // ==========================================
+    // Task 4.4: Phone normalisation (Requirement 18)
+    // ==========================================
+
+    /// <summary>
+    /// Normalise an Indian phone number to E.164 10-digit format (no country code),
+    /// then prepend 91 for whatsapp.me links. Returns empty string on failure.
+    /// </summary>
+    public static string NormalisePhone(string? phone)
+    {
+        var digits = new string((phone ?? string.Empty).Where(char.IsDigit).ToArray());
+
+        // Strip leading 00
+        if (digits.StartsWith("00"))
+            digits = digits[2..];
+
+        // Strip leading 91 if result would be > 10 digits
+        if (digits.Length > 10 && digits.StartsWith("91"))
+            digits = digits[2..];
+
+        // Must be exactly 10 digits now
+        if (digits.Length != 10)
+            return string.Empty;
+
+        return "91" + digits;
+    }
+
     public string BuildWhatsAppLink(string phone, string message)
     {
-        var normalized = new string((phone ?? string.Empty).Where(char.IsDigit).ToArray());
-        if (normalized.StartsWith("00")) normalized = normalized[2..];
-        if (normalized.Length > 12 && normalized.StartsWith("91")) normalized = normalized[2..];
-        if (normalized.Length == 10) normalized = "91" + normalized;
+        var normalized = NormalisePhone(phone);
+        if (string.IsNullOrEmpty(normalized))
+        {
+            _logger.LogError("BuildWhatsAppLink: could not normalise phone number '{Phone}'", phone);
+            return string.Empty;
+        }
         return $"https://wa.me/{normalized}?text={Uri.EscapeDataString(message ?? string.Empty)}";
     }
 
@@ -194,9 +226,20 @@ public class ClinicService
         await _db.SaveChangesAsync();
     }
 
+    // ==========================================
+    // Task 2.5: UpdateDailyLogAsync — upsert with macro validation (Req 7.4, 7.5, 8.3, 8.4)
+    // ==========================================
     public async Task UpdateDailyLogAsync(DailyLog log)
     {
-        var existing = await _db.DailyLogs.FindAsync(log.Id);
+        // Validate macro sum = 100
+        var macroSum = log.CarbsPercentage + log.ProteinPercentage + log.FatPercentage + log.VegPercentage;
+        if (macroSum != 100)
+            throw new InvalidOperationException($"Macro percentages must sum to 100. Got {macroSum}.");
+
+        // Try find by UserId + LogDate (upsert semantics)
+        var existing = await _db.DailyLogs
+            .FirstOrDefaultAsync(d => d.UserId == log.UserId && d.LogDate == log.LogDate);
+
         if (existing != null)
         {
             existing.Weight = log.Weight;
@@ -210,9 +253,87 @@ public class ClinicService
             existing.ProteinPercentage = log.ProteinPercentage;
             existing.FatPercentage = log.FatPercentage;
             existing.VegPercentage = log.VegPercentage;
-            existing.LoggedAt = log.LoggedAt;
-            await _db.SaveChangesAsync();
+            existing.LoggedAt = DateTime.UtcNow;
+            // Copy the Id back so caller can detect update vs insert
+            log.Id = existing.Id;
         }
+        else
+        {
+            // If log has an Id > 0 it might be an existing record by PK
+            if (log.Id > 0)
+            {
+                var byId = await _db.DailyLogs.FindAsync(log.Id);
+                if (byId != null)
+                {
+                    byId.Weight = log.Weight;
+                    byId.WaistInches = log.WaistInches;
+                    byId.ChestInches = log.ChestInches;
+                    byId.HipsInches = log.HipsInches;
+                    byId.ArmsInches = log.ArmsInches;
+                    byId.DietNotes = log.DietNotes;
+                    byId.MealPhotoUrl = log.MealPhotoUrl;
+                    byId.CarbsPercentage = log.CarbsPercentage;
+                    byId.ProteinPercentage = log.ProteinPercentage;
+                    byId.FatPercentage = log.FatPercentage;
+                    byId.VegPercentage = log.VegPercentage;
+                    byId.LoggedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    _db.DailyLogs.Add(log);
+                }
+            }
+            else
+            {
+                _db.DailyLogs.Add(log);
+            }
+        }
+
+        await _db.SaveChangesAsync();
+    }
+
+    // ==========================================
+    // Task 2.3: GetAllMealLogsAsync (Req 5.2, 5.4, 5.5)
+    // ==========================================
+    public async Task<List<DailyLog>> GetAllMealLogsAsync(int page = 1, int pageSize = 20)
+    {
+        // Fetch all with photos - use client-side filter for compatibility with in-memory provider
+        var allLogs = await _db.DailyLogs
+            .OrderByDescending(dl => dl.LogDate)
+            .ToListAsync();
+
+        // Filter client-side for non-empty photo URLs
+        var filtered = allLogs
+            .Where(dl => !string.IsNullOrEmpty(dl.MealPhotoUrl))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        // Populate User navigation properties
+        foreach (var log in filtered)
+        {
+            if (log.User == null && !string.IsNullOrEmpty(log.UserId))
+            {
+                log.User = await _db.Users.FindAsync(log.UserId);
+            }
+        }
+
+        return filtered;
+    }
+
+    // ==========================================
+    // Task 2.4: DeleteDailyLogAsync (Req 5.3)
+    // ==========================================
+    public async Task DeleteDailyLogAsync(int logId)
+    {
+        var log = await _db.DailyLogs.FindAsync(logId);
+        if (log == null)
+        {
+            _logger.LogError("DeleteDailyLogAsync: DailyLog with Id={LogId} not found.", logId);
+            throw new KeyNotFoundException($"DailyLog with Id {logId} was not found.");
+        }
+        _db.DailyLogs.Remove(log);
+        await _db.SaveChangesAsync();
     }
 
     // ==========================================
@@ -265,16 +386,49 @@ public class ClinicService
         }
     }
 
-    public async Task SendCsvWhatsAppCampaignAsync(string campaignName, string template, IEnumerable<CsvRecipient> recipients)
+    // ==========================================
+    // Task 2.1: DeleteAttendanceRecordAsync (Req 3.7, 3.8)
+    // ==========================================
+    public async Task DeleteAttendanceRecordAsync(int recordId)
     {
-        var sent = 0;
-        foreach (var recipient in recipients.Where(r => !string.IsNullOrWhiteSpace(r.Phone)))
+        var record = await _db.AttendanceRecords.FindAsync(recordId);
+        if (record == null)
         {
-            var message = template.Replace("{{Name}}", recipient.Name ?? "Client").Replace("{Name}", recipient.Name ?? "Client");
-            await SendWhatsAppMessageAsync(recipient.Phone, message);
-            sent++;
+            _logger.LogError("DeleteAttendanceRecordAsync: AttendanceRecord with Id={RecordId} not found.", recordId);
+            return; // no-op if not found per spec
         }
-        _db.WhatsAppLogs.Add(new WhatsAppLog { TargetAudience = campaignName, MessageTemplate = template, RecipientCount = sent, Status = "Bulk campaign dispatched", LogDetail = "CSV broadcast" });
+        _db.AttendanceRecords.Remove(record);
+        await _db.SaveChangesAsync();
+    }
+
+    // ==========================================
+    // Task 2.2: UpdateAttendanceRecordAsync (Req 3.1–3.5)
+    // ==========================================
+    public async Task UpdateAttendanceRecordAsync(AttendanceRecord record)
+    {
+        // Validation
+        if (string.IsNullOrWhiteSpace(record.Therapist))
+            throw new ArgumentException("Therapist must not be empty.", nameof(record));
+
+        if (!string.IsNullOrEmpty(record.Notes) && record.Notes.Length > 2000)
+            throw new ArgumentException("Notes must be 2000 characters or fewer.", nameof(record));
+
+        if (record.CheckOutTime.HasValue && record.CheckOutTime.Value < record.CheckInTime)
+            throw new ArgumentException("Check-out time must not be before check-in time.", nameof(record));
+
+        var existing = await _db.AttendanceRecords.FindAsync(record.Id);
+        if (existing == null)
+        {
+            _logger.LogError("UpdateAttendanceRecordAsync: AttendanceRecord with Id={RecordId} not found.", record.Id);
+            throw new KeyNotFoundException($"AttendanceRecord with Id {record.Id} was not found.");
+        }
+
+        existing.TreatmentReceived = record.TreatmentReceived;
+        existing.Therapist = record.Therapist;
+        existing.Notes = record.Notes;
+        existing.NextAppointmentDate = record.NextAppointmentDate;
+        existing.CheckOutTime = record.CheckOutTime;
+        existing.Status = record.Status;
         await _db.SaveChangesAsync();
     }
 
@@ -311,6 +465,98 @@ public class ClinicService
             appt.Status = status;
             await _db.SaveChangesAsync();
         }
+    }
+
+    // ==========================================
+    // Task 3.1: SubmitBookingRequestAsync (Req 14.1–14.9)
+    // ==========================================
+    private static readonly Regex IndianPhonePattern = new(@"^[6-9]\d{9}$", RegexOptions.Compiled);
+
+    public async Task<int> SubmitBookingRequestAsync(BookingRequest request)
+    {
+        // Validate FullName (2–100 chars)
+        if (string.IsNullOrWhiteSpace(request.FullName) || request.FullName.Trim().Length < 2 || request.FullName.Trim().Length > 100)
+            throw new ArgumentException("Full name must be between 2 and 100 characters.", nameof(request));
+
+        // Validate Indian phone number
+        var phoneDigits = new string(request.PhoneNumber.Where(char.IsDigit).ToArray());
+        if (!IndianPhonePattern.IsMatch(phoneDigits))
+            throw new ArgumentException("Phone number must be a valid 10-digit Indian mobile number.", nameof(request));
+
+        // Validate ServiceType non-empty
+        if (string.IsNullOrWhiteSpace(request.ServiceType))
+            throw new ArgumentException("Service type must be selected.", nameof(request));
+
+        // Validate PreferredDate: 1 hour to 90 days in the future
+        var now = DateTime.UtcNow;
+        var minDate = now.AddHours(1);
+        var maxDate = now.AddDays(90);
+        if (request.PreferredDate < minDate || request.PreferredDate > maxDate)
+            throw new ArgumentException("Preferred date must be between 1 hour and 90 days from now.", nameof(request));
+
+        // Set defaults
+        request.Status = "Pending";
+        request.SubmittedAt = DateTime.UtcNow;
+
+        _db.BookingRequests.Add(request);
+        await _db.SaveChangesAsync();
+
+        // Notify clinic via WhatsApp with retry logic (up to 3 attempts, 20s interval)
+        var clinicNumber = _config["WhatsApp:ClinicNumber"] ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(clinicNumber))
+        {
+            var notificationMsg = $"📅 New Booking Request!\nName: {request.FullName}\nPhone: {request.PhoneNumber}\nService: {request.ServiceType}\nPreferred Date: {request.PreferredDate:dd MMM yyyy, hh:mm tt}\nNotes: {request.Notes}";
+            for (int attempt = 1; attempt <= 3; attempt++)
+            {
+                try
+                {
+                    await SendWhatsAppMessageAsync(clinicNumber, notificationMsg);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "WhatsApp notification attempt {Attempt} failed for booking {BookingId}.", attempt, request.Id);
+                    if (attempt < 3)
+                        await Task.Delay(TimeSpan.FromSeconds(20));
+                }
+            }
+        }
+
+        return request.Id;
+    }
+
+    // ==========================================
+    // Task 3.2: GetAllBookingRequestsAsync (Req 16.1)
+    // ==========================================
+    public async Task<List<BookingRequest>> GetAllBookingRequestsAsync()
+    {
+        return await _db.BookingRequests
+            .OrderByDescending(br => br.SubmittedAt)
+            .ToListAsync();
+    }
+
+    // ==========================================
+    // Task 3.3: UpdateBookingRequestStatusAsync (Req 16.2, 16.3)
+    // ==========================================
+    public async Task UpdateBookingRequestStatusAsync(int id, string newStatus)
+    {
+        var booking = await _db.BookingRequests.FindAsync(id);
+        if (booking == null)
+            throw new KeyNotFoundException($"BookingRequest with Id {id} was not found.");
+
+        // Enforce valid transitions
+        var validTransitions = new Dictionary<string, HashSet<string>>
+        {
+            ["Pending"] = new HashSet<string> { "Confirmed", "Cancelled" },
+            ["Confirmed"] = new HashSet<string> { "Cancelled" },
+            ["Cancelled"] = new HashSet<string>()
+        };
+
+        if (!validTransitions.TryGetValue(booking.Status, out var allowedNext) || !allowedNext.Contains(newStatus))
+            throw new InvalidOperationException($"Transition from '{booking.Status}' to '{newStatus}' is not allowed.");
+
+        booking.Status = newStatus;
+        await _db.SaveChangesAsync();
     }
 
     // ==========================================
@@ -359,12 +605,10 @@ public class ClinicService
             invoice.TriggeredAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
-            // Simulate WhatsApp sending immediately
             string phone = invoice.User?.PhoneNumber ?? "9999999999";
             string clientName = invoice.User?.FullName ?? "Client";
             string msg = $"Hello {clientName}, this is an automated reminder from Slimming & Physio Clinic. Your payment of {invoice.Amount:C} is due for: {invoice.Description}. Please settle as soon as possible.";
-            
-            // Create a WhatsApp dispatch log
+
             var log = new WhatsAppLog
             {
                 TargetAudience = $"Single Client Payment Alert ({clientName})",
@@ -445,11 +689,115 @@ public class ClinicService
     }
 
     // ==========================================
+    // Helper: build opt-out footer
+    // ==========================================
+    private async Task<string> GetOptOutFooterAsync()
+    {
+        var footer = await GetSettingAsync("WhatsApp:OptOutFooter");
+        return string.IsNullOrWhiteSpace(footer) ? "Reply STOP to unsubscribe." : footer;
+    }
+
+    private static string AppendOptOutFooter(string body, string footer, out bool truncated)
+    {
+        truncated = false;
+        const int maxLength = 4096;
+        var suffix = "\n\n" + footer;
+        if (body.Length + suffix.Length > maxLength)
+        {
+            var allowedBodyLength = maxLength - suffix.Length;
+            body = body[..Math.Max(0, allowedBodyLength)];
+            truncated = true;
+        }
+        return body + suffix;
+    }
+
+    // ==========================================
+    // Task 4.1: WhatsApp campaigns with opt-out footer (Req 9.1–9.4)
+    // ==========================================
+
+    // Task 4.2: CSV preview (Req 10.1–10.6)
+    public async Task<List<CsvPreviewRow>> PreviewCsvCampaignAsync(string template, IEnumerable<CsvRecipient> recipients)
+    {
+        var footer = await GetOptOutFooterAsync();
+        var rows = new List<CsvPreviewRow>();
+        foreach (var recipient in recipients)
+        {
+            var name = string.IsNullOrWhiteSpace(recipient.Name) ? "{{Name}}" : recipient.Name;
+            var personalised = template
+                .Replace("{{Name}}", name)
+                .Replace("{Name}", name);
+            AppendOptOutFooter(personalised, footer, out _);
+            var finalMessage = personalised + "\n\n" + footer;
+            rows.Add(new CsvPreviewRow(recipient.Name, recipient.Phone, finalMessage));
+        }
+        // No DB writes — pure preview
+        return rows;
+    }
+
+    // Task 4.3: CSV campaign with delay + progress (Req 11.1–11.4)
+    public async Task SendCsvWhatsAppCampaignAsync(
+        string campaignName,
+        string template,
+        IEnumerable<CsvRecipient> recipients,
+        IProgress<(int sent, int failed, int total)>? progress = null)
+    {
+        var footer = await GetOptOutFooterAsync();
+
+        // Read delay setting
+        var delayMs = 1000;
+        var delaySetting = await GetSettingAsync("WhatsApp:BulkDelayMs");
+        if (int.TryParse(delaySetting, out var parsedDelay) && parsedDelay >= 100 && parsedDelay <= 60000)
+            delayMs = parsedDelay;
+
+        var recipientList = recipients.Where(r => !string.IsNullOrWhiteSpace(r.Phone)).ToList();
+        var total = recipientList.Count;
+        var sent = 0;
+        var failed = 0;
+        var dispatchDetails = new List<object>();
+
+        foreach (var recipient in recipientList)
+        {
+            var message = template
+                .Replace("{{Name}}", recipient.Name ?? "Client")
+                .Replace("{Name}", recipient.Name ?? "Client");
+            var messageWithFooter = AppendOptOutFooter(message, footer, out _);
+
+            try
+            {
+                await SendWhatsAppMessageAsync(recipient.Phone, messageWithFooter);
+                sent++;
+                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = "Sent" });
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                _logger.LogError(ex, "Failed to send WhatsApp to {Phone}", recipient.Phone);
+                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = "Failed" });
+            }
+
+            progress?.Report((sent, failed, total));
+
+            if (delayMs > 0)
+                await Task.Delay(delayMs);
+        }
+
+        _db.WhatsAppLogs.Add(new WhatsAppLog
+        {
+            TargetAudience = campaignName,
+            MessageTemplate = template,
+            RecipientCount = sent,
+            SentAt = DateTime.UtcNow,
+            Status = failed > 0 ? $"Partial ({failed} failed)" : "Bulk campaign dispatched",
+            LogDetail = JsonSerializer.Serialize(dispatchDetails)
+        });
+        await _db.SaveChangesAsync();
+    }
+
+    // ==========================================
     // Phone OTP flows
     // ==========================================
     public async Task<string> GeneratePhoneOtpAsync(string phone)
     {
-        // Check for recent OTP to prevent rapid resends (60 seconds)
         var recent = await _db.PhoneOtps
             .Where(o => o.PhoneNumber == phone && !o.IsUsed)
             .OrderByDescending(o => o.CreatedAt)
@@ -457,11 +805,9 @@ public class ClinicService
 
         if (recent != null && (DateTime.UtcNow - recent.CreatedAt).TotalSeconds < 60)
         {
-            // reuse recent code
             return recent.Code;
         }
 
-        // create 6-digit code
         var rnd = new Random();
         var code = rnd.Next(100000, 999999).ToString();
 
@@ -488,7 +834,6 @@ public class ClinicService
                     from: new Twilio.Types.PhoneNumber(cfg.From),
                     to: new Twilio.Types.PhoneNumber(phone)
                 );
-                // log
                 _db.WhatsAppLogs.Add(new WhatsAppLog
                 {
                     TargetAudience = "OTP (Twilio)",
@@ -535,7 +880,7 @@ public class ClinicService
     }
 
     // ==========================================
-    // WhatsApp sending wrapper (bulk)
+    // WhatsApp sending wrapper (bulk) — Task 4.1 footer added
     // ==========================================
     public async Task SendWhatsAppMessageAsync(string toPhone, string messageText)
     {
@@ -581,11 +926,26 @@ public class ClinicService
         await _db.SaveChangesAsync();
     }
 
-    // Provide a bulk helper that uses SendWhatsAppMessageAsync
-    public async Task SendBulkWhatsAppCampaignAsync(string audienceType, string templateText, List<ApplicationUser> recipients, bool personalize = true)
+    // Task 4.3: Bulk campaign with delay + progress (Req 11.1–11.4)
+    public async Task SendBulkWhatsAppCampaignAsync(
+        string audienceType,
+        string templateText,
+        List<ApplicationUser> recipients,
+        bool personalize = true,
+        IProgress<(int sent, int failed, int total)>? progress = null)
     {
         if (recipients == null || recipients.Count == 0) return;
 
+        var footer = await GetOptOutFooterAsync();
+
+        var delayMs = 1000;
+        var delaySetting = await GetSettingAsync("WhatsApp:BulkDelayMs");
+        if (int.TryParse(delaySetting, out var parsedDelay) && parsedDelay >= 100 && parsedDelay <= 60000)
+            delayMs = parsedDelay;
+
+        var total = recipients.Count;
+        var sent = 0;
+        var failed = 0;
         var dispatchDetails = new List<object>();
 
         foreach (var user in recipients)
@@ -595,18 +955,28 @@ public class ClinicService
             {
                 personalizedMsg = templateText
                     .Replace("{Name}", user.FullName ?? "Client")
+                    .Replace("{{Name}}", user.FullName ?? "Client")
                     .Replace("{Phone}", user.PhoneNumber ?? "N/A");
             }
+            var messageWithFooter = AppendOptOutFooter(personalizedMsg, footer, out _);
 
-            await SendWhatsAppMessageAsync(user.PhoneNumber ?? "", personalizedMsg);
-
-            dispatchDetails.Add(new
+            try
             {
-                Name = user.FullName,
-                Phone = user.PhoneNumber,
-                Message = personalizedMsg,
-                SentAt = DateTime.UtcNow
-            });
+                await SendWhatsAppMessageAsync(user.PhoneNumber ?? "", messageWithFooter);
+                sent++;
+                dispatchDetails.Add(new { Name = user.FullName, Phone = user.PhoneNumber, Message = messageWithFooter, SentAt = DateTime.UtcNow, Status = "Sent" });
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                _logger.LogError(ex, "Failed to send bulk WhatsApp to {Phone}", user.PhoneNumber);
+                dispatchDetails.Add(new { Name = user.FullName, Phone = user.PhoneNumber, Status = "Failed" });
+            }
+
+            progress?.Report((sent, failed, total));
+
+            if (delayMs > 0)
+                await Task.Delay(delayMs);
         }
 
         var log = new WhatsAppLog
@@ -615,7 +985,7 @@ public class ClinicService
             MessageTemplate = templateText,
             RecipientCount = recipients.Count,
             SentAt = DateTime.UtcNow,
-            Status = "Sent",
+            Status = failed > 0 ? $"Partial ({failed} failed)" : "Sent",
             LogDetail = JsonSerializer.Serialize(dispatchDetails)
         };
         _db.WhatsAppLogs.Add(log);
