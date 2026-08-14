@@ -1,0 +1,539 @@
+@page "/services/{ServiceId}"
+@rendermode InteractiveServer
+@using ClinicApp.Data
+@using ClinicApp.Services
+@inject ClinicService ClinicService
+@inject NavigationManager NavManager
+
+<PageTitle>@(currentService?.Name ?? "Service") | Sri Sai Protouch</PageTitle>
+
+<div class="wellness-page">
+
+    <!-- ── Header ── -->
+    <header class="wellness-header">
+        <a href="/" class="wellness-logo">
+            <img src="/images/sri-sai-protouch-logo.svg" alt="Sri Sai Protouch" />
+        </a>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/#services">Services</a>
+            <a href="/#approach">Our Approach</a>
+            <a href="/#contact">Contact</a>
+        </nav>
+        <a class="wellness-call" href="tel:9673530031">📞 Call 96735 30031</a>
+    </header>
+
+    @if (currentService == null)
+    {
+        <div style="max-width:700px;margin:6rem auto;padding:0 1.5rem;text-align:center;">
+            <p class="section-kicker">404 — NOT FOUND</p>
+            <h1 style="font-family:'Playfair Display',Georgia,serif;color:#1a1520;font-size:2.8rem;margin:1rem 0;">Service not found.</h1>
+            <p style="color:#6b636d;margin-bottom:2rem;">The service you're looking for doesn't exist. Browse all our services below.</p>
+            <a class="wellness-primary" href="/#services">← View All Services</a>
+        </div>
+    }
+    else
+    {
+        <!-- ── Service Hero Banner ── -->
+        <section class="svc-hero" style="background: @currentService.BannerGradient;">
+            <div class="svc-hero-inner">
+                <a href="/#services" class="svc-back">← All Services</a>
+                <p class="section-kicker" style="color:@currentService.KickerColor;">@currentService.CategoryLabel</p>
+                <h1>@currentService.Name</h1>
+                <p class="svc-hero-tagline">@currentService.Tagline</p>
+                <div class="svc-hero-badges">
+                    @foreach (var b in currentService.HeroBadges)
+                    {
+                        <span>@b</span>
+                    }
+                </div>
+            </div>
+            <div class="svc-hero-image">
+                <img src="@currentService.HeroImage" alt="@currentService.Name" onerror="this.parentElement.style.background='linear-gradient(135deg,#008d36,#eef6f1)'" />
+            </div>
+        </section>
+
+        <!-- ── What We Treat / Offer ── -->
+        <section class="wellness-section svc-content-section">
+            <div class="svc-intro-grid">
+                <div class="svc-overview">
+                    <p class="section-kicker">OVERVIEW</p>
+                    <h2>@currentService.OverviewHeading</h2>
+                    <p class="large-copy">@currentService.OverviewBody</p>
+                </div>
+                <div class="svc-stats-col">
+                    @foreach (var stat in currentService.KeyStats)
+                    {
+                        <div class="svc-stat-card">
+                            <strong>@stat.Value</strong>
+                            <span>@stat.Label</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Treatments & Methods ── -->
+        <section class="svc-treatments-band">
+            <div class="wellness-section" style="padding-top:60px;padding-bottom:60px;">
+                <p class="section-kicker">TREATMENTS &amp; METHODS</p>
+                <h2>How we help you.</h2>
+                <div class="svc-treatment-grid">
+                    @foreach (var t in currentService.Treatments)
+                    {
+                        <div class="svc-treatment-card">
+                            <span class="svc-treat-icon">@t.Icon</span>
+                            <h4>@t.Name</h4>
+                            <p>@t.Description</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Sub-services pills ── -->
+        @if (currentService.SubServices.Length > 0)
+        {
+            <section class="wellness-section" style="padding-top:60px;padding-bottom:60px;">
+                <p class="section-kicker">SUB-SERVICES</p>
+                <h2>Specialisations within this service.</h2>
+                <div class="svc-subservice-pills">
+                    @foreach (var s in currentService.SubServices)
+                    {
+                        <button class="svc-pill @(selectedSubService == s ? "active" : "")"
+                                type="button"
+                                @onclick="() => SelectSubService(s)">@s</button>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(selectedSubService))
+                {
+                    <div class="svc-pill-cta">
+                        <p>Ready to book <strong>@selectedSubService</strong>?</p>
+                        <button class="wellness-primary" type="button" @onclick="() => ScrollToBooking()">Book Now →</button>
+                    </div>
+                }
+            </section>
+        }
+
+        <!-- ── Photo gallery strip ── -->
+        <section class="svc-photo-strip">
+            @foreach (var img in currentService.GalleryImages)
+            {
+                <div class="svc-photo-item">
+                    <img src="@img" alt="@currentService.Name" loading="lazy" onerror="this.style.display='none'" />
+                </div>
+            }
+        </section>
+
+        <!-- ── Outcomes ── -->
+        <section class="wellness-section svc-outcomes-section">
+            <p class="section-kicker">EXPECTED OUTCOMES</p>
+            <h2>What you can expect.</h2>
+            <div class="svc-outcomes-grid">
+                @foreach (var o in currentService.Outcomes)
+                {
+                    <div class="svc-outcome-item">
+                        <span class="svc-outcome-icon">✓</span>
+                        <p>@o</p>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════════
+             INLINE BOOKING FORM
+             ════════════════════════════════════════════════════════ -->
+        <section id="book-now" class="svc-booking-section">
+            <div class="wellness-section" style="padding-top:0;">
+                @if (bookingSuccess)
+                {
+                    <div class="booking-success">
+                        <div class="checkmark-circle">✓</div>
+                        <h2>Booking Request Received!</h2>
+                        <p>Thank you, <strong>@submittedName</strong>. We've received your request for <strong>@submittedService</strong> on <strong>@submittedDate</strong>. The team will contact you on <strong>@submittedPhone</strong> to confirm.</p>
+                        <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                            <a class="wellness-primary" href="/">← Back to Home</a>
+                            <a class="wellness-secondary" href="/#services">View Other Services</a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="svc-booking-card">
+                        <div class="svc-booking-header">
+                            <p class="section-kicker" style="color:#ffeb00;">BOOK AN APPOINTMENT</p>
+                            <h2 style="color:#fff;">Ready to start your @currentService.Name journey?</h2>
+                            <p style="color:#c8e8d0;">Fill in your details below — our team will confirm your appointment within the day.</p>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(submitError))
+                        {
+                            <div class="svc-booking-error">⚠ @submitError</div>
+                        }
+
+                        <div class="svc-form-grid">
+                            <!-- Full Name -->
+                            <div class="svc-field">
+                                <label>Full Name *</label>
+                                <input type="text" @bind="fullName" @bind:event="oninput"
+                                       placeholder="Your full name" maxlength="100"
+                                       class="@(string.IsNullOrEmpty(nameError) ? "" : "field-error")" />
+                                @if (!string.IsNullOrEmpty(nameError))
+                                { <span class="field-error-msg">@nameError</span> }
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="svc-field">
+                                <label>Mobile Number *</label>
+                                <input type="tel" @bind="phoneNumber" @bind:event="oninput"
+                                       placeholder="10-digit Indian mobile" maxlength="15"
+                                       class="@(string.IsNullOrEmpty(phoneError) ? "" : "field-error")" />
+                                @if (!string.IsNullOrEmpty(phoneError))
+                                { <span class="field-error-msg">@phoneError</span> }
+                            </div>
+
+                            <!-- Preferred Date -->
+                            <div class="svc-field">
+                                <label>Preferred Date &amp; Time *</label>
+                                <input type="datetime-local" @bind="preferredDate"
+                                       class="@(string.IsNullOrEmpty(dateError) ? "" : "field-error")" />
+                                @if (!string.IsNullOrEmpty(dateError))
+                                { <span class="field-error-msg">@dateError</span> }
+                            </div>
+
+                            <!-- Service (pre-filled, readonly display) -->
+                            <div class="svc-field">
+                                <label>Service</label>
+                                <div class="svc-field-prefill">@currentService.Name</div>
+                            </div>
+
+                            <!-- Notes — full width -->
+                            <div class="svc-field svc-field-wide">
+                                <label>Additional Notes (optional)</label>
+                                <textarea @bind="notes" rows="3"
+                                          placeholder="Any specific concerns, preferred timings, or health details..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="svc-form-footer">
+                            <span>* Required fields. We'll call you to confirm.</span>
+                            <button class="wellness-primary svc-submit-btn"
+                                    type="button"
+                                    @onclick="HandleSubmit"
+                                    disabled="@submitting">
+                                @(submitting ? "Submitting…" : "Request Appointment →")
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <footer>© @DateTime.Now.Year SRI SAI PROTOUCH Physio - Slimming Clinic <span>•</span> Dr. Manjari</footer>
+</div>
+
+@code {
+    [Parameter] public string ServiceId { get; set; } = "";
+
+    // ── Service data model ────────────────────────────────────────────────
+    private record StatItem(string Value, string Label);
+    private record TreatmentItem(string Icon, string Name, string Description);
+    private record ServicePageData(
+        string Id,
+        string Name,
+        string CategoryLabel,
+        string KickerColor,
+        string Tagline,
+        string BannerGradient,
+        string HeroImage,
+        string OverviewHeading,
+        string OverviewBody,
+        StatItem[] KeyStats,
+        TreatmentItem[] Treatments,
+        string[] SubServices,
+        string[] Outcomes,
+        string[] GalleryImages,
+        string[] HeroBadges
+    );
+
+    // ── Page state ────────────────────────────────────────────────────────
+    private ServicePageData? currentService;
+    private string selectedSubService = "";
+
+    // ── Booking form state ────────────────────────────────────────────────
+    private string fullName = "";
+    private string phoneNumber = "";
+    private DateTime preferredDate = DateTime.Today.AddDays(1).AddHours(10);
+    private string notes = "";
+
+    private string nameError = "";
+    private string phoneError = "";
+    private string dateError = "";
+    private string submitError = "";
+
+    private bool bookingSuccess = false;
+    private bool submitting = false;
+    private string submittedName = "";
+    private string submittedService = "";
+    private string submittedDate = "";
+    private string submittedPhone = "";
+
+    // ── Static service catalogue ──────────────────────────────────────────
+    private static readonly Dictionary<string, ServicePageData> ServiceCatalogue = new()
+    {
+        ["weight-loss"] = new ServicePageData(
+            Id: "weight-loss",
+            Name: "Weight Loss & Slimming",
+            CategoryLabel: "SLIMMING & BODY CARE",
+            KickerColor: "#ffeb00",
+            Tagline: "Inch loss, figure correction, body shaping and skin tightening — without surgery, fasting or side effects.",
+            BannerGradient: "linear-gradient(135deg, #1a4d2e 0%, #2d7a44 100%)",
+            HeroImage: "/images/clinic-gallery/gallery-05.jpeg",
+            OverviewHeading: "Safe, science-backed slimming without the extremes.",
+            OverviewBody: "Our weight-loss programme combines European body-care technology with individual physiotherapy assessment. You lose weight at a healthy, sustainable rate with visible inch loss from the very first session — no starvation, no medicine, no surgery.",
+            KeyStats: new[]
+            {
+                new StatItem("4–8 kg", "weight loss per month"),
+                new StatItem("2–5 in", "inch loss per session"),
+                new StatItem("0", "side effects"),
+                new StatItem("1st session", "visible results"),
+            },
+            Treatments: new[]
+            {
+                new TreatmentItem("🔁", "LPG Endermologie", "Non-invasive mechanical massage that stimulates fat cells, boosts circulation and firms skin."),
+                new TreatmentItem("📡", "RF Therapy", "Radio-frequency energy heats the deep skin layer to break down fat and tighten tissue."),
+                new TreatmentItem("🌡️", "Cryotherapy", "Targeted cold application that freezes and eliminates stubborn fat cells permanently."),
+                new TreatmentItem("💆", "Body Wraps", "Compression wraps combined with slimming serums to reduce water retention and tone the skin."),
+                new TreatmentItem("🔊", "Ultrasound Cavitation", "Low-frequency ultrasound that breaks fat-cell membranes for natural lymphatic elimination."),
+                new TreatmentItem("💅", "Body Spa", "Deep relaxation treatment combining detox, exfoliation and nourishing body care."),
+            },
+            SubServices: new[] { "Figure Correction", "Body Shaping", "Toning", "Skin Tightening", "Breast Correction", "Body Spa", "Inch Loss Program", "Post-Pregnancy Slimming" },
+            Outcomes: new[]
+            {
+                "4–8 kg weight reduction per month",
+                "2–5 inches reduction per session/week",
+                "Measurable, visible results from the first session",
+                "No fasting, no medicine, no surgery, no side effects",
+                "Improved skin tone and firmness",
+                "Better posture and body confidence",
+            },
+            GalleryImages: new[]
+            {
+                "/images/clinic-gallery/gallery-05.jpeg",
+                "/images/clinic-gallery/gallery-08.jpeg",
+                "/images/clinic-gallery/gallery-11.jpeg",
+                "/images/clinic-gallery/gallery-42.jpeg",
+                "/images/clinic-gallery/gallery-60.jpeg",
+            },
+            HeroBadges: new[] { "✓ No Surgery", "✓ No Fasting", "✓ ISO Certified", "✓ Results from Session 1" }
+        ),
+
+        ["physiotherapy"] = new ServicePageData(
+            Id: "physiotherapy",
+            Name: "Physiotherapy & Rehabilitation",
+            CategoryLabel: "PHYSIO & REHAB",
+            KickerColor: "#ffeb00",
+            Tagline: "Expert pain relief and rehabilitation for back, neck, knee, sports injuries and neurological conditions.",
+            BannerGradient: "linear-gradient(135deg, #3a1a4d 0%, #5e2d7a 100%)",
+            HeroImage: "/images/clinic-gallery/gallery-14.jpeg",
+            OverviewHeading: "Targeted therapy for lasting pain relief and recovery.",
+            OverviewBody: "Our physiotherapy clinic provides individually designed treatment plans for acute injuries, chronic pain, neurological conditions and post-surgery rehabilitation. Using a combination of electrotherapy, manual therapy and movement re-education, we help you regain strength, mobility and quality of life.",
+            KeyStats: new[]
+            {
+                new StatItem("1st session", "pain relief begins"),
+                new StatItem("30+", "conditions treated"),
+                new StatItem("100%", "personalised plans"),
+                new StatItem("ISO", "9001:2015 certified"),
+            },
+            Treatments: new[]
+            {
+                new TreatmentItem("⚡", "Electrotherapy", "Electrical stimulation to reduce pain, speed healing and improve muscle function."),
+                new TreatmentItem("🔊", "Ultrasound Therapy", "Deep tissue ultrasound to reduce inflammation and accelerate tissue repair."),
+                new TreatmentItem("🔌", "TENS", "Transcutaneous electrical nerve stimulation — blocks pain signals and relaxes muscles."),
+                new TreatmentItem("🤲", "Manual Therapy", "Hands-on joint mobilisation, soft tissue release and therapeutic massage."),
+                new TreatmentItem("🏃", "Exercise Therapy", "Guided movement and strengthening programmes tailored to your condition."),
+                new TreatmentItem("🧠", "Neurological Rehab", "Specialised exercises and stimulation for stroke, paralysis and nerve conditions."),
+            },
+            SubServices: new[] { "Back Pain", "Neck Pain", "Knee Pain", "Arthritis", "Spondylitis", "Sinusitis", "Paralysis Recovery", "Orthopaedic Rehab", "Neurological Care", "Sports Injury", "Post-Surgery Rehab", "Stress & Strain" },
+            Outcomes: new[]
+            {
+                "Significant pain reduction from the first session",
+                "Improved joint mobility and muscle strength",
+                "Faster recovery from injury or surgery",
+                "Reduced dependency on painkillers",
+                "Better posture and movement patterns",
+                "Long-term prevention of recurring injuries",
+            },
+            GalleryImages: new[]
+            {
+                "/images/clinic-gallery/gallery-14.jpeg",
+                "/images/clinic-gallery/gallery-17.jpeg",
+                "/images/clinic-gallery/gallery-19.jpeg",
+                "/images/clinic-gallery/gallery-48.jpeg",
+            },
+            HeroBadges: new[] { "✓ All Ages", "✓ Expert Physiotherapist", "✓ Ortho & Neuro", "✓ Sports Injury" }
+        ),
+
+        ["yoga"] = new ServicePageData(
+            Id: "yoga",
+            Name: "Yoga & Holistic Wellness",
+            CategoryLabel: "YOGA & LIFESTYLE",
+            KickerColor: "#ffeb00",
+            Tagline: "Personalised yoga and lifestyle support for managing chronic conditions and restoring hormonal balance.",
+            BannerGradient: "linear-gradient(135deg, #4d3a00 0%, #8a6800 100%)",
+            HeroImage: "/images/clinic-gallery/gallery-21.jpeg",
+            OverviewHeading: "Holistic healing that goes beyond exercise.",
+            OverviewBody: "Our yoga and wellness programmes are built around your specific health conditions — not generic routines. Whether you're managing diabetes, blood pressure, thyroid issues or hormonal imbalances, we design a programme that supports your body's natural healing capacity alongside your medical treatment.",
+            KeyStats: new[]
+            {
+                new StatItem("8+", "chronic conditions supported"),
+                new StatItem("100%", "personalised plans"),
+                new StatItem("Pre & Post", "natal programmes"),
+                new StatItem("Holistic", "mind-body approach"),
+            },
+            Treatments: new[]
+            {
+                new TreatmentItem("🧘", "Personalised Yoga", "Custom asana sequences designed for your specific health condition and fitness level."),
+                new TreatmentItem("🌬️", "Pranayama", "Breathing techniques to regulate the nervous system, reduce stress and improve organ function."),
+                new TreatmentItem("🥗", "Nutrition Coaching", "Personalised dietary guidance to support your wellness goals alongside your yoga practice."),
+                new TreatmentItem("🌿", "Lifestyle Counselling", "Holistic guidance on sleep, stress management and daily habits for lasting health."),
+                new TreatmentItem("🤱", "Pre-Natal Yoga", "Safe pregnancy yoga to ease discomfort, build strength and prepare for birth."),
+                new TreatmentItem("👶", "Post-Natal Recovery", "Gentle recovery yoga to rebuild core strength, balance hormones and support new mothers."),
+            },
+            SubServices: new[] { "Diabetes Wellness", "Blood Pressure", "Thyroid Health", "Cholesterol Management", "Varicose Veins", "Menstrual Wellness", "Pre-Natal Care", "Post-Natal Recovery", "Hormonal Balance", "Stress & Anxiety" },
+            Outcomes: new[]
+            {
+                "Improved blood sugar levels and metabolic health",
+                "Regulated blood pressure and cardiovascular health",
+                "Better hormonal balance and menstrual health",
+                "Reduced stress, anxiety and improved sleep",
+                "Stronger, more flexible body across all life stages",
+                "Sustained lifestyle improvements with ongoing support",
+            },
+            GalleryImages: new[]
+            {
+                "/images/clinic-gallery/gallery-21.jpeg",
+                "/images/clinic-gallery/gallery-24.jpeg",
+                "/images/clinic-gallery/gallery-28.jpeg",
+                "/images/clinic-gallery/gallery-53.jpeg",
+            },
+            HeroBadges: new[] { "✓ Condition-Specific", "✓ Pre & Post-Natal", "✓ Hormonal Health", "✓ All Ages" }
+        ),
+
+        ["specialised"] = new ServicePageData(
+            Id: "specialised",
+            Name: "Specialised Programs",
+            CategoryLabel: "SPECIALISED CARE",
+            KickerColor: "#ffeb00",
+            Tagline: "Focused, clinician-guided programmes for height increase, sports recovery and specific health goals.",
+            BannerGradient: "linear-gradient(135deg, #4d0a0a 0%, #7a1a1a 100%)",
+            HeroImage: "/images/clinic-gallery/gallery-30.jpeg",
+            OverviewHeading: "Precision programmes for specific, measurable goals.",
+            OverviewBody: "Some goals need a dedicated, specialist approach. Our specialised programmes are designed around a single focused objective — whether that's growing taller, recovering from a sports injury, correcting posture, or managing a specific health condition — with a clinician-supervised plan built around you.",
+            KeyStats: new[]
+            {
+                new StatItem("1–3 in", "height increase possible"),
+                new StatItem("Up to 23", "years for height program"),
+                new StatItem("100%", "clinician supervised"),
+                new StatItem("Custom", "plan per individual"),
+            },
+            Treatments: new[]
+            {
+                new TreatmentItem("📏", "Height Increase Program", "Structured stretching, decompression and nutrition protocols designed to maximise growth potential in young adults."),
+                new TreatmentItem("⚽", "Sports Rehabilitation", "Sport-specific recovery and strengthening programmes for athletes returning after injury."),
+                new TreatmentItem("🦴", "Posture Correction", "Assessment and targeted exercises to correct spinal alignment and postural imbalances."),
+                new TreatmentItem("🎯", "Custom Wellness Plans", "Bespoke clinician-designed programmes for any specific health goal not covered by other services."),
+            },
+            SubServices: new[] { "Height Increase (up to 23 yrs)", "Sports Rehabilitation", "Posture Correction", "Pre-Sports Conditioning", "Custom Health Plans" },
+            Outcomes: new[]
+            {
+                "1–3 inches height increase for eligible candidates (up to age 23)",
+                "Faster, safer return to sport after injury",
+                "Improved posture and spinal alignment",
+                "Clinician-supervised progress at every stage",
+                "Clear milestone tracking from first session",
+            },
+            GalleryImages: new[]
+            {
+                "/images/clinic-gallery/gallery-30.jpeg",
+                "/images/clinic-gallery/gallery-33.jpeg",
+                "/images/clinic-gallery/gallery-37.jpeg",
+                "/images/clinic-gallery/gallery-57.jpeg",
+            },
+            HeroBadges: new[] { "✓ Clinician Supervised", "✓ Height Program", "✓ Sports Rehab", "✓ Custom Plans" }
+        ),
+    };
+
+    protected override void OnParametersSet()
+    {
+        ServiceCatalogue.TryGetValue(ServiceId?.ToLower() ?? "", out var svc);
+        currentService = svc;
+        // Reset booking form when service changes
+        ResetForm();
+    }
+
+    private void SelectSubService(string s)
+    {
+        selectedSubService = selectedSubService == s ? "" : s;
+    }
+
+    private void ScrollToBooking()
+    {
+        // Blazor can't directly scroll — we use a JS-free anchor approach
+        NavManager.NavigateTo($"/services/{ServiceId}#book-now", false);
+    }
+
+    private void ResetForm()
+    {
+        fullName = phoneNumber = notes = nameError = phoneError = dateError = submitError = "";
+        preferredDate = DateTime.Today.AddDays(1).AddHours(10);
+        bookingSuccess = submitting = false;
+    }
+
+    private async Task HandleSubmit()
+    {
+        nameError = phoneError = dateError = submitError = "";
+        var valid = true;
+
+        var trimName = (fullName ?? "").Trim();
+        if (trimName.Length < 2 || trimName.Length > 100)
+        { nameError = "Full name must be 2–100 characters."; valid = false; }
+
+        var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+        if (digits.Length != 10 || digits[0] < '6')
+        { phoneError = "Enter a valid 10-digit Indian mobile number (starts 6–9)."; valid = false; }
+
+        var now = DateTime.UtcNow;
+        var prefUtc = preferredDate.ToUniversalTime();
+        if (prefUtc < now.AddHours(1))
+        { dateError = "Please choose a time at least 1 hour from now."; valid = false; }
+        else if (prefUtc > now.AddDays(90))
+        { dateError = "Preferred date must be within the next 90 days."; valid = false; }
+
+        if (!valid) return;
+
+        submitting = true;
+        try
+        {
+            var request = new BookingRequest
+            {
+                FullName = trimName,
+                PhoneNumber = digits,
+                ServiceType = currentService!.Name,
+                PreferredDate = prefUtc,
+                Notes = (notes ?? "").Trim()
+            };
+            await ClinicService.SubmitBookingRequestAsync(request);
+
+            submittedName = trimName;
+            submittedService = currentService!.Name;
+            submittedDate = preferredDate.ToString("dd MMM yyyy, hh:mm tt");
+            submittedPhone = phoneNumber;
+            bookingSuccess = true;
+        }
+        catch (ArgumentException ex) { submitError = ex.Message; }
+        catch { submitError = "We couldn't submit your request. Please call us directly."; }
+        finally { submitting = false; }
+    }
+}
