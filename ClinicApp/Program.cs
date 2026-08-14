@@ -141,6 +141,12 @@ else
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    // Suppress Blazor SignalR "unload" Permissions-Policy warning in Chrome 115+
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers["Permissions-Policy"] = "unload=()";
+        await next();
+    });
 }
 
 app.UseHttpsRedirection();
