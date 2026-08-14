@@ -24,6 +24,8 @@ public class ClientProfile
     public double HipsInches { get; set; }
     public double ArmsInches { get; set; }
     public string DoctorNotes { get; set; } = string.Empty;
+    // NEW: Admin-composed diet plan. Distinct from DoctorNotes (clinical observations) and DailyLog.DietNotes (client food diary).
+    public string DietPlan { get; set; } = string.Empty;
     // Stored as a relative path in runtime settings to avoid a database migration for media files.
     [NotMapped]
     public string ProfilePhotoUrl { get; set; } = string.Empty;

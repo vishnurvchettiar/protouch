@@ -126,6 +126,26 @@ public class ClinicService
         }
     }
 
+    // ==========================================
+    // UpdateClientDietPlanAsync — Requirement 11.1, 11.2, 11.3
+    // ==========================================
+    /// <summary>
+    /// Updates the DietPlan field on a client's profile.
+    /// Throws InvalidOperationException if the profile does not exist.
+    /// </summary>
+    public async Task UpdateClientDietPlanAsync(string userId, string dietPlan)
+    {
+        var profile = await _db.ClientProfiles
+            .FirstOrDefaultAsync(cp => cp.UserId == userId);
+
+        if (profile == null)
+            throw new InvalidOperationException(
+                $"Client profile not found for userId: {userId}");
+
+        profile.DietPlan = dietPlan;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task EnsureClientProfileExistsAsync(string userId, double startWeight = 70.0, double targetWeight = 65.0, double height = 170.0)
     {
         var exists = await _db.ClientProfiles.AnyAsync(cp => cp.UserId == userId);

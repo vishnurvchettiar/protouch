@@ -1850,3 +1850,191 @@ a:hover {
     .auth-card-wide .auth-grid { grid-template-columns: 1fr; }
 }
 /* ══════════════════════════════════════════════════════════ */
+
+
+
+/* ===================================================================
+   DASHBOARD LIGHT-GREEN THEME
+   Scoped to .dashboard-theme — applied via MainLayout.razor only.
+   The public wellness page (.wellness-page) is NOT affected.
+   =================================================================== */
+
+/* 7.1 — Custom property overrides + base background */
+.dashboard-theme {
+    --bg-primary:     #f0f7f2;
+    --bg-secondary:   #e8f4ec;
+    --bg-glass:       rgba(255, 255, 255, 0.85);
+    --border-glass:   #c8e6d0;
+    --border-glow:    rgba(0, 141, 54, 0.2);
+    --text-primary:   #1a2e22;
+    --text-secondary: #3d6b4f;
+    --text-muted:     #5a8a6a;
+    --accent-teal:    #008d36;
+    --accent-blue:    #1a7fc1;
+    --grad-primary:   linear-gradient(135deg, #008d36 0%, #00b851 100%);
+    --shadow-md:      0 4px 20px rgba(0, 141, 54, 0.08);
+    --shadow-glow:    0 0 20px rgba(0, 141, 54, 0.25);
+
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* 7.2 — Layout shell elements */
+.dashboard-theme .sidebar {
+    background: #ffffff;
+    border-right: 1px solid #d4e8dc;
+}
+
+.dashboard-theme main > .top-row {
+    background: #ffffff;
+    border-bottom: 1px solid #d4e8dc;
+}
+
+.dashboard-theme .user-badge {
+    background: rgba(0, 141, 54, 0.06);
+    border: 1px solid #c8e6d0;
+    color: #1a2e22;
+}
+
+.dashboard-theme .eyebrow {
+    color: #008d36;
+}
+
+/* 7.3 — Glass panels and stat cards */
+.dashboard-theme .glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid #c8e6d0;
+    box-shadow: 0 4px 20px rgba(0, 141, 54, 0.08);
+}
+
+.dashboard-theme .glass-panel:hover {
+    border-color: rgba(0, 141, 54, 0.35);
+    box-shadow: 0 8px 30px rgba(0, 141, 54, 0.12);
+}
+
+.dashboard-theme .stat-card h2 {
+    color: #008d36;
+    font-weight: 800;
+}
+
+.dashboard-theme .stat-icon {
+    background: rgba(0, 141, 54, 0.1);
+    color: #008d36;
+}
+
+.dashboard-theme .gradient-text {
+    background: linear-gradient(135deg, #008d36 0%, #00b851 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* 7.4 — Buttons and tabs */
+.dashboard-theme .btn-clinic {
+    background: #008d36;
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 141, 54, 0.3);
+    border: none;
+}
+
+.dashboard-theme .btn-clinic:hover {
+    background: #006d2a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 141, 54, 0.4);
+}
+
+.dashboard-theme .btn-clinic-secondary {
+    background: transparent;
+    border: 1px solid #c8e6d0;
+    color: #1a2e22;
+}
+
+.dashboard-theme .btn-clinic-secondary:hover {
+    background: rgba(0, 141, 54, 0.06);
+    border-color: #008d36;
+    color: #008d36;
+}
+
+/* 7.5 — Sidebar navigation links */
+.dashboard-theme .nav-link,
+.dashboard-theme .nav-link-btn {
+    color: #1a2e22;
+}
+
+.dashboard-theme .nav-link:hover,
+.dashboard-theme .nav-link.active,
+.dashboard-theme .nav-link-btn:hover,
+.dashboard-theme .nav-link-btn.active {
+    color: #008d36;
+    background: rgba(0, 141, 54, 0.08);
+}
+
+/* 7.6 — Tables */
+.dashboard-theme .clinic-table th {
+    background: #f0f7f2;
+    color: #008d36;
+    border-bottom: 1px solid #c8e6d0;
+}
+
+.dashboard-theme .clinic-table td {
+    color: #1a2e22;
+    border-bottom: 1px solid #e8f4ec;
+}
+
+.dashboard-theme .clinic-table tr:nth-child(even) td {
+    background: #f7fbf8;
+}
+
+.dashboard-theme .clinic-table tr:hover td {
+    background: rgba(0, 141, 54, 0.05);
+}
+
+/* 7.7 — Form inputs and alerts */
+.dashboard-theme .clinic-input {
+    background: #ffffff;
+    border: 1px solid #c8e6d0;
+    color: #1a2e22;
+}
+
+.dashboard-theme .clinic-input:focus {
+    border-color: #008d36;
+    box-shadow: 0 0 0 3px rgba(0, 141, 54, 0.12);
+    outline: none;
+}
+
+.dashboard-theme .clinic-label {
+    color: #3d6b4f;
+}
+
+.dashboard-theme .clinic-alert-danger {
+    background: #fff0f0;
+    border-color: #dc2626;
+    color: #7f1d1d;
+}
+
+.dashboard-theme .clinic-alert-warning {
+    background: #fffbeb;
+    border-color: #d97706;
+    color: #78350f;
+}
+
+.dashboard-theme .clinic-alert-info {
+    background: #f0fdf4;
+    border-color: #008d36;
+    color: #14532d;
+}
+
+/* 7.8 — Diet plan text (pre-wrap for multiline plan) */
+.dashboard-theme .diet-plan-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
