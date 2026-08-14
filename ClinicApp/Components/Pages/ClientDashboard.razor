@@ -13,7 +13,7 @@
 @inject NavigationManager NavManager
 @inject IWebHostEnvironment Environment
 
-<PageTitle>Patient Portal - ProTouch Clinic</PageTitle>
+<PageTitle>PROTOUCH Physio - Slimming Clinic | My Portal</PageTitle>
 
 @if (loading)
 {
@@ -713,7 +713,7 @@ else
     private string GetClinicWhatsAppLink()
     {
         var name = currentUser?.FullName ?? "Client";
-        return ClinicService.BuildClinicWhatsAppLink($"Hello ProTouch Clinic, I am {name}. I need help with my clinic plan.");
+        return ClinicService.BuildClinicWhatsAppLink($"Hello ProTouch Physio - Slimming Clinic, I am {name}. I need help with my clinic plan.");
     }
 
     private async Task HandleAppointmentBooking()
