@@ -18,7 +18,7 @@
     <div class="auth-card">
         <div class="auth-brand">
             <img src="/images/sri-sai-protouch-logo.svg" alt="Sri Sai Protouch" />
-            <p>Clinic Administration & Client Portal</p>
+            <p>Clinic Administration &amp; Client Portal</p>
         </div>
 
         <StatusMessage Message="@errorMessage" />
@@ -81,21 +81,37 @@
 
     public async Task LoginUser()
     {
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        var result = await SignInManager.PasswordSignInAsync(
+            Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-            if (!string.IsNullOrEmpty(ReturnUrl))
+
+            // Always determine the correct dashboard by role — never trust ReturnUrl
+            // blindly because a client visiting /admin-dashboard would get AccessDenied
+            var loggedInUser = await UserManager.FindByEmailAsync(Input.Email);
+            var isAdmin = loggedInUser != null &&
+                          await UserManager.IsInRoleAsync(loggedInUser, "Admin");
+
+            // Only honour ReturnUrl when:
+            //   1. It is set
+            //   2. It is a relative path (not external)
+            //   3. It does not point to a resource the user can't access
+            //      (admin-dashboard is for admins only, client-dashboard for clients)
+            var useReturnUrl = !string.IsNullOrEmpty(ReturnUrl)
+                && ReturnUrl.StartsWith("/")
+                && !ReturnUrl.StartsWith("//")
+                && !(ReturnUrl.Contains("admin-dashboard") && !isAdmin)
+                && !ReturnUrl.Contains("AccessDenied");
+
+            if (useReturnUrl)
             {
                 RedirectManager.RedirectTo(ReturnUrl);
             }
             else
             {
-                var loggedInUser = await UserManager.FindByEmailAsync(Input.Email);
-                if (loggedInUser != null && await UserManager.IsInRoleAsync(loggedInUser, "Admin"))
-                    RedirectManager.RedirectTo("/admin-dashboard");
-                else
-                    RedirectManager.RedirectTo("/client-dashboard");
+                RedirectManager.RedirectTo(isAdmin ? "/admin-dashboard" : "/client-dashboard");
             }
         }
         else if (result.RequiresTwoFactor)
@@ -116,12 +132,13 @@
 
     private sealed class InputModel
     {
-        [Required] [EmailAddress]
+        [Required, EmailAddress]
         public string Email { get; set; } = "";
 
-        [Required] [DataType(DataType.Password)]
+        [Required, DataType(DataType.Password)]
         public string Password { get; set; } = "";
 
-        [Display(Name = "Remember me?")] public bool RememberMe { get; set; }
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
     }
 }
