@@ -10,11 +10,11 @@
 @inject NavigationManager NavManager
 @inject ILogger<AdminDashboard> _logger
 
-<PageTitle>ProTouch Admin | Clinic Control Center</PageTitle>
+<PageTitle>PROTOUCH | Admin Control Center</PageTitle>
 
 <div class="container-fluid py-4 admin-shell">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div><span class="eyebrow">PROTOUCH CLINIC • ADMIN</span><h1 class="gradient-text display-5 mb-1">Clinic Control Center</h1><p class="text-secondary mb-0">Clients, visits, care plans and secure WhatsApp communication.</p></div>
+        <div><span class="eyebrow">PROTOUCH PHYSIO - SLIMMING CLINIC • ADMIN</span><h1 class="gradient-text display-5 mb-1">Clinic Control Center</h1><p class="text-secondary mb-0">Clients, visits, care plans and secure WhatsApp communication.</p></div>
         <button class="btn-clinic" @onclick="LoadAdminDataAsync">Refresh</button>
     </div>
 
@@ -243,7 +243,7 @@
                                                 <button class="btn-clinic-danger" @onclick="() => CancelBooking(booking.Id)">Cancel</button>
                                             }
                                             @{
-                                                var waLink = string.IsNullOrWhiteSpace(booking.PhoneNumber) ? "" : ClinicService.BuildWhatsAppLink(booking.PhoneNumber, $"Hello {booking.FullName}, this is ProTouch Clinic regarding your booking for {booking.ServiceType}.");
+                                                var waLink = string.IsNullOrWhiteSpace(booking.PhoneNumber) ? "" : ClinicService.BuildWhatsAppLink(booking.PhoneNumber, $"Hello {booking.FullName}, this is ProTouch Physio - Slimming Clinic regarding your booking for {booking.ServiceType}.");
                                             }
                                             @if (!string.IsNullOrWhiteSpace(waLink)) { <a class="btn-clinic-secondary" target="_blank" href="@waLink">WhatsApp</a> }
                                             else { <span class="text-muted small">Phone missing/invalid</span> }
@@ -367,7 +367,7 @@
                             <div><span class="eyebrow">CLIENT PROFILE</span><h2>@selectedClient.User?.FullName</h2><span class="text-secondary">@selectedClient.User?.Email • @selectedClient.User?.PhoneNumber</span></div>
                             <div class="d-flex gap-2 flex-wrap">
                                 <button class="btn-clinic-secondary" @onclick="() => StartEditUser(selectedClient)">Edit user</button>
-                                <a class="btn-clinic" target="_blank" href='@ClinicService.BuildWhatsAppLink(selectedClient.User?.PhoneNumber ?? "", $"Hello {selectedClient.User?.FullName}, this is ProTouch Clinic.")'>WhatsApp</a>
+                                <a class="btn-clinic" target="_blank" href='@ClinicService.BuildWhatsAppLink(selectedClient.User?.PhoneNumber ?? "", $"Hello {selectedClient.User?.FullName}, this is ProTouch Physio - Slimming Clinic.")'>WhatsApp</a>
                                 <button class="btn-clinic-danger" @onclick="ConfirmDeleteClient">Delete</button>
                             </div>
                         </div>
@@ -529,7 +529,7 @@
     private bool creatingUser, createUserSuccess;
 
     // WhatsApp
-    private string campaignText = "Hello {{Name}}, this is ProTouch Clinic. Please remember to update your daily weight and diet check today.";
+    private string campaignText = "Hello {{Name}}, this is ProTouch Physio - Slimming Clinic. Please remember to update your daily weight and diet check today.";
     private string campaignSuccessMsg = "";
     private List<CsvRecipient> csvRecipients = new();
     private List<CsvPreviewRow> campaignPreviews = new();
@@ -838,7 +838,7 @@
         } finally { sendingCampaign = false; }
     }
 
-    private void UseDietTemplate() => campaignText = "Hello {{Name}}, this is your ProTouch Clinic diet reminder. Please follow your prescribed diet plan and update today's morning weight.";
+    private void UseDietTemplate() => campaignText = "Hello {{Name}}, this is your ProTouch Physio - Slimming Clinic diet reminder. Please follow your prescribed diet plan and update today's morning weight.";
 
     // Diet Plan Panel methods (Requirements 9, 10, 11)
     private void OpenDietPanel()

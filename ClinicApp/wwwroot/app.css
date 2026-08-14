@@ -729,8 +729,8 @@ a:hover {
 }
 .wellness-page .wellness-logo img {
     display: block;
-    width: 205px;
-    height: 62px;
+    width: 240px;   /* new logo is wider */
+    height: 56px;
     object-fit: contain;
 }
 .wellness-page .wellness-header nav {
@@ -1256,7 +1256,7 @@ a:hover {
     .wellness-page { overflow-x: hidden; }
     .wellness-page .wellness-header { max-width: 100%; padding-inline: 18px; height: 78px; }
     .wellness-page .wellness-header nav { display: none; }
-    .wellness-page .wellness-logo img { width: 172px; }
+    .wellness-page .wellness-logo img { width: 200px; height: 46px; }
     .wellness-page .wellness-header-actions { gap: 6px; }
     .wellness-page .wellness-login-btn { padding: 9px 11px; font-size: 0.77rem; }
     .wellness-page .wellness-call { padding: 11px 13px; font-size: 0.77rem; }

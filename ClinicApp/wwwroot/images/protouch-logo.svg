@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" width="520" height="120">
+  <!-- Blue background -->
+  <rect width="520" height="120" rx="8" fill="#1a3a9e"/>
+  
+  <!-- Left figure icon (human silhouette) -->
+  <g transform="translate(14, 8)">
+    <!-- Head (ball) -->
+    <circle cx="38" cy="14" r="7" fill="#cc44cc"/>
+    <!-- Body - yellow curved shape -->
+    <path d="M 28 22 Q 15 40 18 65 Q 20 75 30 78 Q 38 80 40 70 Q 42 60 38 48" 
+          fill="#f5c518" stroke="#f5c518" stroke-width="1"/>
+    <!-- Red arm sweep -->
+    <path d="M 38 30 Q 55 22 62 35 Q 58 42 45 38 Q 40 35 38 30" 
+          fill="#e63030" stroke="#e63030" stroke-width="1"/>
+    <!-- Green leg -->
+    <path d="M 30 72 Q 22 88 26 100 Q 30 105 36 100 Q 38 90 38 78" 
+          fill="#2ecc2e" stroke="#2ecc2e" stroke-width="1"/>
+  </g>
+
+  <!-- Main text: PROTOUCH -->
+  <text x="82" y="68" 
+        font-family="Arial Black, Impact, sans-serif" 
+        font-weight="900" 
+        font-size="52" 
+        fill="#ffffff"
+        letter-spacing="1">PROTOUCH</text>
+
+  <!-- Underline below PROTOUCH -->
+  <rect x="82" y="74" width="330" height="3" fill="#f5c518" rx="1.5"/>
+
+  <!-- Subtitle: Physio - Slimming Clinic -->
+  <text x="84" y="102" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-weight="700" 
+        font-size="22" 
+        fill="#f5c518"
+        letter-spacing="0.5">Physio - Slimming Clinic</text>
+
+  <!-- Right circular icon (spine/body) -->
+  <g transform="translate(428, 8)">
+    <!-- Outer circle - rainbow/colorful ring -->
+    <circle cx="46" cy="52" r="46" fill="none" stroke="#e63030" stroke-width="8"/>
+    <circle cx="46" cy="52" r="46" fill="none" stroke="#f5c518" stroke-width="4" 
+            stroke-dasharray="72 216" stroke-dashoffset="0"/>
+    <circle cx="46" cy="52" r="46" fill="none" stroke="#2ecc2e" stroke-width="4" 
+            stroke-dasharray="72 216" stroke-dashoffset="144"/>
+    <!-- Inner dark circle -->
+    <circle cx="46" cy="52" r="36" fill="#0d2278"/>
+    <!-- Spine line -->
+    <line x1="46" y1="18" x2="46" y2="82" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <!-- Vertebrae discs -->
+    <ellipse cx="46" cy="26" rx="7" ry="3.5" fill="none" stroke="white" stroke-width="2"/>
+    <ellipse cx="46" cy="34" rx="7" ry="3.5" fill="none" stroke="white" stroke-width="2"/>
+    <ellipse cx="46" cy="42" rx="7" ry="3.5" fill="none" stroke="white" stroke-width="2"/>
+    <ellipse cx="46" cy="50" rx="7" ry="3.5" fill="none" stroke="white" stroke-width="2"/>
+    <ellipse cx="46" cy="58" rx="7" ry="3.5" fill="none" stroke="white" stroke-width="2"/>
+    <ellipse cx="46" cy="66" rx="7" ry="3.5" fill="none" stroke="white" stroke-width="2"/>
+    <ellipse cx="46" cy="74" rx="7" ry="3.5" fill="none" stroke="white" stroke-width="2"/>
+    <!-- Human figure outline (back view) -->
+    <circle cx="58" cy="22" r="6" fill="none" stroke="white" stroke-width="2"/>
+    <path d="M 55 28 Q 52 40 54 55 Q 56 62 60 65 Q 64 60 62 50 Q 60 40 58 28" 
+          fill="none" stroke="white" stroke-width="1.5"/>
+    <!-- Hands/holding gesture -->
+    <path d="M 20 72 Q 28 65 36 68 Q 40 70 42 75" 
+          fill="none" stroke="#2ecc2e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 20 72 Q 18 78 22 82" 
+          fill="none" stroke="#2ecc2e" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>
