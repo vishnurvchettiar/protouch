@@ -1,100 +1,104 @@
+/* NavMenu — Light Green Dashboard Theme */
+
 .navbar-toggler {
     appearance: none;
     cursor: pointer;
     width: 3.5rem;
     height: 2.5rem;
-    color: white;
+    color: #1a2e22;
     position: absolute;
     top: 0.5rem;
     right: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+    border: 1px solid #c8e6d0;
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280%2C141%2C54%2C0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem #fff;
     border-radius: 8px;
 }
-
-.navbar-toggler:checked {
-    background-color: rgba(255, 255, 255, 0.15);
-}
+.navbar-toggler:checked { background-color: rgba(0,141,54,0.08); }
 
 .top-row {
     min-height: 3.5rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: #ffffff;
+    border-bottom: 1px solid #d4e8dc;
 }
 
+/* Clinic brand — green gradient */
 .navbar-brand {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #008d36 0%, #00b851 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .nav-item {
-    font-size: 0.95rem;
-    padding: 0.25rem 0.75rem;
+    font-size: 0.92rem;
+    padding: 0.2rem 0.6rem;
 }
+.nav-item:first-of-type { padding-top: 0.75rem; }
+.nav-item:last-of-type  { padding-bottom: 1rem; }
 
-.nav-item:first-of-type {
-    padding-top: 1rem;
-}
-
-.nav-item:last-of-type {
-    padding-bottom: 1rem;
-}
-
+/* Default nav link — dark text on white sidebar */
 .nav-item ::deep .nav-link {
-    color: var(--text-secondary);
+    color: #2a4a35;
     background: transparent;
     border: 1px solid transparent;
     border-radius: 10px;
-    height: 2.8rem;
+    height: 2.6rem;
     display: flex;
     align-items: center;
-    padding: 0 1rem;
-    transition: var(--transition-smooth);
+    padding: 0 0.85rem;
+    transition: all 0.2s ease;
     width: 100%;
+    font-weight: 500;
 }
-
+.nav-item ::deep .nav-link svg,
+.nav-item ::deep .nav-link .bi {
+    color: #3d6b4f;
+    margin-right: 10px;
+}
 .nav-item ::deep .nav-link:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.05);
+    color: #008d36;
+    background: rgba(0,141,54,0.08);
+    border-color: rgba(0,141,54,0.15);
+}
+.nav-item ::deep .nav-link:hover svg,
+.nav-item ::deep .nav-link:hover .bi {
+    color: #008d36;
 }
 
+/* Active nav link — green pill */
 .nav-item ::deep a.active {
-    background: linear-gradient(135deg, rgba(79, 172, 254, 0.15) 0%, rgba(0, 242, 254, 0.15) 100%);
-    border: 1px solid rgba(0, 242, 254, 0.2);
-    color: var(--accent-teal) !important;
-    font-weight: 600;
-    text-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+    background: rgba(0,141,54,0.1);
+    border: 1px solid rgba(0,141,54,0.25);
+    color: #008d36 !important;
+    font-weight: 700;
+}
+.nav-item ::deep a.active svg,
+.nav-item ::deep a.active .bi {
+    color: #008d36 !important;
 }
 
+/* Logout button styled as nav link */
 .nav-item ::deep button.nav-link {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     text-align: left;
+    color: #2a4a35;
+    font-weight: 500;
+}
+.nav-item ::deep button.nav-link:hover {
+    color: #008d36;
+    background: rgba(0,141,54,0.08);
 }
 
-.nav-scrollable {
-    display: none;
-}
+.nav-scrollable { display: none; }
+.navbar-toggler:checked ~ .nav-scrollable { display: block; }
 
-.navbar-toggler:checked ~ .nav-scrollable {
-    display: block;
-}
-
-.bi {
-    margin-right: 12px;
-    font-size: 1.1rem;
-    color: inherit;
-}
+.bi { margin-right: 10px; font-size: 1rem; color: inherit; }
 
 @media (min-width: 641px) {
-    .navbar-toggler {
-        display: none;
-    }
-
+    .navbar-toggler { display: none; }
     .nav-scrollable {
         display: block;
         height: calc(100vh - 3.5rem);

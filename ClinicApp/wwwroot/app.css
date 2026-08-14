@@ -2038,3 +2038,260 @@ a:hover {
     border: none;
     padding: 0;
 }
+
+
+/* ===================================================================
+   ADMIN PORTAL POLISH — fixes for light green theme
+   =================================================================== */
+
+/* Sidebar top-row branding (navbar-dark override) */
+.dashboard-theme .navbar-dark .navbar-brand,
+.dashboard-theme .top-row.ps-3.navbar.navbar-dark {
+    background: #ffffff;
+    border-bottom: 1px solid #d4e8dc;
+}
+.dashboard-theme .navbar-brand {
+    background: linear-gradient(135deg, #008d36 0%, #00b851 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Client list items — clear hover + selected state */
+.dashboard-theme .client-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.18s ease;
+    color: #1a2e22;
+    margin-bottom: 4px;
+}
+.dashboard-theme .client-list-item:hover {
+    background: rgba(0,141,54,0.06);
+    border-color: rgba(0,141,54,0.15);
+}
+.dashboard-theme .client-list-item.selected {
+    background: rgba(0,141,54,0.1);
+    border-color: rgba(0,141,54,0.3);
+    color: #008d36;
+    font-weight: 600;
+}
+.dashboard-theme .client-list-item strong { color: #1a2e22; font-size: 0.9rem; }
+.dashboard-theme .client-list-item small  { color: #3d6b4f; font-size: 0.75rem; display: block; }
+.dashboard-theme .client-list-item.selected strong,
+.dashboard-theme .client-list-item.selected small { color: #008d36; }
+
+/* Avatar circle */
+.dashboard-theme .avatar-sm {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #008d36, #00b851);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+/* Section headings in admin panels */
+.dashboard-theme .section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.dashboard-theme .section-heading h3,
+.dashboard-theme .section-heading h4 { color: #1a2e22; margin: 0; }
+
+/* Message rows (visit history, billing, etc.) */
+.dashboard-theme .message-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e8f4ec;
+    flex-wrap: wrap;
+}
+.dashboard-theme .message-row:last-child { border-bottom: none; }
+.dashboard-theme .message-row strong { color: #1a2e22; }
+.dashboard-theme .message-row .text-secondary,
+.dashboard-theme .message-row .text-muted { color: #3d6b4f !important; }
+
+/* Activity rows (WhatsApp log) */
+.dashboard-theme .activity-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e8f4ec;
+    flex-wrap: wrap;
+}
+.dashboard-theme .activity-row:last-child { border-bottom: none; }
+.dashboard-theme .activity-row strong { color: #1a2e22; }
+.dashboard-theme .activity-row .text-secondary { color: #3d6b4f !important; }
+
+/* Soft pills — status badges */
+.dashboard-theme .soft-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(0,141,54,0.1);
+    color: #1a4d2e;
+    border: 1px solid rgba(0,141,54,0.2);
+}
+.dashboard-theme .badge-active  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.dashboard-theme .badge-pending { background: #fef3c7; color: #78350f; border: 1px solid #fcd34d; }
+.dashboard-theme .badge-danger  { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+.dashboard-theme .badge-info    { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+.dashboard-theme .badge-clinic  {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 99px; font-size: 0.72rem; font-weight: 700;
+}
+
+/* Credential rows (add user tab) */
+.dashboard-theme .credential-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e8f4ec;
+    font-size: 0.85rem;
+}
+.dashboard-theme .credential-row span { color: #3d6b4f; }
+.dashboard-theme .credential-row strong { color: #1a2e22; }
+
+/* Dashboard grid (stat cards) */
+.dashboard-theme .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.dashboard-theme .stat-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    transition: all 0.2s ease;
+}
+.dashboard-theme .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,141,54,0.12);
+}
+.dashboard-theme .stat-card h2 { color: #008d36; font-size: 2rem; font-weight: 900; margin: 4px 0; }
+.dashboard-theme .stat-card .text-secondary { color: #3d6b4f !important; }
+.dashboard-theme .stat-card .text-muted { color: #5a8a6a !important; }
+.dashboard-theme .stat-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: rgba(0,141,54,0.1);
+    color: #008d36;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+/* btn-icon (small + button in client header) */
+.dashboard-theme .btn-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: rgba(0,141,54,0.08);
+    border: 1px solid rgba(0,141,54,0.2);
+    color: #008d36;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s ease;
+}
+.dashboard-theme .btn-icon:hover {
+    background: #008d36; color: #fff;
+}
+
+/* btn-clinic-danger */
+.dashboard-theme .btn-clinic-danger {
+    background: #dc2626;
+    color: white;
+    border: none;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-size: 0.88rem;
+}
+.dashboard-theme .btn-clinic-danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+/* readonly clinic-input (display field) */
+.dashboard-theme .clinic-input.readonly {
+    background: #f0f7f2;
+    border-color: #d4e8dc;
+    color: #3d6b4f;
+    pointer-events: none;
+}
+
+/* Empty state */
+.dashboard-theme .empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: #3d6b4f;
+    font-size: 0.95rem;
+}
+
+/* Progress bar (WhatsApp campaign) */
+.dashboard-theme .progress {
+    background: #e8f4ec;
+    border-radius: 99px;
+    height: 8px;
+    overflow: hidden;
+}
+.dashboard-theme .progress-bar {
+    background: linear-gradient(90deg, #008d36, #00b851);
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.3s ease;
+}
+
+/* Text colour utilities in dashboard */
+.dashboard-theme .text-secondary { color: #3d6b4f !important; }
+.dashboard-theme .text-muted     { color: #5a8a6a !important; }
+.dashboard-theme .text-teal      { color: #008d36 !important; }
+.dashboard-theme .text-danger    { color: #dc2626 !important; }
+.dashboard-theme .text-success   { color: #008d36 !important; }
+
+/* Admin shell heading */
+.dashboard-theme .admin-shell h1,
+.dashboard-theme .admin-shell h2,
+.dashboard-theme .admin-shell h3,
+.dashboard-theme .admin-shell h4 { color: #1a2e22; }
+
+/* Macro bar in meal review */
+.dashboard-theme .meal-thumb {
+    width: 64px; height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #c8e6d0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+    .dashboard-theme .dashboard-grid { grid-template-columns: 1fr 1fr; }
+    .dashboard-theme .stat-card h2 { font-size: 1.5rem; }
+}
+/* =================================================================== */
