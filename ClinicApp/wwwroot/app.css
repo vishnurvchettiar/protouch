@@ -372,7 +372,7 @@ a:hover {
 
 /* Sri Sai Protouch public wellness landing page */
 .wellness-page{background:#fff;color:#27222a;min-height:100vh;font-family:'Outfit',sans-serif}.wellness-header{height:92px;max-width:1240px;padding:12px 30px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:25px}.wellness-logo img{display:block;width:205px;height:62px;object-fit:contain}.wellness-header nav{display:flex;gap:32px}.wellness-header nav a{color:#403b44;font-weight:700;font-size:.9rem}.wellness-header nav a:hover{color:#008d36;text-shadow:none}.wellness-call{background:#008d36;color:white!important;padding:13px 20px;border-radius:4px;font-size:.88rem;font-weight:800}.wellness-hero{min-height:600px;background:#f7f6ef;display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.hero-content{max-width:620px;justify-self:end;padding:91px 70px 70px 30px}.iso-mark,.section-kicker{font-size:.72rem;letter-spacing:.16em;font-weight:900;color:#008d36}.hero-content h1{color:#302237;font-size:clamp(3rem,5.2vw,5.3rem);line-height:.96;margin:22px 0}.hero-content h1 em,.split-intro h2 em{color:#7c1b68;font-family:Georgia,serif;font-weight:400}.hero-copy{font-size:1.08rem;line-height:1.7;color:#655e66;max-width:535px}.wellness-actions{display:flex;gap:13px;flex-wrap:wrap;margin-top:28px}.wellness-primary,.wellness-secondary{display:inline-flex;align-items:center;gap:20px;font-weight:800;padding:15px 20px;border-radius:3px}.wellness-primary{background:#008d36;color:#fff!important}.wellness-primary:hover{background:#006d2a;color:#fff;text-shadow:none}.wellness-secondary{color:#7c1b68;border:1px solid #7c1b68}.hero-cert{display:flex;gap:10px;align-items:center;color:#604960;font-size:.77rem;font-weight:800;margin-top:42px}.hero-cert i{font-style:normal;color:#e52321;font-size:1.2rem}.hero-photo{position:relative;min-height:500px}.hero-photo>img{width:100%;height:100%;object-fit:cover;filter:saturate(.8)}.hero-badge{position:absolute;left:-56px;bottom:48px;width:245px;padding:23px;background:#ffeb00;color:#3e243c}.hero-badge strong,.hero-badge span{display:block}.hero-badge strong{font-size:1.3rem;line-height:1.15}.hero-badge span{font-size:.78rem;font-weight:700;line-height:1.5;margin-top:12px}.guarantee-strip{background:#7c1b68;color:white;display:flex;justify-content:center;gap:38px;padding:18px 24px;flex-wrap:wrap;font-weight:800;font-size:.82rem}.wellness-section{max-width:1180px;margin:auto;padding:106px 30px}.split-intro{display:grid;grid-template-columns:.9fr 1.1fr;gap:94px}.split-intro h2,.wellness-section h2,.contact-section h2{font-size:clamp(2.35rem,4.3vw,4rem);line-height:1.02;color:#2f2732;margin:16px 0}.large-copy{font-size:1.3rem;line-height:1.65;color:#413b44}.muted-copy{line-height:1.7;color:#777078}.services{max-width:none;background:#f2f0e9;padding-inline:max(30px,calc((100vw - 1120px)/2))}.services>h2{max-width:710px;margin-bottom:46px}.service-grid-v2{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.service-grid-v2 article{min-height:365px;background:#fff;padding:27px 24px;border-top:5px solid #008d36}.service-grid-v2 article:nth-child(2){border-color:#7c1b68}.service-grid-v2 article:nth-child(3){border-color:#f4b41a}.service-grid-v2 article:nth-child(4){border-color:#e52321}.service-grid-v2 span{color:#008d36;font-size:.77rem;font-weight:900}.service-grid-v2 h3{color:#33263a;font-size:1.3rem;margin:48px 0 13px}.service-grid-v2 p,.service-grid-v2 li{font-size:.9rem;line-height:1.55;color:#665f68}.service-grid-v2 ul{padding-left:18px;margin-top:16px}.care-panel{display:grid;grid-template-columns:.85fr 1.15fr;padding-top:0;align-items:stretch}.care-photo img{width:100%;height:100%;min-height:530px;object-fit:cover;filter:saturate(.75)}.care-copy{padding:65px;display:flex;flex-direction:column;justify-content:center;background:#008d36}.care-copy h2{color:#fff;max-width:610px}.care-copy .section-kicker{color:#ffeb00}.care-reasons{margin-top:25px;display:grid;gap:18px}.care-reasons div{border-top:1px solid rgba(255,255,255,.33);padding-top:17px}.care-reasons b,.care-reasons span{display:block}.care-reasons b{color:#ffeb00}.care-reasons span{color:#e0f2e4;line-height:1.5;font-size:.92rem;margin-top:5px}.programs{display:grid;grid-template-columns:1fr 1fr;gap:90px}.program-points{display:grid;gap:10px}.program-points p{border-bottom:1px solid #ded8d9;margin:0;padding:14px 0;color:#5a535b;line-height:1.5}.program-points b{color:#e52321;margin-right:16px}.contact-section{max-width:1120px;margin:0 auto 80px;display:grid;grid-template-columns:1fr .9fr;gap:70px;padding:72px;background:#7c1b68;color:#fff}.contact-section h2{color:#ffeb00}.contact-section>div>p:not(.section-kicker){color:#f1e8f0;line-height:1.65}.contact-section .section-kicker{color:#ffeb00}.contact-details{border-left:1px solid rgba(255,255,255,.36);padding-left:48px}.contact-details a:not(.directions),.contact-details a:not(.directions) strong,.contact-details a:not(.directions) span{display:block}.contact-details a:not(.directions){margin-bottom:18px;color:#fff}.contact-details a strong{font-size:1.12rem}.contact-details a span{font-size:.76rem;color:#f4b41a;margin-top:3px}.contact-details p{font-size:.87rem;line-height:1.65;color:#f0dfed;margin-top:20px}.directions{margin-top:20px} .wellness-page footer{background:#2e2030;color:#d7cad6;text-align:center;padding:24px;font-size:.8rem}.wellness-page footer span{color:#ffeb00;margin:0 7px}
-@media(max-width:850px){.wellness-header nav{display:none}.wellness-header{padding-inline:18px;height:78px}.wellness-logo img{width:172px}.wellness-call{padding:11px 13px;font-size:.77rem}.wellness-hero,.split-intro,.programs,.contact-section{grid-template-columns:1fr}.hero-content{justify-self:start;padding:65px 28px}.hero-photo{min-height:420px}.hero-badge{left:20px;bottom:20px}.split-intro,.programs{gap:30px}.service-grid-v2{grid-template-columns:1fr 1fr}.care-panel{grid-template-columns:1fr}.care-copy{padding:55px 30px}.care-photo img{min-height:370px}.contact-section{margin:0 16px 55px;padding:48px 30px;gap:36px}.contact-details{border-left:0;border-top:1px solid rgba(255,255,255,.36);padding:30px 0 0}.wellness-section{padding:75px 24px}}@media(max-width:520px){.wellness-call{font-size:0;padding:12px}.wellness-call:after{content:'Call';font-size:.78rem}.hero-content h1{font-size:3.2rem}.guarantee-strip{justify-content:flex-start;gap:12px 22px}.service-grid-v2{grid-template-columns:1fr}.service-grid-v2 article{min-height:auto}.wellness-section{padding-inline:20px}}
+@media(max-width:850px){.wellness-header nav{display:none}.wellness-header{padding-inline:18px;height:78px}.wellness-logo img{width:172px}.wellness-call{padding:11px 13px;font-size:.77rem}.wellness-hero,.split-intro,.programs,.contact-section{grid-template-columns:1fr}.hero-content{justify-self:start;padding:65px 28px}.hero-photo{height:320px}.hero-badge{left:20px;bottom:20px}.split-intro,.programs{gap:30px}.service-grid-v2{grid-template-columns:1fr 1fr}.care-panel{grid-template-columns:1fr}.care-copy{padding:55px 30px}.care-photo img{min-height:370px}.contact-section{margin:0 16px 55px;padding:48px 30px;gap:36px}.contact-details{border-left:0;border-top:1px solid rgba(255,255,255,.36);padding:30px 0 0}.wellness-section{padding:75px 24px}}@media(max-width:520px){.wellness-call{font-size:0;padding:12px}.wellness-call:after{content:'Call';font-size:.78rem}.hero-content h1{font-size:3.2rem}.guarantee-strip{justify-content:flex-start;gap:12px 22px}.service-grid-v2{grid-template-columns:1fr}.service-grid-v2 article{min-height:auto}.wellness-section{padding-inline:20px}}
 @media (max-width:850px){.public-hero{grid-template-columns:1fr;gap:38px;padding-top:42px}.hero-visual>img{height:350px}.intro-section,.care-band,.booking-section{grid-template-columns:1fr;gap:32px}.service-grid{grid-template-columns:1fr 1fr}.portal-section{grid-template-columns:1fr}.booking-section{margin-inline:16px;padding:42px 28px}.clinic-gallery{columns:3 140px}}@media (max-width:520px){.public-section{padding:64px 20px}.public-hero{padding-inline:20px}.service-grid{grid-template-columns:1fr}.service-card{min-height:auto}.hero-note{left:12px}.clinic-gallery{columns:2 130px}}
 
 /* Alert Notification Reminders */
@@ -767,16 +767,21 @@ a:hover {
 
 /* ── Hero section ── */
 .wellness-page .wellness-hero {
-    min-height: 600px;
+    height: 600px;           /* fixed height — both columns fill exactly this */
     background: linear-gradient(135deg, #eef6f1 0%, #f5f9f6 100%);
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: stretch;
+    overflow: hidden;        /* clips badge that extends outside */
 }
 .wellness-page .hero-content {
     max-width: 620px;
     justify-self: end;
-    padding: 91px 70px 70px 30px;
+    padding: 60px 60px 60px 30px;  /* slightly less top so it doesn't overflow 600px */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 .wellness-page .iso-mark,
 .wellness-page .section-kicker {
@@ -851,7 +856,7 @@ a:hover {
 /* Hero sub-carousel */
 .wellness-page .hero-photo {
     position: relative;
-    min-height: 500px;
+    height: 600px;          /* fixed height so images never collapse */
     overflow: hidden;
 }
 .wellness-page .hero-photo::after {
@@ -863,17 +868,19 @@ a:hover {
     z-index: 1;
 }
 .wellness-page .hero-slide {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
+    position: absolute;      /* all slides stacked in the same space */
+    inset: 0;                /* top:0 right:0 bottom:0 left:0 */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;       /* fills the container, no cropping */
+    object-position: center center;
     filter: saturate(0.82);
     opacity: 0;
     transition: opacity 0.7s ease;
 }
 .wellness-page .hero-slide.active {
     opacity: 1;
-    position: relative;
+    /* KEEP position:absolute — changing to relative collapses the container */
 }
 .wellness-page .hero-photo.hero-fallback {
     background: linear-gradient(135deg, #008d36 0%, #eef6f1 100%);
