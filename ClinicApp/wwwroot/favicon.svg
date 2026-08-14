@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Blue background matching the logo -->
+  <rect width="32" height="32" rx="6" fill="#1a3a9e"/>
+  <!-- White bold P -->
+  <text x="5" y="24" 
+        font-family="Arial Black, Impact, sans-serif"
+        font-weight="900"
+        font-size="24"
+        fill="#ffffff">P</text>
+  <!-- Small yellow dot bottom-right — the physio accent -->
+  <circle cx="26" cy="26" r="3.5" fill="#f5c518"/>
+</svg>
