@@ -16,11 +16,11 @@
     <meta name="theme-color" content="#1a3a9e" />
     <!-- Suppress Blazor's unload permissions policy warning in Chrome 115+ -->
     <meta http-equiv="Permissions-Policy" content="unload=()" />
-    <HeadOutlet @rendermode="@InteractiveServer" />
+    <HeadOutlet />
 </head>
 
 <body>
-    <Routes @rendermode="@InteractiveServer" />
+    <Routes />
     <script src="_framework/blazor.web.js"></script>
 </body>
 
