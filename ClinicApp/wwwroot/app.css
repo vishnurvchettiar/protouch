@@ -767,21 +767,26 @@ a:hover {
 
 /* ── Hero section ── */
 .wellness-page .wellness-hero {
-    height: 600px;           /* fixed height — both columns fill exactly this */
+    /* full-width hero, auto height so text is never clipped */
     background: linear-gradient(135deg, #eef6f1 0%, #f5f9f6 100%);
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: stretch;
-    overflow: hidden;        /* clips badge that extends outside */
+    min-height: 580px;
+    width: 100%;
+    max-width: 100%;        /* override any inherited max-width */
+    margin: 0;              /* override any inherited margin:auto */
 }
 .wellness-page .hero-content {
-    max-width: 620px;
-    justify-self: end;
-    padding: 60px 60px 60px 30px;  /* slightly less top so it doesn't overflow 600px */
-    overflow: hidden;
+    /* text column — fills 1fr, never clips, vertically centred */
+    padding: 52px 5% 52px 8%;   /* percentage padding scales with viewport */
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-height: 580px;
+    max-width: none;            /* override old compact CSS max-width:620px */
+    justify-self: stretch;      /* override old justify-self:end */
+    box-sizing: border-box;
 }
 .wellness-page .iso-mark,
 .wellness-page .section-kicker {
@@ -793,10 +798,10 @@ a:hover {
 .wellness-page .hero-content h1 {
     color: #1a1520;
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(2.8rem, 5vw, 5rem);
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-    margin: 22px 0;
+    font-size: clamp(2rem, 3.2vw, 3.4rem);   /* smaller so buttons/cert stay visible */
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin: 16px 0 14px;
 }
 .wellness-page .hero-content h1 em {
     color: #7c1b68;
@@ -805,23 +810,25 @@ a:hover {
     font-weight: 400;
 }
 .wellness-page .hero-copy {
-    font-size: 1.08rem;
-    line-height: 1.7;
+    font-size: 1rem;
+    line-height: 1.6;
     color: #4a4450;
-    max-width: 535px;
+    max-width: 500px;
+    margin-bottom: 4px;
 }
 .wellness-page .wellness-actions {
     display: flex;
-    gap: 13px;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-top: 28px;
+    margin-top: 20px;
 }
 .wellness-page .wellness-primary {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     font-weight: 800;
-    padding: 15px 22px;
+    font-size: 0.92rem;
+    padding: 13px 20px;
     border-radius: 4px;
     background: #008d36;
     color: #fff !important;
@@ -832,9 +839,10 @@ a:hover {
 .wellness-page .wellness-secondary {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     font-weight: 800;
-    padding: 15px 20px;
+    font-size: 0.92rem;
+    padding: 13px 18px;
     border-radius: 4px;
     color: #7c1b68;
     border: 1px solid #7c1b68;
@@ -849,14 +857,15 @@ a:hover {
     color: #604960;
     font-size: 0.77rem;
     font-weight: 800;
-    margin-top: 42px;
+    margin-top: 22px;
 }
 .wellness-page .hero-cert i { font-style: normal; color: #e52321; font-size: 1.2rem; }
 
 /* Hero sub-carousel */
 .wellness-page .hero-photo {
     position: relative;
-    height: 600px;          /* fixed height so images never collapse */
+    /* fills 100% of the grid row height — stretches to match text column */
+    min-height: 580px;
     overflow: hidden;
 }
 .wellness-page .hero-photo::after {
@@ -888,13 +897,14 @@ a:hover {
 }
 .wellness-page .hero-badge {
     position: absolute;
-    left: -56px;
-    bottom: 48px;
-    width: 245px;
-    padding: 23px;
+    left: 0;              /* flush with left edge of photo column */
+    bottom: 40px;
+    width: 220px;
+    padding: 18px 20px;
     background: #ffeb00;
     color: #3e243c;
     z-index: 2;
+    border-radius: 0 8px 8px 0;
 }
 .wellness-page .hero-badge strong,
 .wellness-page .hero-badge span { display: block; }
@@ -1216,15 +1226,17 @@ a:hover {
 
 /* ── Responsive ── */
 @media (max-width: 850px) {
+    .wellness-page { overflow-x: hidden; }
     .wellness-page .wellness-header { max-width: 100%; padding-inline: 18px; height: 78px; }
     .wellness-page .wellness-header nav { display: none; }
     .wellness-page .wellness-logo img { width: 172px; }
     .wellness-page .wellness-call { padding: 11px 13px; font-size: 0.77rem; }
-    .wellness-page .wellness-hero { grid-template-columns: 1fr; }
-    .wellness-page .hero-content { justify-self: start; padding: 55px 24px 40px; max-width: 100%; }
-    .wellness-page .hero-photo { min-height: 280px; }
-    .wellness-page .hero-slide.active { height: 280px; }
-    .wellness-page .hero-badge { left: 16px; bottom: 16px; }
+    .wellness-page .wellness-hero { grid-template-columns: 1fr; overflow: hidden; }
+    .wellness-page .hero-content { padding: 36px 20px; min-height: auto; width: 100%; max-width: 100%; }
+    .wellness-page .hero-photo { min-height: 300px; height: 300px; width: 100%; max-width: 100%; overflow: hidden; }
+    .wellness-page .hero-slide { width: 100% !important; max-width: 100% !important; }
+    .wellness-page .hero-badge { left: 0; bottom: 16px; width: 160px; padding: 12px 14px; }
+    .wellness-page .hero-content h1 { font-size: clamp(1.7rem, 7vw, 2.2rem); }
     .wellness-page .split-intro { grid-template-columns: 1fr; gap: 30px; }
     .wellness-page .programs { grid-template-columns: 1fr; gap: 30px; }
     .wellness-page .service-grid-v2 { grid-template-columns: 1fr 1fr; }
