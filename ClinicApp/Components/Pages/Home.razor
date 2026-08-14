@@ -1,59 +1,141 @@
 @page "/"
+@rendermode InteractiveServer
+@implements IDisposable
 
 <PageTitle>SRI SAI PROTOUCH | Physio & Slimming Clinic</PageTitle>
 
 <div class="wellness-page">
     <header class="wellness-header">
         <a href="#top" class="wellness-logo"><img src="/images/sri-sai-protouch-logo.svg" alt="Sri Sai Protouch" /></a>
-        <nav><a href="#services">Services</a><a href="#approach">Our approach</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a></nav>
-        <a class="wellness-call" href="tel:9673530031">Call 96735 30031</a>
+        <nav>
+            <a href="#services">Services</a>
+            <a href="#approach">Our Approach</a>
+            <a href="#gallery">Gallery</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        <a class="wellness-call" href="tel:9673530031">📞 Call 96735 30031</a>
     </header>
 
     <main id="top">
+        <!-- ═══════════════════════════════════════════════════════
+             HERO SECTION — split layout, hero image sub-carousel
+             ═══════════════════════════════════════════════════════ -->
         <section class="wellness-hero">
             <div class="hero-content">
-                <p class="iso-mark">ISO 9001:2015 CERTIFIED COMPANY</p>
-                <h1>Your journey to a <em>healthier, stronger</em> you starts here.</h1>
+                <p class="iso-mark">✦ ISO 9001:2015 CERTIFIED COMPANY</p>
+                <h1>Your journey to a <em>healthier,&nbsp;stronger</em> you starts here.</h1>
                 <p class="hero-copy">Physiotherapy-led slimming, rehabilitation and wellness plans by <strong>Dr. Manjari</strong>—created for lasting results, not temporary fixes.</p>
                 <div class="wellness-actions">
-                    <a class="wellness-primary btn-clinic" href="/book">Book an Appointment <span>→</span></a>
+                    <a class="wellness-primary" href="/book">Book an Appointment <span>→</span></a>
                     <a class="wellness-secondary" href="https://wa.me/919028027888?text=Hello%20Dr.%20Manjari%2C%20I%20would%20like%20to%20book%20a%20consultation." target="_blank" rel="noopener">WhatsApp Us</a>
                     <a class="wellness-secondary" href="tel:9673530031">Talk to us</a>
                 </div>
                 <div class="hero-cert"><span>Traditional Indian Methods</span><i>+</i><span>European Technology</span></div>
             </div>
             <div class="hero-photo">
-                <img src="/images/clinic-gallery/hero-treatment.jpeg" alt="Sri Sai Protouch wellness treatment" />
-                <div class="hero-badge"><strong>Providing the<br />Caring Touch..!</strong><span>Dr. Manjari<br />Physiotherapist & Slimming Expert</span></div>
+                @for (var i = 0; i < heroImages.Count; i++)
+                {
+                    var idx = i;
+                    <img src="@heroImages[idx]"
+                         alt="Sri Sai Protouch clinic"
+                         class="hero-slide @(idx == activeHeroIndex ? "active" : "")"
+                         onerror="this.style.display='none'" />
+                }
+                <div class="hero-badge">
+                    <strong>Providing the<br />Caring Touch..!</strong>
+                    <span>Dr. Manjari<br />Physiotherapist &amp; Slimming Expert</span>
+                </div>
             </div>
         </section>
 
-        <section class="guarantee-strip" aria-label="Our care promise">@foreach (var guarantee in guarantees) { <span>✓ @guarantee</span> }</section>
+        <!-- Guarantee strip -->
+        <section class="guarantee-strip" aria-label="Our care promise">
+            @foreach (var g in guarantees) { <span>✓ @g</span> }
+        </section>
 
+        <!-- ═══════════════════════════════════════════════════════
+             APPROACH SECTION
+             ═══════════════════════════════════════════════════════ -->
         <section id="approach" class="wellness-section split-intro">
             <div>
                 <p class="section-kicker">A SMARTER, SAFER APPROACH</p>
-                <h2>Loose weight,<br /><em>not money.</em></h2>
+                <h2>Lose weight,<br /><em>not money.</em></h2>
             </div>
             <div>
-                <p class="large-copy">We combine expert physiotherapy, personalised movement and modern body-care technology to help you feel better in your body—without extreme restrictions or invasive procedures.</p>
+                <p class="large-copy">We combine expert physiotherapy, personalised movement and modern body-care technology to help you feel better—without extreme restrictions or invasive procedures.</p>
                 <p class="muted-copy">The intelligent alternative to liposuction and other aesthetic devices, designed around your health and your goals.</p>
             </div>
         </section>
 
+        <!-- ═══════════════════════════════════════════════════════
+             SERVICES SECTION — expandable detail panels
+             ═══════════════════════════════════════════════════════ -->
         <section id="services" class="wellness-section services">
             <p class="section-kicker">OUR SERVICES</p>
             <h2>Care for every stage of your wellness journey.</h2>
             <div class="service-grid-v2">
-                <article><span>01</span><h3>Weight Loss & Slimming</h3><p>Weight loss, inch loss, figure correction, body shaping, toning, skin tightening, breast correction and body spas.</p><ul><li>4–8 kg weight loss per month</li><li>2–5 inches loss per session/week</li></ul></article>
-                <article><span>02</span><h3>Physiotherapy & Rehabilitation</h3><p>Individual treatment for back, neck and knee pain, arthritis, spondylitis, sinusitis, paralysis, stress, strain and injury care.</p><ul><li>Muscle & ligament injury care</li><li>Orthopaedic & neurological disorders</li></ul></article>
-                <article><span>03</span><h3>Yoga & Holistic Wellness</h3><p>Personalised yoga and lifestyle support for diabetes, blood pressure, thyroid, cholesterol, varicose veins and hormonal health.</p><ul><li>Menstrual wellness support</li><li>Pre & post-natal care</li></ul></article>
-                <article><span>04</span><h3>Specialised Programs</h3><p>Focused, clinician-guided plans built around a specific goal and your current health condition.</p><ul><li>Height increase program</li><li>Up to 23 years • 1–3 inches growth</li></ul></article>
+                @foreach (var svc in serviceDefinitions)
+                {
+                    var svcId = svc.Id;
+                    var isOpen = expandedService == svcId;
+                    <div class="service-article-wrap">
+                        <button class="service-article @(isOpen ? "expanded" : "")"
+                                @onclick="() => ToggleService(svcId)"
+                                aria-expanded="@isOpen.ToString().ToLower()"
+                                type="button">
+                            <article>
+                                <span>@svc.Number</span>
+                                <h3>@svc.Name</h3>
+                                <p>@svc.Summary</p>
+                                <ul>
+                                    @foreach (var b in svc.Bullets) { <li>@b</li> }
+                                </ul>
+                                <span class="expand-hint">@(isOpen ? "▲ Less info" : "▼ More info")</span>
+                            </article>
+                        </button>
+                        <div class="service-detail-panel @(isOpen ? "open" : "")">
+                            <div class="sdp-inner">
+                                <img src="@svc.Detail.ThumbnailPath" alt="@svc.Name" class="sdp-thumb" onerror="this.style.display='none'" />
+                                <div class="sdp-body">
+                                    @if (svc.Detail.Treatments.Length > 0)
+                                    {
+                                        <div class="sdp-group">
+                                            <h4>Treatments &amp; Methods</h4>
+                                            <ul>@foreach (var t in svc.Detail.Treatments) { <li>@t</li> }</ul>
+                                        </div>
+                                    }
+                                    @if (svc.Detail.Outcomes.Length > 0)
+                                    {
+                                        <div class="sdp-group">
+                                            <h4>Expected Outcomes</h4>
+                                            <ul>@foreach (var o in svc.Detail.Outcomes) { <li>@o</li> }</ul>
+                                        </div>
+                                    }
+                                    @if (svc.Detail.SubServices.Length > 0)
+                                    {
+                                        <div class="sdp-group">
+                                            <h4>Sub-Services</h4>
+                                            <ul class="sdp-pills">
+                                                @foreach (var s in svc.Detail.SubServices) { <li>@s</li> }
+                                            </ul>
+                                        </div>
+                                    }
+                                    <a class="wellness-primary sdp-book" href="/book">Book This Service →</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </section>
 
+        <!-- ═══════════════════════════════════════════════════════
+             WHY PROTOUCH — care panel
+             ═══════════════════════════════════════════════════════ -->
         <section class="wellness-section care-panel">
-            <div class="care-photo"><img src="/images/clinic-gallery/care-panel.jpeg" alt="Protouch clinic care" /></div>
+            <div class="care-photo">
+                <img src="/images/clinic-gallery/care-panel.jpeg" alt="Protouch clinic care" />
+            </div>
             <div class="care-copy">
                 <p class="section-kicker">WHY PROTOUCH</p>
                 <h2>Because your body deserves more than a one-size-fits-all plan.</h2>
@@ -65,6 +147,9 @@
             </div>
         </section>
 
+        <!-- ═══════════════════════════════════════════════════════
+             PROGRAMS SECTION
+             ═══════════════════════════════════════════════════════ -->
         <section class="wellness-section programs">
             <div>
                 <p class="section-kicker">YOUR CARE, CONNECTED</p>
@@ -77,39 +162,59 @@
             </div>
         </section>
 
-        <!-- Gallery Section (Task 8.3) -->
-        <section id="gallery" class="wellness-section" style="max-width: 1240px; margin: auto; padding: 80px 30px;">
+        <!-- ═══════════════════════════════════════════════════════
+             GALLERY — auto-rotating carousel
+             ═══════════════════════════════════════════════════════ -->
+        <section id="gallery" class="wellness-section carousel-section-wrap">
             <p class="section-kicker">CLINIC GALLERY</p>
-            <h2 style="color: #2f2732; margin-bottom: 2rem;">A glimpse inside Sri Sai Protouch.</h2>
-            @if (galleryImages.Count == 0)
-            {
-                <p style="color: #777078;">Gallery photos coming soon.</p>
-            }
-            else
-            {
-                <div class="gallery-grid">
-                    @foreach (var img in galleryImages)
+            <h2>A glimpse inside Sri Sai Protouch.</h2>
+
+            <div class="carousel-section">
+                <div class="carousel-track">
+                    @for (var i = 0; i < carouselSlides.Count; i++)
                     {
-                        <div class="gallery-item">
-                            <img src="@img" alt="ProTouch Clinic Gallery" loading="lazy" />
+                        var idx = i;
+                        <div class="carousel-slide @(idx == activeSlideIndex ? "active" : "")">
+                            <img src="@carouselSlides[idx].ImagePath"
+                                 alt="@carouselSlides[idx].Caption"
+                                 loading="lazy"
+                                 onerror="this.parentElement.style.background='linear-gradient(135deg,#008d36,#eef6f1)'" />
+                            @if (!string.IsNullOrWhiteSpace(carouselSlides[idx].Caption))
+                            {
+                                <div class="carousel-caption">@carouselSlides[idx].Caption</div>
+                            }
                         </div>
                     }
                 </div>
-            }
-            <div style="text-align: center; margin-top: 2.5rem;">
-                <a class="wellness-primary btn-clinic" href="/book" style="display: inline-flex; align-items: center; gap: 12px;">
-                    📅 Book an Appointment <span>→</span>
-                </a>
+
+                <div class="carousel-dots" role="tablist" aria-label="Gallery slides">
+                    @for (var i = 0; i < carouselSlides.Count; i++)
+                    {
+                        var idx = i;
+                        <button class="carousel-dot @(idx == activeSlideIndex ? "active" : "")"
+                                @onclick="() => JumpToSlide(idx)"
+                                aria-label="Slide @(idx + 1)"
+                                type="button">
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:2.5rem;">
+                <a class="wellness-primary" href="/book">📅 Book an Appointment →</a>
             </div>
         </section>
 
+        <!-- ═══════════════════════════════════════════════════════
+             CONTACT
+             ═══════════════════════════════════════════════════════ -->
         <section id="contact" class="contact-section">
             <div>
                 <p class="section-kicker">VISIT SRI SAI PROTOUCH</p>
                 <h2>Let's take the first step together.</h2>
                 <p>Contact Dr. Manjari to discuss a physiotherapy, slimming or wellness plan that fits you.</p>
                 <div style="margin-top: 1.5rem;">
-                    <a class="wellness-primary" href="/book" style="display: inline-flex; align-items: center; gap: 10px;">📅 Book Online →</a>
+                    <a class="wellness-primary" href="/book">📅 Book Online →</a>
                 </div>
             </div>
             <div class="contact-details">
@@ -117,24 +222,161 @@
                 <a href="tel:+919028027888"><strong>+91 90280 27888</strong><span>Alternate phone / WhatsApp</span></a>
                 <a href="mailto:protouch1998@gmail.com"><strong>protouch1998@gmail.com</strong><span>Email us</span></a>
                 <p>Row H. No. 22, Kasliwal Bhagyoday,<br />Opposite Surya Lawns / Near Datta Mandir, Beed By-pass,<br />Mirajgave Nagari, Ch. Sambhajinagar – 431010</p>
-                <a class="wellness-primary directions" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Kasliwal+Bhagyoday+Beed+By-pass+Chhatrapati+Sambhajinagar">Get directions →</a>
+                <a class="wellness-primary directions" target="_blank" rel="noopener"
+                   href="https://www.google.com/maps/search/?api=1&query=Kasliwal+Bhagyoday+Beed+By-pass+Chhatrapati+Sambhajinagar">Get directions →</a>
             </div>
         </section>
     </main>
+
     <footer>© @DateTime.Now.Year SRI SAI PROTOUCH Physio - Slimming Clinic <span>•</span> Dr. Manjari</footer>
 </div>
 
 @code {
+    // ─── Static content ───────────────────────────────────────────────────
     private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"];
 
-    private List<string> galleryImages = new();
+    // ─── Records ──────────────────────────────────────────────────────────
+    private record CarouselSlide(string ImagePath, string Caption);
+    private record ServiceDetail(string ThumbnailPath, string[] Treatments, string[] Outcomes, string[] SubServices);
+    private record ServiceDefinition(string Id, string Number, string Name, string Summary, string[] Bullets, ServiceDetail Detail);
+
+    // ─── Carousel state ───────────────────────────────────────────────────
+    private List<CarouselSlide> carouselSlides = new();
+    private int activeSlideIndex = 0;
+    private System.Threading.Timer? _carouselTimer;
+
+    // ─── Hero sub-carousel state ──────────────────────────────────────────
+    private List<string> heroImages = new();
+    private int activeHeroIndex = 0;
+    private System.Threading.Timer? _heroTimer;
+
+    // ─── Service expansion state ──────────────────────────────────────────
+    private string? expandedService = null;
+
+    // ─── Service definitions ──────────────────────────────────────────────
+    private List<ServiceDefinition> serviceDefinitions = new();
 
     protected override void OnInitialized()
     {
-        // Static list of gallery images from /images/clinic-gallery/
-        for (var i = 1; i <= 60; i++)
+        // Hero images — curated clinic shots (NOT personal photos)
+        heroImages = new List<string>
         {
-            galleryImages.Add($"/images/clinic-gallery/gallery-{i:D2}.jpeg");
+            "/images/clinic-gallery/gallery-03.jpeg",
+            "/images/clinic-gallery/gallery-07.jpeg",
+            "/images/clinic-gallery/gallery-12.jpeg",
+            "/images/clinic-gallery/gallery-18.jpeg",
+            "/images/clinic-gallery/gallery-25.jpeg",
+        };
+
+        // Carousel — 18 curated slides interleaved across all 4 categories
+        carouselSlides = new List<CarouselSlide>
+        {
+            new("/images/clinic-gallery/gallery-05.jpeg",  "Weight Loss & Slimming"),
+            new("/images/clinic-gallery/gallery-14.jpeg",  "Physiotherapy & Rehabilitation"),
+            new("/images/clinic-gallery/gallery-21.jpeg",  "Yoga & Holistic Wellness"),
+            new("/images/clinic-gallery/gallery-30.jpeg",  "Specialised Programs"),
+            new("/images/clinic-gallery/gallery-08.jpeg",  "LPG Endermologie Treatment"),
+            new("/images/clinic-gallery/gallery-17.jpeg",  "Orthopaedic Rehabilitation"),
+            new("/images/clinic-gallery/gallery-24.jpeg",  "Yoga for Hormonal Health"),
+            new("/images/clinic-gallery/gallery-33.jpeg",  "Height Increase Program"),
+            new("/images/clinic-gallery/gallery-11.jpeg",  "Body Shaping & Toning"),
+            new("/images/clinic-gallery/gallery-19.jpeg",  "Sports Injury Recovery"),
+            new("/images/clinic-gallery/gallery-28.jpeg",  "Menstrual Wellness Yoga"),
+            new("/images/clinic-gallery/gallery-37.jpeg",  "Specialised Clinician Plans"),
+            new("/images/clinic-gallery/gallery-42.jpeg",  "RF & Cryotherapy Sessions"),
+            new("/images/clinic-gallery/gallery-48.jpeg",  "Neurological Physiotherapy"),
+            new("/images/clinic-gallery/gallery-53.jpeg",  "Pre & Post-Natal Care"),
+            new("/images/clinic-gallery/gallery-57.jpeg",  "Sports Rehabilitation"),
+            new("/images/clinic-gallery/gallery-60.jpeg",  "Skin Tightening Treatments"),
+            new("/images/clinic-gallery/gallery-02.jpeg",  "Sri Sai Protouch Clinic"),
+        };
+
+        // Service definitions with detailed content
+        serviceDefinitions = new List<ServiceDefinition>
+        {
+            new("weight-loss", "01", "Weight Loss & Slimming",
+                "Weight loss, inch loss, figure correction, body shaping, toning, skin tightening, breast correction and body spas.",
+                new[] { "4–8 kg weight loss per month", "2–5 inches loss per session/week" },
+                new ServiceDetail(
+                    "/images/clinic-gallery/gallery-05.jpeg",
+                    new[] { "LPG Endermologie", "RF (Radio Frequency) Therapy", "Body Wraps & Compression", "Cryotherapy", "Ultrasound Cavitation" },
+                    new[] { "4–8 kg weight loss per month", "2–5 inches reduction per session/week", "Measurable results from first session" },
+                    new[] { "Figure Correction", "Body Shaping", "Toning", "Skin Tightening", "Breast Correction", "Body Spa" }
+                )
+            ),
+            new("physiotherapy", "02", "Physiotherapy & Rehabilitation",
+                "Individual treatment for back, neck and knee pain, arthritis, spondylitis, sinusitis, paralysis, stress, strain and injury care.",
+                new[] { "Muscle & ligament injury care", "Orthopaedic & neurological disorders" },
+                new ServiceDetail(
+                    "/images/clinic-gallery/gallery-14.jpeg",
+                    new[] { "Electrotherapy", "Ultrasound Therapy", "TENS (Transcutaneous Electrical Nerve Stimulation)", "Manual Therapy & Mobilisation" },
+                    new[] { "Pain relief from first session", "Improved mobility and strength", "Reduced dependency on medication" },
+                    new[] { "Back & Neck Pain", "Knee Pain", "Arthritis", "Spondylitis", "Sinusitis", "Paralysis Recovery", "Orthopaedic", "Neurological", "Sports Injury" }
+                )
+            ),
+            new("yoga", "03", "Yoga & Holistic Wellness",
+                "Personalised yoga and lifestyle support for diabetes, blood pressure, thyroid, cholesterol, varicose veins and hormonal health.",
+                new[] { "Menstrual wellness support", "Pre & post-natal care" },
+                new ServiceDetail(
+                    "/images/clinic-gallery/gallery-21.jpeg",
+                    new[] { "Personalised Yoga Sequences", "Pranayama & Breathing Techniques", "Lifestyle Coaching", "Nutritional Guidance" },
+                    new[] { "Improved blood sugar control", "Regulated blood pressure", "Hormonal balance", "Reduced stress & anxiety" },
+                    new[] { "Diabetes Wellness", "Blood Pressure", "Thyroid Health", "Cholesterol Management", "Varicose Veins", "Menstrual Wellness", "Pre-Natal Care", "Post-Natal Care" }
+                )
+            ),
+            new("specialised", "04", "Specialised Programs",
+                "Focused, clinician-guided plans built around a specific goal and your current health condition.",
+                new[] { "Height increase program", "Up to 23 years • 1–3 inches growth" },
+                new ServiceDetail(
+                    "/images/clinic-gallery/gallery-30.jpeg",
+                    new[] { "Targeted stretching & decompression", "Nutrition & growth support protocols", "Sports-specific rehabilitation", "Customised clinician guidance" },
+                    new[] { "1–3 inches height increase (up to age 23)", "Faster sports recovery", "Improved posture & alignment" },
+                    new[] { "Height Increase (up to 23 yrs)", "Sports Rehabilitation", "Posture Correction", "Custom Wellness Plans" }
+                )
+            ),
+        };
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _carouselTimer = new System.Threading.Timer(_ =>
+            {
+                InvokeAsync(() =>
+                {
+                    activeSlideIndex = (activeSlideIndex + 1) % carouselSlides.Count;
+                    StateHasChanged();
+                });
+            }, null, TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(4));
+
+            _heroTimer = new System.Threading.Timer(_ =>
+            {
+                InvokeAsync(() =>
+                {
+                    activeHeroIndex = (activeHeroIndex + 1) % heroImages.Count;
+                    StateHasChanged();
+                });
+            }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         }
+    }
+
+    private void JumpToSlide(int index)
+    {
+        activeSlideIndex = index;
+        // Reset timer
+        _carouselTimer?.Change(TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(4));
+        StateHasChanged();
+    }
+
+    private void ToggleService(string serviceId)
+    {
+        expandedService = expandedService == serviceId ? null : serviceId;
+    }
+
+    public void Dispose()
+    {
+        try { _carouselTimer?.Dispose(); } catch { }
+        try { _heroTimer?.Dispose(); } catch { }
     }
 }
