@@ -1,4 +1,5 @@
 @page "/Account/Login"
+@layout PublicLayout
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
@@ -11,59 +12,52 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Clinic Portal Login</PageTitle>
+<PageTitle>Login | Sri Sai Protouch Portal</PageTitle>
 
-<div class="container py-5">
-    <div class="text-center mb-5">
-        <h1 class="gradient-text display-4 font-weight-extrabold">ProTouch Clinic</h1>
-        <p class="text-secondary">Slimming & Physiotherapy Administration & Client Portal</p>
-    </div>
-
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="glass-panel p-4 p-md-5">
-                <StatusMessage Message="@errorMessage" />
-                <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
-                    <DataAnnotationsValidator />
-                    <h3 class="mb-3">Portal Login</h3>
-                    <p class="text-secondary small mb-4">Enter your credentials to access your dashboard.</p>
-                    
-                    <ValidationSummary class="text-danger small mb-3" role="alert" />
-                    
-                    <div class="mb-3">
-                        <label for="Input.Email" class="clinic-label">Email Address</label>
-                        <InputText @bind-Value="Input.Email" id="Input.Email" class="clinic-input" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                        <ValidationMessage For="() => Input.Email" class="text-danger small mt-1" />
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="Input.Password" class="clinic-label">Password</label>
-                        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="clinic-input" autocomplete="current-password" aria-required="true" placeholder="••••••••" />
-                        <ValidationMessage For="() => Input.Password" class="text-danger small mt-1" />
-                    </div>
-                    
-                    <div class="form-check mb-4">
-                        <InputCheckbox @bind-Value="Input.RememberMe" id="Input.RememberMe" class="form-check-input" />
-                        <label class="form-check-label text-secondary small" for="Input.RememberMe">
-                            Keep me logged in
-                        </label>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <button type="submit" id="login-submit-btn" class="btn-clinic w-100 justify-content-center py-3">
-                            Login to Portal
-                        </button>
-                    </div>
-                    
-                    <div class="text-center mt-4">
-                        <p class="small text-muted">
-                            New patient? 
-                            <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))" class="text-teal font-weight-bold">Register here</a>
-                        </p>
-                    </div>
-                </EditForm>
-            </div>
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <img src="/images/sri-sai-protouch-logo.svg" alt="Sri Sai Protouch" />
+            <p>Clinic Administration & Client Portal</p>
         </div>
+
+        <StatusMessage Message="@errorMessage" />
+
+        <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="auth-error" role="alert" />
+
+            <div class="auth-field">
+                <label for="Input.Email">Email Address</label>
+                <InputText @bind-Value="Input.Email" id="Input.Email" class="auth-input"
+                           autocomplete="username" aria-required="true"
+                           placeholder="name@example.com" />
+                <ValidationMessage For="() => Input.Email" class="auth-field-error" />
+            </div>
+
+            <div class="auth-field">
+                <label for="Input.Password">Password</label>
+                <InputText type="password" @bind-Value="Input.Password" id="Input.Password"
+                           class="auth-input" autocomplete="current-password" aria-required="true"
+                           placeholder="••••••••" />
+                <ValidationMessage For="() => Input.Password" class="auth-field-error" />
+            </div>
+
+            <div class="auth-remember">
+                <InputCheckbox @bind-Value="Input.RememberMe" id="Input.RememberMe" />
+                <label for="Input.RememberMe">Keep me signed in</label>
+            </div>
+
+            <button type="submit" class="auth-submit">Sign In →</button>
+
+            <div class="auth-footer">
+                <span>New patient?</span>
+                <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register",
+                    new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">
+                    Create an account
+                </a>
+            </div>
+        </EditForm>
     </div>
 </div>
 
@@ -82,22 +76,15 @@
     protected override async Task OnInitializedAsync()
     {
         if (HttpMethods.IsGet(HttpContext.Request.Method))
-        {
-            // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-        }
     }
 
     public async Task LoginUser()
     {
-        // This doesn't count login failures towards account lockout
-        // To enable password failures to trigger account lockout, set lockoutOnFailure: true
         var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-
-            // Role-based routing when no ReturnUrl is provided
             if (!string.IsNullOrEmpty(ReturnUrl))
             {
                 RedirectManager.RedirectTo(ReturnUrl);
@@ -113,8 +100,7 @@
         }
         else if (result.RequiresTwoFactor)
         {
-            RedirectManager.RedirectTo(
-                "Account/LoginWith2fa",
+            RedirectManager.RedirectTo("Account/LoginWith2fa",
                 new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
         }
         else if (result.IsLockedOut)
@@ -124,21 +110,18 @@
         }
         else
         {
-            errorMessage = "Error: Invalid login attempt.";
+            errorMessage = "Invalid email or password. Please try again.";
         }
     }
 
     private sealed class InputModel
     {
-        [Required]
-        [EmailAddress]
+        [Required] [EmailAddress]
         public string Email { get; set; } = "";
 
-        [Required]
-        [DataType(DataType.Password)]
+        [Required] [DataType(DataType.Password)]
         public string Password { get; set; } = "";
 
-        [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
+        [Display(Name = "Remember me?")] public bool RememberMe { get; set; }
     }
 }
