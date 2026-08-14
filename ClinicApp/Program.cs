@@ -47,7 +47,26 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// Use absolute DB path so the database survives Render restarts/cold starts
+var rawConnStr = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+// Make the SQLite path absolute, relative to ContentRootPath (not CWD)
+var connectionString = rawConnStr;
+if (rawConnStr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+{
+    var dbRelative = rawConnStr.Substring("Data Source=".Length);
+    if (!System.IO.Path.IsPathRooted(dbRelative))
+    {
+        var dbAbsolute = System.IO.Path.Combine(
+            builder.Environment.ContentRootPath, dbRelative);
+        // Ensure the directory exists
+        var dbDir = System.IO.Path.GetDirectoryName(dbAbsolute)!;
+        System.IO.Directory.CreateDirectory(dbDir);
+        connectionString = $"Data Source={dbAbsolute}";
+    }
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -147,5 +166,8 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+// Health endpoint — lets Render know the app is alive (avoids cold-start sleep)
+app.MapGet("/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }));
 
 app.Run();
