@@ -1,124 +1,121 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 156" width="680" height="156">
-  <defs>
-    <!-- Rainbow gradient ring for right circle -->
-    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%"   stop-color="#e63030"/>
-      <stop offset="25%"  stop-color="#f5c518"/>
-      <stop offset="50%"  stop-color="#2ecc2e"/>
-      <stop offset="75%"  stop-color="#1a7fc1"/>
-      <stop offset="100%" stop-color="#cc44cc"/>
-    </linearGradient>
-    <clipPath id="logoClip">
-      <rect width="680" height="156" rx="10"/>
-    </clipPath>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 200" preserveAspectRatio="xMidYMid meet">
 
-  <!-- ── BACKGROUND ── -->
-  <rect width="680" height="156" rx="10" fill="#1a4ab5"/>
+  <!-- ─── BACKGROUND ─────────────────────────────────────────── -->
+  <rect width="880" height="200" rx="12" fill="#1a4ab5"/>
 
-  <!-- ══════════════════════════════════════════════════════
-       LEFT FIGURE — human silhouette (red/yellow/green figure)
-       ══════════════════════════════════════════════════════ -->
-  <!-- Purple ball (head) -->
-  <circle cx="64" cy="18" r="10" fill="#cc44cc"/>
+  <!-- ─── OUTER BORDER ──────────────────────────────────────── -->
+  <rect x="4" y="4" width="872" height="192" rx="9"
+        fill="none" stroke="#f5c518" stroke-width="3" opacity="0.4"/>
 
-  <!-- Yellow left arm / torso curve — large crescent shape -->
-  <path d="M 52 30 
-           C 30 38, 18 56, 22 82 
-           C 24 96, 34 106, 46 108 
-           C 52 109, 58 107, 60 100 
-           C 63 90, 58 78, 54 64 
-           C 50 50, 52 38, 56 30 Z" 
+  <!-- ═══════════════════════════════════════════════════════════
+       LEFT FIGURE  (human silhouette — exact colours from logo)
+       ═══════════════════════════════════════════════════════════ -->
+
+  <!-- Purple ball — head -->
+  <circle cx="78" cy="22" r="13" fill="#b044cc"/>
+
+  <!-- Yellow crescent body (left side — D-shape curving left) -->
+  <path d="M 65 42
+           C 40 55, 28 78, 32 106
+           C 35 122, 46 134, 60 136
+           C 68 137, 74 132, 75 122
+           C 77 108, 70 92, 66 76
+           C 62 60, 64 48, 68 38
+           C 70 35, 68 40, 65 42 Z"
         fill="#f5c518"/>
 
-  <!-- Red right arm sweep — bold curved wing -->
-  <path d="M 58 32 
-           C 72 24, 92 20, 104 28 
-           C 108 31, 106 37, 100 40 
-           C 90 44, 74 42, 64 38 
-           C 59 36, 57 33, 58 32 Z" 
-        fill="#e63030"/>
+  <!-- Red right arm sweep (bold curved wing rightward) -->
+  <path d="M 70 46
+           C 84 36, 104 30, 120 38
+           C 126 42, 124 50, 116 54
+           C 104 60, 86 56, 76 50
+           C 71 47, 69 46, 70 46 Z"
+        fill="#e8231e"/>
 
-  <!-- Green right leg -->
-  <path d="M 60 96 
-           C 58 108, 56 120, 60 134 
-           C 62 140, 66 144, 70 142 
-           C 74 140, 74 134, 72 124 
-           C 68 112, 64 102, 62 96 Z" 
-        fill="#2ecc2e"/>
+  <!-- Green right leg (going down-right) -->
+  <path d="M 74 122
+           C 72 138, 70 152, 74 170
+           C 76 178, 82 182, 88 180
+           C 94 178, 94 170, 90 158
+           C 86 144, 80 130, 76 122 Z"
+        fill="#2db034"/>
 
-  <!-- Body stem (connect head to torso area) -->
-  <ellipse cx="60" cy="42" rx="5" ry="8" fill="#f5c518"/>
-
-  <!-- ══════════════════════════════════════════════════════
-       MAIN TEXT — PROTOUCH
-       ══════════════════════════════════════════════════════ -->
-  <text x="122" y="96"
-        font-family="Arial Black, 'Arial Bold', Impact, sans-serif"
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN TEXT  — PROTOUCH
+       ═══════════════════════════════════════════════════════════ -->
+  <text x="148" y="126"
+        font-family="'Arial Black', 'Franklin Gothic Heavy', Impact, sans-serif"
         font-weight="900"
-        font-size="74"
+        font-size="100"
         fill="#ffffff"
-        letter-spacing="2">PROTOUCH</text>
+        letter-spacing="3">PROTOUCH</text>
 
-  <!-- ── Yellow underline beneath PROTOUCH ── -->
-  <rect x="122" y="102" width="432" height="5" rx="2.5" fill="#f5c518"/>
+  <!-- Yellow horizontal rule below PROTOUCH -->
+  <rect x="148" y="133" width="565" height="6" rx="3" fill="#f5c518"/>
 
-  <!-- ── Subtitle: Physio - Slimming Clinic ── -->
-  <text x="126" y="138"
+  <!-- Subtitle -->
+  <text x="152" y="175"
         font-family="Arial, Helvetica, sans-serif"
         font-weight="700"
         font-style="italic"
-        font-size="28"
+        font-size="38"
         fill="#f5c518"
-        letter-spacing="0.8">Physio - Slimming Clinic</text>
+        letter-spacing="1">Physio - Slimming Clinic</text>
 
-  <!-- ══════════════════════════════════════════════════════
-       RIGHT CIRCLE — spine figure icon
-       ══════════════════════════════════════════════════════ -->
-  <!-- Outer rainbow ring (thick coloured border) -->
-  <circle cx="614" cy="78" r="66" fill="url(#ringGrad)"/>
-  <!-- Inner dark blue circle -->
-  <circle cx="614" cy="78" r="54" fill="#0e2a7a"/>
+  <!-- ═══════════════════════════════════════════════════════════
+       RIGHT CIRCLE  — spine / physio icon
+       ═══════════════════════════════════════════════════════════ -->
+  <!-- Rainbow outer ring -->
+  <circle cx="822" cy="100" r="72" fill="none" stroke="#e8231e"  stroke-width="18"/>
+  <circle cx="822" cy="100" r="72" fill="none" stroke="#f5c518"  stroke-width="6"
+          stroke-dasharray="113 339" stroke-dashoffset="0" opacity="0.9"/>
+  <circle cx="822" cy="100" r="72" fill="none" stroke="#2db034"  stroke-width="6"
+          stroke-dasharray="113 339" stroke-dashoffset="113" opacity="0.9"/>
+  <circle cx="822" cy="100" r="72" fill="none" stroke="#1a7fc1"  stroke-width="6"
+          stroke-dasharray="113 339" stroke-dashoffset="226" opacity="0.9"/>
 
-  <!-- Spine line (central vertical) -->
-  <line x1="614" y1="28" x2="614" y2="122" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <!-- Inner dark circle -->
+  <circle cx="822" cy="100" r="56" fill="#0d2278"/>
 
-  <!-- Vertebrae discs — 8 of them -->
-  <ellipse cx="614" cy="33"  rx="9" ry="4.5" fill="none" stroke="white" stroke-width="2.2"/>
-  <ellipse cx="614" cy="43"  rx="9" ry="4.5" fill="none" stroke="white" stroke-width="2.2"/>
-  <ellipse cx="614" cy="53"  rx="9" ry="4.5" fill="none" stroke="white" stroke-width="2.2"/>
-  <ellipse cx="614" cy="63"  rx="9" ry="4.5" fill="none" stroke="white" stroke-width="2.2"/>
-  <ellipse cx="614" cy="73"  rx="9" ry="4.5" fill="none" stroke="white" stroke-width="2.2"/>
-  <ellipse cx="614" cy="83"  rx="9" ry="4.5" fill="none" stroke="white" stroke-width="2.2"/>
-  <ellipse cx="614" cy="93"  rx="9" ry="4.5" fill="none" stroke="white" stroke-width="2.2"/>
-  <ellipse cx="614" cy="103" rx="9" ry="4.5" fill="none" stroke="white" stroke-width="2.2"/>
+  <!-- Spine column (vertical white line) -->
+  <line x1="820" y1="44" x2="820" y2="154"
+        stroke="white" stroke-width="4.5" stroke-linecap="round"/>
 
-  <!-- Human figure (right side of spine — bent posture, pain position) -->
+  <!-- Vertebrae discs — 9 horizontal ellipses -->
+  <ellipse cx="820" cy="50"  rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+  <ellipse cx="820" cy="62"  rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+  <ellipse cx="820" cy="74"  rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+  <ellipse cx="820" cy="86"  rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+  <ellipse cx="820" cy="98"  rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+  <ellipse cx="820" cy="110" rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+  <ellipse cx="820" cy="122" rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+  <ellipse cx="820" cy="134" rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+  <ellipse cx="820" cy="146" rx="12" ry="5.5" fill="none" stroke="white" stroke-width="2.5"/>
+
+  <!-- Human figure (white outline — bent pain posture, right side of spine) -->
   <!-- Head -->
-  <circle cx="632" cy="32" r="8" fill="none" stroke="white" stroke-width="2.5"/>
-  <!-- Neck -->
-  <line x1="632" y1="40" x2="630" y2="48" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-  <!-- Torso (bent forward) -->
-  <path d="M 630 48 C 636 56, 638 66, 634 76 C 630 84, 626 90, 624 98"
-        fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-  <!-- Upper arm (reaching back / pain gesture) -->
-  <path d="M 634 58 C 644 52, 650 48, 648 42"
-        fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-  <!-- Forearm bent up -->
-  <path d="M 648 42 C 644 36, 638 34, 634 38"
-        fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="843" cy="50" r="10" fill="none" stroke="white" stroke-width="3"/>
+  <!-- Neck to upper back -->
+  <path d="M 843 60 C 842 68, 838 74, 834 82"
+        fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <!-- Upper torso curving down -->
+  <path d="M 834 82 C 838 92, 840 104, 836 116 C 832 126, 828 132, 826 140"
+        fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <!-- Upper arm raised back (pain gesture) -->
+  <path d="M 838 80 C 848 72, 858 68, 858 58"
+        fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <!-- Forearm bent up toward head -->
+  <path d="M 858 58 C 852 50, 844 48, 840 54"
+        fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
   <!-- Upper leg -->
-  <path d="M 624 98 C 622 106, 622 112, 624 118"
-        fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-  <!-- Lower leg -->
-  <path d="M 624 118 C 626 122, 624 124, 618 122"
-        fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 826 140 C 825 148, 825 154, 827 160"
+        fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
 
   <!-- Green healing hands at bottom of circle -->
-  <path d="M 575 112 C 580 106, 588 104, 596 108 C 600 110, 602 114, 600 118"
-        fill="none" stroke="#2ecc2e" stroke-width="4" stroke-linecap="round"/>
-  <path d="M 575 112 C 572 116, 572 122, 576 124"
-        fill="none" stroke="#2ecc2e" stroke-width="4" stroke-linecap="round"/>
-  <path d="M 576 124 C 578 126, 582 126, 584 124"
-        fill="none" stroke="#2ecc2e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 783 148 C 790 140, 800 138, 810 142 C 814 144, 816 148, 814 153"
+        fill="none" stroke="#2db034" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 783 148 C 780 154, 780 161, 784 164"
+        fill="none" stroke="#2db034" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 784 164 C 787 167, 792 167, 795 164"
+        fill="none" stroke="#2db034" stroke-width="4" stroke-linecap="round"/>
 </svg>
