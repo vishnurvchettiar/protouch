@@ -753,6 +753,29 @@ a:hover {
     text-shadow: none;
     outline: none;
 }
+/* Header action group — Login + Call side by side */
+.wellness-page .wellness-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+.wellness-page .wellness-login-btn {
+    background: transparent;
+    color: #008d36;
+    border: 2px solid #008d36;
+    padding: 11px 18px;
+    border-radius: 4px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+.wellness-page .wellness-login-btn:hover {
+    background: #008d36;
+    color: #fff;
+}
 .wellness-page .wellness-call {
     background: #008d36;
     color: white !important;
@@ -762,6 +785,7 @@ a:hover {
     font-weight: 800;
     transition: background 0.2s ease;
     text-decoration: none;
+    white-space: nowrap;
 }
 .wellness-page .wellness-call:hover { background: #006d2a; }
 
@@ -1233,6 +1257,8 @@ a:hover {
     .wellness-page .wellness-header { max-width: 100%; padding-inline: 18px; height: 78px; }
     .wellness-page .wellness-header nav { display: none; }
     .wellness-page .wellness-logo img { width: 172px; }
+    .wellness-page .wellness-header-actions { gap: 6px; }
+    .wellness-page .wellness-login-btn { padding: 9px 11px; font-size: 0.77rem; }
     .wellness-page .wellness-call { padding: 11px 13px; font-size: 0.77rem; }
     .wellness-page .wellness-hero { grid-template-columns: 1fr; overflow: hidden; }
     .wellness-page .hero-content { padding: 36px 20px; min-height: auto; width: 100%; max-width: 100%; }
