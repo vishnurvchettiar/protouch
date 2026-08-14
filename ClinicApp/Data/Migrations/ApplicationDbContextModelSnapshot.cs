@@ -213,6 +213,10 @@ namespace ClinicApp.Migrations
                     b.Property<double>("ChestInches")
                         .HasColumnType("REAL");
 
+                    b.Property<string>("DietPlan")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DoctorNotes")
                         .IsRequired()
                         .HasColumnType("TEXT");

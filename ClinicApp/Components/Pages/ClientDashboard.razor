@@ -355,6 +355,22 @@ else
             </div>
         </div>
 
+        <!-- My Diet Plan Section — Requirements 12.1, 12.2, 12.3, 12.4 -->
+        <div class="glass-panel p-4 mb-4">
+            <span class="eyebrow">NUTRITION GUIDANCE</span>
+            <h3 class="mb-3">My Diet Plan</h3>
+            @if (!string.IsNullOrWhiteSpace(userProfile?.DietPlan))
+            {
+                <pre class="diet-plan-text">@userProfile.DietPlan</pre>
+            }
+            else
+            {
+                <div class="empty-state">
+                    No diet plan has been assigned yet. Please contact your clinic.
+                </div>
+            }
+        </div>
+
         <!-- Clinic Visits & Treatments History -->
                 <div class="glass-panel p-4">
                     <h3 class="mb-3">Clinic Attendance & Treatments</h3>
