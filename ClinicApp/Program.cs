@@ -18,6 +18,23 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+// ── Performance: Brotli + Gzip response compression ──────────────────
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true; // safe: no CRIME attack risk for our static CSS/JS
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+    options.MimeTypes = Microsoft.AspNetCore.ResponseCompression.ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+        "text/css", "application/javascript", "text/javascript",
+        "text/html", "application/json", "image/svg+xml"
+    });
+});
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(options =>
+    options.Level = System.IO.Compression.CompressionLevel.Fastest);
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(options =>
+    options.Level = System.IO.Compression.CompressionLevel.Fastest);
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents(options =>
@@ -123,6 +140,7 @@ else
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+app.UseResponseCompression(); // must be first — compresses everything after it
 app.UseRateLimiter();
 app.UseWebSockets(new WebSocketOptions
 {

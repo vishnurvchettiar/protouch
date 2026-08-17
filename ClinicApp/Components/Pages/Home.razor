@@ -58,6 +58,8 @@
                     <img src="@heroImages[idx]"
                          alt="Protouch clinic"
                          class="hero-slide @(idx == activeHeroIndex ? "active" : "")"
+                         loading="@(idx == 0 ? "eager" : "lazy")"
+                         fetchpriority="@(idx == 0 ? "high" : "auto")"
                          onerror="this.style.display='none'" />
                 }
                 <div class="hero-badge">
