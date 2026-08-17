@@ -2294,3 +2294,40 @@ a:hover {
     .dashboard-theme .stat-card h2 { font-size: 1.5rem; }
 }
 /* =================================================================== */
+
+/* ══════════════════════════════════════════════════════════════
+   VISIT WEBSITE BUTTON — top-bar shortcut back to public home
+   Scoped to .dashboard-theme (portal only)
+   ══════════════════════════════════════════════════════════════ */
+.dashboard-theme .visit-website-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    background: rgba(0, 141, 54, 0.08);
+    border: 1px solid rgba(0, 141, 54, 0.25);
+    color: #008d36;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    white-space: nowrap;
+}
+.dashboard-theme .visit-website-btn:hover {
+    background: rgba(0, 141, 54, 0.15);
+    border-color: #008d36;
+    color: #006d2a;
+    text-shadow: none;
+    transform: translateY(-1px);
+}
+.dashboard-theme .visit-website-btn:active {
+    transform: translateY(0);
+}
+/* On very small screens collapse to icon-only */
+@media (max-width: 400px) {
+    .dashboard-theme .visit-website-btn span {
+        display: none !important;
+    }
+}
+/* ══════════════════════════════════════════════════════════════ */
