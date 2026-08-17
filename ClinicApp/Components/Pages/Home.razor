@@ -69,10 +69,11 @@
 
         <!-- Guarantee strip — animated ticker -->
         <section class="guarantee-strip guarantee-strip--ticker" aria-label="Our care promise">
-            <div class="guarantee-header-pill">✦ Our Promise</div>
             <div class="guarantee-ticker-track">
+                <span class="guarantee-header-pill">✦ Our Promise</span>
                 @foreach (var g in guarantees) { <span class="guarantee-item">✓ @g</span> }
                 @* Duplicate for seamless loop *@
+                <span class="guarantee-header-pill" aria-hidden="true">✦ Our Promise</span>
                 @foreach (var g in guarantees) { <span class="guarantee-item" aria-hidden="true">✓ @g</span> }
             </div>
         </section>
