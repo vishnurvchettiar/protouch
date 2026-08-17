@@ -2953,3 +2953,146 @@ a:hover {
     white-space: nowrap;
 }
 /* ══════════════════════════════════════════════════════════════ */
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   SERVICES VISUAL UPGRADE — 4 Concepts
+   All rules scoped to .wellness-page or service-specific selectors.
+   Appended — existing rules never modified.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Concept 1: Before/After Reveal Cards ── */
+.wellness-page .svc-reveal-card { position: relative; overflow: hidden; }
+.wellness-page .svc-before-layer {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #c8d8c8 0%, #e8ede8 100%);
+    opacity: 0.25;
+    transition: opacity 400ms ease;
+}
+.wellness-page .svc-after-layer {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--svc-accent, #008d36) 0%, rgba(0,0,0,0.6) 100%);
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 450ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease;
+}
+.wellness-page .svc-card-content { position: relative; z-index: 2; }
+.wellness-page .svc-reveal-label {
+    position: absolute; bottom: 12px; right: 14px;
+    z-index: 3; display: flex; gap: 8px;
+    font-size: 0.68rem; font-weight: 900; letter-spacing: 0.06em;
+}
+.wellness-page .svc-before-tag { color: #999; opacity: 1; transition: opacity 400ms ease; }
+.wellness-page .svc-after-tag { color: #ffeb00; opacity: 0; transition: opacity 400ms ease; }
+
+.wellness-page .service-card-link:hover .svc-after-layer {
+    clip-path: inset(0 0% 0 0);
+    opacity: 1;
+}
+.wellness-page .service-card-link:hover .svc-before-tag { opacity: 0; }
+.wellness-page .service-card-link:hover .svc-after-tag { opacity: 1; }
+.wellness-page .service-card-link:hover .svc-card-content h3,
+.wellness-page .service-card-link:hover .svc-card-content p,
+.wellness-page .service-card-link:hover .svc-card-content li { color: rgba(255,255,255,0.92); }
+.wellness-page .service-card-link:hover .svc-cta-hint { color: #ffeb00; }
+@media (prefers-reduced-motion: reduce) {
+    .wellness-page .svc-after-layer { transition: none; clip-path: inset(0 100% 0 0); }
+}
+
+/* ── Concept 2: 3D Glassmorphic Treatment Cards ── */
+.wellness-page .svc-glass-card {
+    background: rgba(255,255,255,0.70);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-left: 3px solid #008d36;
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: 0 8px 32px rgba(0,141,54,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform 0.12s linear, box-shadow 0.3s ease;
+    cursor: default;
+}
+.wellness-page .svc-glass-card:hover {
+    box-shadow: 0 20px 60px rgba(0,141,54,0.18), 0 4px 16px rgba(0,0,0,0.10);
+}
+.wellness-page .svc-glass-icon-wrap {
+    width: 60px; height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(0,141,54,0.12), rgba(0,141,54,0.04));
+    border: 1px solid rgba(0,141,54,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 16px;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    flex-direction: column;
+    gap: 2px;
+}
+.wellness-page .svc-glass-card:hover .svc-glass-icon-wrap {
+    transform: scale(1.12) rotate(6deg);
+}
+@media (prefers-reduced-motion: reduce) {
+    .wellness-page .svc-glass-card { transform-style: flat; will-change: auto; }
+    .wellness-page .svc-glass-card:hover .svc-glass-icon-wrap { transform: none; }
+}
+
+/* ── Concept 3: Animated SVG treatment journey line-art ── */
+.wellness-page .svc-svg-art {
+    display: block;
+    width: 48px; height: 48px;
+    margin-bottom: 8px;
+    opacity: 0.85;
+}
+.wellness-page .svc-svg-art path,
+.wellness-page .svc-svg-art circle,
+.wellness-page .svc-svg-art polyline,
+.wellness-page .svc-svg-art line,
+.wellness-page .svc-svg-art rect {
+    stroke: #008d36;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    transition: stroke-dashoffset 0s;
+}
+.wellness-page .svc-glass-card.svc-drawn .svc-svg-art path,
+.wellness-page .svc-glass-card.svc-drawn .svc-svg-art circle,
+.wellness-page .svc-glass-card.svc-drawn .svc-svg-art polyline,
+.wellness-page .svc-glass-card.svc-drawn .svc-svg-art line,
+.wellness-page .svc-glass-card.svc-drawn .svc-svg-art rect {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+@media (prefers-reduced-motion: reduce) {
+    .wellness-page .svc-glass-card .svc-svg-art path,
+    .wellness-page .svc-glass-card .svc-svg-art circle,
+    .wellness-page .svc-glass-card .svc-svg-art rect { stroke-dashoffset: 0; transition: none; }
+}
+
+/* ── Concept 4: Dynamic ambient glow transitions ── */
+.wellness-page .services {
+    transition: background-color 600ms ease;
+    position: relative;
+}
+.wellness-page .services::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at var(--glow-x, 20%) var(--glow-y, 50%),
+        rgba(var(--glow-r,0), var(--glow-g,141), var(--glow-b,54), 0.18) 0%,
+        transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    transition: all 800ms ease;
+}
+.wellness-page .services > * { position: relative; z-index: 1; }
+
+/* Service card accent glow on hover — per card colour */
+.wellness-page .service-card-link:hover .service-card-home {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12),
+                0 0 0 1px rgba(var(--svc-r,0),var(--svc-g,141),var(--svc-b,54),0.3);
+}

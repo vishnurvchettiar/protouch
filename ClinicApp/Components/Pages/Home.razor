@@ -102,15 +102,21 @@
                 @foreach (var svc in serviceCards)
                 {
                     <a class="service-card-link" href="/services/@svc.Id" data-reveal>
-                        <div class="service-card-home" style="border-top-color:@svc.AccentColor;">
-                            <span class="svc-num svc-num-badge" style="color:@svc.AccentColor;">@svc.Number</span>
-                            <div class="svc-icon-wrap" style="background:@svc.IconBg;">@svc.Icon</div>
-                            <h3>@svc.Name</h3>
-                            <p>@svc.Summary</p>
-                            <ul>
-                                @foreach (var b in svc.Bullets) { <li>@b</li> }
-                            </ul>
-                            <span class="svc-cta-hint">View service &amp; book →</span>
+                        <div class="service-card-home svc-reveal-card" style="border-top-color:@svc.AccentColor; --svc-accent:@svc.AccentColor;">
+                            <div class="svc-before-layer"></div>
+                            <div class="svc-after-layer"></div>
+                            <div class="svc-card-content">
+                                <span class="svc-num svc-num-badge" style="color:@svc.AccentColor;">@svc.Number</span>
+                                <div class="svc-icon-wrap" style="background:@svc.IconBg;">@svc.Icon</div>
+                                <h3>@svc.Name</h3>
+                                <p>@svc.Summary</p>
+                                <ul>@foreach (var b in svc.Bullets) { <li>@b</li> }</ul>
+                                <span class="svc-cta-hint">View service &amp; book →</span>
+                            </div>
+                            <div class="svc-reveal-label">
+                                <span class="svc-before-tag">Before</span>
+                                <span class="svc-after-tag">After →</span>
+                            </div>
                         </div>
                     </a>
                 }
@@ -405,6 +411,8 @@
             await JS.InvokeVoidAsync("initStickyBar", ".wellness-hero", ".sticky-booking-bar");
             // Note: initStatCounters is NOT called here — it is triggered internally by
             // initScrollReveal when .social-proof-section enters the viewport.
+            // Concept 4: Dynamic ambient glow on services section
+            await JS.InvokeVoidAsync("initServiceAmbientGlow");
         }
     }
 

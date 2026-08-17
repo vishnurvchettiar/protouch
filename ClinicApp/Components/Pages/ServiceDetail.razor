@@ -1,10 +1,12 @@
 @page "/services/{ServiceId}"
 @layout PublicLayout
 @rendermode InteractiveServer
+@implements IAsyncDisposable
 @using ClinicApp.Data
 @using ClinicApp.Services
 @inject ClinicService ClinicService
 @inject NavigationManager NavManager
+@inject IJSRuntime JS
 
 <PageTitle>@(currentService?.Name ?? "Service") | ProTouch Physio - Slimming Clinic</PageTitle>
 
@@ -83,13 +85,18 @@
                 <p class="section-kicker">TREATMENTS &amp; METHODS</p>
                 <h2>How we help you.</h2>
                 <div class="svc-treatment-grid">
+                    @{ var tIdx = 0; }
                     @foreach (var t in currentService.Treatments)
                     {
-                        <div class="svc-treatment-card">
-                            <span class="svc-treat-icon">@t.Icon</span>
+                        <div class="svc-treatment-card svc-glass-card">
+                            <div class="svc-glass-icon-wrap">
+                                @GetTreatmentSvg(tIdx)
+                                <span class="svc-treat-icon">@t.Icon</span>
+                            </div>
                             <h4>@t.Name</h4>
                             <p>@t.Description</p>
                         </div>
+                        tIdx++;
                     }
                 </div>
             </div>
@@ -475,6 +482,43 @@
         currentService = svc;
         // Reset booking form when service changes
         ResetForm();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Concept 2: 3D glassmorphic tilt on treatment cards
+            try { await JS.InvokeVoidAsync("initGlassCardTilt", ".svc-glass-card", 6); } catch { }
+            // Concept 3: SVG line-art self-draw animation on scroll
+            try { await JS.InvokeVoidAsync("initSvgDraw", ".svc-glass-card"); } catch { }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try { await JS.InvokeVoidAsync("destroyGlassCardTilt"); } catch { }
+    }
+
+    // ── Concept 3: Inline SVG per treatment slot (cycles through 6 patterns) ──
+    private MarkupString GetTreatmentSvg(int index)
+    {
+        var svgs = new[]
+        {
+            // Slot 0: Lightning bolt / energy wave
+            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><polyline points=\"28,4 16,26 24,26 20,44 32,22 24,22 28,4\" /></svg>",
+            // Slot 1: Sound wave circles
+            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><circle cx=\"24\" cy=\"24\" r=\"6\" /><circle cx=\"24\" cy=\"24\" r=\"12\" /><circle cx=\"24\" cy=\"24\" r=\"19\" /></svg>",
+            // Slot 2: Plug/connector
+            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><line x1=\"24\" y1=\"4\" x2=\"24\" y2=\"16\" /><rect x=\"14\" y=\"16\" width=\"20\" height=\"14\" rx=\"4\" /><line x1=\"24\" y1=\"30\" x2=\"24\" y2=\"38\" /><line x1=\"20\" y1=\"38\" x2=\"28\" y2=\"38\" /><line x1=\"17\" y1=\"10\" x2=\"17\" y2=\"16\" /><line x1=\"31\" y1=\"10\" x2=\"31\" y2=\"16\" /></svg>",
+            // Slot 3: Two hands / touch
+            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><path d=\"M10,28 C10,20 14,16 18,16 L18,10 C18,8 20,7 21,8 L21,18 C22,17 24,16.5 25,17.5 C26,16.5 28,16.5 29,18 C30,17 32,17.5 32,20 L32,30 C32,36 28,40 22,40 L18,40 C14,40 10,36 10,28 Z\" /></svg>",
+            // Slot 4: Running figure
+            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><circle cx=\"30\" cy=\"8\" r=\"4\" /><path d=\"M30,12 L26,22 L18,26\" /><path d=\"M26,22 L28,32 L22,40\" /><path d=\"M26,22 L34,28 L40,26\" /></svg>",
+            // Slot 5: Brain/mind wave
+            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><path d=\"M24,10 C18,10 12,14 12,20 C12,24 14,26 14,28 C14,32 17,35 20,36 L20,40 L28,40 L28,36 C31,35 34,32 34,28 C34,26 36,24 36,20 C36,14 30,10 24,10 Z\" /><line x1=\"8\" y1=\"24\" x2=\"12\" y2=\"24\" /><line x1=\"36\" y1=\"24\" x2=\"40\" y2=\"24\" /><path d=\"M16,20 C16,18 18,17 20,18 C20,16 22,15 24,16 C24,14 26,13 28,15 C28,17 30,18 30,20\" /></svg>",
+        };
+        return new MarkupString(svgs[index % svgs.Length]);
     }
 
     private void SelectSubService(string s)
