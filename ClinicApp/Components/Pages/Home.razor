@@ -9,19 +9,19 @@
 <div class="wellness-page">
 
     <!-- ── Header ── -->
-    <header class="wellness-header">
-        <a href="#top" class="wellness-logo">
+    <header class="pt-header">
+        <a href="#top" class="pt-logo">
             <img src="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg" alt="ProTouch Physio - Slimming Clinic" />
         </a>
-        <nav>
+        <nav class="pt-nav">
             <a href="#services">Services</a>
-            <a href="#approach">Our Approach</a>
+            <a href="#approach">Approach</a>
             <a href="#gallery">Gallery</a>
             <a href="#contact">Contact</a>
         </nav>
-        <div class="wellness-header-actions">
-            <a class="wellness-login-btn" href="/Account/Login">🔒 Login</a>
-            <a class="wellness-call" href="tel:9673530031">📞 Call 96735 30031</a>
+        <div class="pt-header-actions">
+            <a class="pt-login-btn" href="/Account/Login">Login</a>
+            <a class="pt-call-btn" href="tel:9673530031">📞 Call Now</a>
         </div>
     </header>
 
@@ -33,15 +33,22 @@
         <section class="wellness-hero">
             <div class="hero-content">
                 <p class="iso-mark">✦ ISO 9001:2015 CERTIFIED COMPANY</p>
-                <h1>Your journey to a <em>healthier,&nbsp;stronger</em> you starts here.</h1>
+                <h1>
+                    <span class="hero-line" style="--i:0">Your journey to a</span>
+                    <span class="hero-line hero-line-em" style="--i:1"><em>healthier, stronger</em></span>
+                    <span class="hero-line" style="--i:2">you starts here.</span>
+                </h1>
                 <p class="hero-copy">Physiotherapy-led slimming, rehabilitation and wellness plans by <strong>Dr. Manjari</strong> — created for lasting results, not temporary fixes.</p>
                 <div class="wellness-actions">
-                    <a class="wellness-primary" href="/book">Book an Appointment <span>→</span></a>
+                    <a class="hero-cta-primary" href="/book">Book an Appointment <span class="cta-arrow">→</span></a>
+                    <a class="hero-cta-secondary" href="https://wa.me/919028027888" target="_blank" rel="noopener">💬 WhatsApp Us</a>
                 </div>
-                <div class="hero-cert">
-                    <span>Traditional Indian Methods</span>
-                    <i>+</i>
-                    <span>European Technology</span>
+                <div class="hero-trust-badges">
+                    <div class="trust-stars">★★★★★ <span>4.9 / 5.0</span></div>
+                    <div class="trust-divider"></div>
+                    <div class="trust-item">✓ ISO 9001:2015</div>
+                    <div class="trust-divider"></div>
+                    <div class="trust-item">✓ 500+ Patients</div>
                 </div>
             </div>
             <div class="hero-photo">
@@ -62,6 +69,7 @@
 
         <!-- Guarantee strip — animated ticker -->
         <section class="guarantee-strip guarantee-strip--ticker" aria-label="Our care promise">
+            <div class="guarantee-header-pill">✦ Our Promise</div>
             <div class="guarantee-ticker-track">
                 @foreach (var g in guarantees) { <span class="guarantee-item">✓ @g</span> }
                 @* Duplicate for seamless loop *@
@@ -94,7 +102,7 @@
                 {
                     <a class="service-card-link" href="/services/@svc.Id" data-reveal>
                         <div class="service-card-home" style="border-top-color:@svc.AccentColor;">
-                            <span class="svc-num" style="color:@svc.AccentColor;">@svc.Number</span>
+                            <span class="svc-num svc-num-badge" style="color:@svc.AccentColor;">@svc.Number</span>
                             <div class="svc-icon-wrap" style="background:@svc.IconBg;">@svc.Icon</div>
                             <h3>@svc.Name</h3>
                             <p>@svc.Summary</p>
@@ -158,6 +166,7 @@
                 @foreach (var t in testimonials)
                 {
                     <blockquote class="testimonial-card" data-reveal>
+                        <div class="tc-stars">★★★★★</div>
                         <p>@t.Quote</p>
                         <footer>— @t.RoleLabel</footer>
                     </blockquote>
@@ -389,7 +398,7 @@
             }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
 
             // Initialise all homepage animations via site.js (each called exactly once)
-            await JS.InvokeVoidAsync("initTypewriter", ".wellness-page .hero-content h1", 40);
+            await JS.InvokeVoidAsync("initHeroStagger");
             await JS.InvokeVoidAsync("initScrollReveal");
             await JS.InvokeVoidAsync("initGuaranteeTicker");
             await JS.InvokeVoidAsync("initStickyBar", ".wellness-hero", ".sticky-booking-bar");
