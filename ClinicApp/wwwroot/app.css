@@ -2928,3 +2928,28 @@ a:hover {
     .wellness-page .trust-divider { display: none; }
 }
 /* ══════════════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════
+   FIX: guarantee-header-pill now scrolls inside the ticker track
+   Overrides the previous static pinned-pill positioning
+   ══════════════════════════════════════════════════════════════ */
+.wellness-page .guarantee-header-pill {
+    /* Reset static-position overrides */
+    flex-shrink: unset;
+    border-right: none;
+    /* Style as an inline ticker item with yellow pill treatment */
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 16px;
+    margin: 0 12px 0 0;
+    background: rgba(255, 235, 0, 0.22);
+    color: #ffeb00;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 99px;
+    border: 1px solid rgba(255, 235, 0, 0.35);
+    white-space: nowrap;
+}
+/* ══════════════════════════════════════════════════════════════ */
