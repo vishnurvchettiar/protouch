@@ -22,6 +22,16 @@ public class ClinicService
     private readonly IConfiguration _config;
     private readonly ILogger<ClinicService> _logger;
 
+    // ==========================================
+    // Task 2.1: IST timezone helper (cross-platform)
+    // ==========================================
+    private static readonly TimeZoneInfo IST = GetIst();
+    private static TimeZoneInfo GetIst()
+    {
+        try { return TimeZoneInfo.FindSystemTimeZoneById("Asia/Kolkata"); }
+        catch { return TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"); }
+    }
+
     public ClinicService(ApplicationDbContext db, IConfiguration config, ILogger<ClinicService> logger)
     {
         _db = db;
@@ -485,6 +495,79 @@ public class ClinicService
             appt.Status = status;
             await _db.SaveChangesAsync();
         }
+    }
+
+    // ==========================================
+    // Task 2.2: BuildReminderMessage (Req 2.1–2.4)
+    // ==========================================
+    public static string BuildReminderMessage(string clientName, string treatmentType, DateTime appointmentDateUtc)
+    {
+        var ist = GetIst();
+        var localTime = TimeZoneInfo.ConvertTimeFromUtc(appointmentDateUtc, ist);
+        var name = string.IsNullOrWhiteSpace(clientName) ? "Valued Client" : clientName;
+        var treatment = string.IsNullOrWhiteSpace(treatmentType) ? "your appointment" : treatmentType;
+        return $"""
+            Hello {name}, this is a reminder from ProTouch Physio - Slimming Clinic.
+
+            Your appointment for {treatment} is scheduled for tomorrow at {localTime:dd MMM yyyy, hh:mm tt}.
+
+            📍 Row H. No. 22, Kasliwal Bhagyoday, Beed By-pass, Ch. Sambhajinagar.
+            📞 96735 30031
+
+            Reply STOP to unsubscribe.
+            """;
+    }
+
+    // ==========================================
+    // Task 2.3: UpdateAppointmentReminderSentAsync (Req 1.4, 3.3)
+    // ==========================================
+    public async Task UpdateAppointmentReminderSentAsync(int appointmentId, bool sent)
+    {
+        var appt = await _db.Appointments.FindAsync(appointmentId);
+        if (appt == null) return;
+        appt.ReminderSent = sent;
+        await _db.SaveChangesAsync();
+    }
+
+    // ==========================================
+    // Task 2.4: GetUpcomingAppointmentsForReminderAsync (Req 1.2, 1.4)
+    // ==========================================
+    public async Task<List<Appointment>> GetUpcomingAppointmentsForReminderAsync()
+    {
+        var now = DateTime.UtcNow;
+        var windowStart = now.AddHours(23);
+        var windowEnd = now.AddHours(25);
+
+        return await _db.Appointments
+            .Include(a => a.User)
+            .Where(a =>
+                (a.Status == "Scheduled" || a.Status == "Confirmed") &&
+                !a.ReminderSent &&
+                a.AppointmentDate >= windowStart &&
+                a.AppointmentDate <= windowEnd)
+            .ToListAsync();
+    }
+
+    // ==========================================
+    // Req 6.1 / 6.2: Log appointment reminder to WhatsAppLogs
+    // ==========================================
+    public async Task LogAppointmentReminderAsync(string phone, string message, bool isManual)
+    {
+        var audience = isManual
+            ? "Appointment Reminder (Manual)"
+            : "Appointment Reminder (Auto)";
+
+        _db.WhatsAppLogs.Add(new WhatsAppLog
+        {
+            TargetAudience = audience,
+            MessageTemplate = message,
+            RecipientCount = 1,
+            SentAt = DateTime.UtcNow,
+            Status = "Sent",
+            LogDetail = System.Text.Json.JsonSerializer.Serialize(
+                new[] { new { Phone = phone, Status = "Sent" } })
+        });
+        await _db.SaveChangesAsync();
     }
 
     // ==========================================

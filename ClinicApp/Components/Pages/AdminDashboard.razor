@@ -37,6 +37,7 @@
         <button class="btn @(activeTab == "mealreview" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => SwitchToMealReview()'>Meal Review</button>
         <button class="btn @(activeTab == "bookings" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => SwitchToBookings()'>Bookings @(pendingBookingsCount > 0 ? $"({pendingBookingsCount})" : "")</button>
         <button class="btn @(activeTab == "whatsapp" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "whatsapp"'>WhatsApp Center</button>
+        <button class="btn @(activeTab == "settings" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "settings"'>Settings</button>
     </div>
 
 
@@ -151,7 +152,7 @@
             else {
                 <div class="clinic-table-container">
                     <table class="clinic-table">
-                        <thead><tr><th>Client</th><th>Treatment</th><th>Date</th><th>Status</th><th></th></tr></thead>
+                        <thead><tr><th>Client</th><th>Treatment</th><th>Date</th><th>Status</th><th></th><th>Reminder</th></tr></thead>
                         <tbody>
                             @foreach (var appt in allAppointments)
                             {
@@ -165,6 +166,24 @@
                                         </select>
                                     </td>
                                     <td>@if (apptUpdateError.ContainsKey(appt.Id)) { <span class="text-danger small">@apptUpdateError[appt.Id]</span> }</td>
+                                    <td>
+                                        @if (remindersSent.Contains(appt.Id))
+                                        {
+                                            <span class="soft-pill">Reminder Sent ✓</span>
+                                        }
+                                        else if (string.IsNullOrWhiteSpace(appt.User?.PhoneNumber))
+                                        {
+                                            <span class="text-muted small">No phone</span>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-clinic-secondary" @onclick="() => SendReminderManually(appt)">Send Reminder</button>
+                                        }
+                                        @if (reminderErrors.ContainsKey(appt.Id))
+                                        {
+                                            <div class="clinic-alert clinic-alert-danger mt-1 small">@reminderErrors[appt.Id]</div>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -259,8 +278,7 @@
         </div>
     }
     else if (activeTab == "whatsapp")
-    {
-        <!-- Task 11.1: Template approval notice banner -->
+    {        <!-- Task 11.1: Template approval notice banner -->
         <div class="clinic-alert clinic-alert-info mb-4">
             <div>
                 <strong>ℹ️ WhatsApp Template Requirement:</strong> Twilio requires pre-approved message templates for WhatsApp Business messaging.
@@ -339,6 +357,76 @@
                     }
                 </div>
             </div>
+        </div>
+    }
+    else if (activeTab == "settings")
+    {
+        <div class="glass-panel p-4">
+            <div class="section-heading"><div><span class="eyebrow">CONFIGURATION</span><h3>WhatsApp Settings</h3></div></div>
+
+            <!-- Mode Toggle -->
+            <div class="mb-4">
+                <label class="clinic-label">WhatsApp Mode</label>
+                <div class="d-flex gap-2">
+                    <button class="btn @(settingsMode == "Mock" ? "btn-clinic" : "btn-clinic-secondary")"
+                            @onclick='() => settingsMode = "Mock"'>Mock</button>
+                    <button class="btn @(settingsMode == "Twilio" ? "btn-clinic" : "btn-clinic-secondary")"
+                            @onclick='() => settingsMode = "Twilio"'>Twilio</button>
+                </div>
+                <p class="text-secondary small mt-1">Mock mode logs messages without sending. Twilio mode sends real WhatsApp messages.</p>
+            </div>
+
+            <!-- Credential inputs -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="clinic-label">Account SID</label>
+                    <input class="clinic-input" type="password" @bind="settingsSid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+                </div>
+                <div class="col-md-6">
+                    <label class="clinic-label">Auth Token</label>
+                    <input class="clinic-input" type="password" @bind="settingsToken" placeholder="Your Twilio Auth Token" />
+                </div>
+                <div class="col-md-6">
+                    <label class="clinic-label">From (Twilio WhatsApp Sender)</label>
+                    <input class="clinic-input" @bind="settingsFrom" placeholder="whatsapp:+14155238886" />
+                </div>
+                <div class="col-md-6">
+                    <label class="clinic-label">Clinic WhatsApp Number</label>
+                    <input class="clinic-input" @bind="settingsClinicNum" placeholder="+919028027888" />
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 flex-wrap mb-3">
+                <button class="btn-clinic" @onclick="SaveSettingsAsync">Save</button>
+                <button class="btn-clinic-secondary" @onclick="TestTwilioConnectionAsync">Test Connection</button>
+            </div>
+
+            <!-- Status messages -->
+            @if (!string.IsNullOrWhiteSpace(settingsSaveMsg))
+            {
+                <div class="clinic-alert @(settingsSaveSuccess ? "clinic-alert-info" : "clinic-alert-danger") mb-3">@settingsSaveMsg</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(settingsTestMsg))
+            {
+                <div class="clinic-alert @(settingsTestSuccess ? "clinic-alert-info" : "clinic-alert-danger") mb-3">@settingsTestMsg</div>
+            }
+
+            <!-- Twilio Setup Guide (Req 5.3) -->
+            <details>
+                <summary class="clinic-label" style="cursor:pointer;">📖 Twilio Setup Guide (click to expand)</summary>
+                <div class="glass-panel p-3 mt-2">
+                    <ol class="text-secondary small" style="line-height: 2;">
+                        <li>Create a free Twilio account at <a href="https://twilio.com" target="_blank" rel="noopener" style="color: var(--accent-teal);">twilio.com</a></li>
+                        <li>From the Twilio Console dashboard, copy your <strong>Account SID</strong> and <strong>Auth Token</strong></li>
+                        <li>Go to <strong>Messaging → Senders → WhatsApp Senders</strong> and join the Twilio Sandbox (send the join code from your WhatsApp)</li>
+                        <li>Your Twilio WhatsApp sender number is <code>whatsapp:+14155238886</code> (sandbox default)</li>
+                        <li>Enter your clinic's WhatsApp number (e.g. <code>+919028027888</code>) in the <strong>Clinic Number</strong> field</li>
+                        <li>Set <strong>WhatsApp Mode</strong> to <strong>Twilio</strong> and click Save</li>
+                        <li>Send a test reminder from the Appointments tab to verify delivery</li>
+                    </ol>
+                </div>
+            </details>
         </div>
     }
     else
@@ -572,6 +660,14 @@
     private Dictionary<int, string> apptUpdateError = new();
     private Dictionary<int, string> mealDeleteErrors = new();
     private Dictionary<int, string> bookingUpdateErrors = new();
+    private Dictionary<int, string> reminderErrors = new();
+    private HashSet<int> remindersSent = new();
+
+    // Settings tab (Task 5.2)
+    private string settingsMode = "Mock";
+    private string settingsSid = "", settingsToken = "", settingsFrom = "", settingsClinicNum = "";
+    private string settingsSaveMsg = "", settingsTestMsg = "";
+    private bool settingsSaveSuccess, settingsTestSuccess;
 
     private IEnumerable<ClientProfile> FilteredClients => string.IsNullOrWhiteSpace(searchQuery)
         ? clients
@@ -584,6 +680,7 @@
         selectedClientPayments = new(); selectedClientAppts = new();
         activeTab = "clients";
         await LoadAdminDataAsync();
+        await LoadSettingsAsync();
     }
 
     private async Task LoadAdminDataAsync()
@@ -596,6 +693,8 @@
         todayAttendanceCount = attendanceLogs.Count(x => x.CheckInTime.ToLocalTime().Date == DateTime.Today);
         allBookings = await ClinicService.GetAllBookingRequestsAsync();
         pendingBookingsCount = allBookings.Count(b => b.Status == "Pending");
+        // Seed remindersSent from DB state (Task 4.2)
+        remindersSent = allAppointments.Where(a => a.ReminderSent).Select(a => a.Id).ToHashSet();
         StateHasChanged();
     }
 
@@ -787,6 +886,83 @@
         apptUpdateError.Remove(id);
         try { await ClinicService.UpdateAppointmentStatusAsync(id, newStatus); await LoadAdminDataAsync(); }
         catch (Exception ex) { apptUpdateError[id] = ex.Message; StateHasChanged(); }
+    }
+
+    // Task 4.6: Manual reminder trigger (Req 3.1–3.5, 6.2)
+    private async Task SendReminderManually(Appointment appt)
+    {
+        reminderErrors.Remove(appt.Id);
+        try
+        {
+            var clientName = appt.User?.FullName ?? string.Empty;
+            var message = ClinicService.BuildReminderMessage(clientName, appt.TreatmentType, appt.AppointmentDate);
+            await ClinicService.SendWhatsAppMessageAsync(appt.User!.PhoneNumber!, message);
+            await ClinicService.LogAppointmentReminderAsync(appt.User.PhoneNumber!, message, isManual: true);
+            await ClinicService.UpdateAppointmentReminderSentAsync(appt.Id, true);
+            remindersSent.Add(appt.Id);
+        }
+        catch (Exception ex)
+        {
+            reminderErrors[appt.Id] = ex.Message;
+        }
+        StateHasChanged();
+    }
+
+    // Task 5.3 / 5.4: Load settings from DB
+    private async Task LoadSettingsAsync()
+    {
+        settingsMode = await ClinicService.GetSettingAsync("WhatsApp:Mode") ?? "Mock";
+        settingsSid = await ClinicService.GetSettingAsync("WhatsApp:Twilio:AccountSid") ?? "";
+        settingsToken = await ClinicService.GetSettingAsync("WhatsApp:Twilio:AuthToken") ?? "";
+        settingsFrom = await ClinicService.GetSettingAsync("WhatsApp:Twilio:From") ?? "";
+        settingsClinicNum = await ClinicService.GetSettingAsync("WhatsApp:ClinicNumber") ?? "";
+    }
+
+    // Task 5.5: Save settings to DB
+    private async Task SaveSettingsAsync()
+    {
+        settingsSaveMsg = "";
+        try
+        {
+            await ClinicService.SetSettingAsync("WhatsApp:Mode", settingsMode);
+            await ClinicService.SetSettingAsync("WhatsApp:Twilio:AccountSid", settingsSid);
+            await ClinicService.SetSettingAsync("WhatsApp:Twilio:AuthToken", settingsToken);
+            await ClinicService.SetSettingAsync("WhatsApp:Twilio:From", settingsFrom);
+            await ClinicService.SetSettingAsync("WhatsApp:ClinicNumber", settingsClinicNum);
+            settingsSaveMsg = "Settings saved successfully.";
+            settingsSaveSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            settingsSaveMsg = "Error saving settings: " + ex.Message;
+            settingsSaveSuccess = false;
+        }
+        StateHasChanged();
+    }
+
+    // Task 5.5: Test Twilio / Mock connection
+    private async Task TestTwilioConnectionAsync()
+    {
+        settingsTestMsg = "";
+        try
+        {
+            if (string.IsNullOrWhiteSpace(settingsClinicNum))
+            {
+                settingsTestMsg = "Please enter the Clinic WhatsApp number before testing.";
+                settingsTestSuccess = false;
+                StateHasChanged();
+                return;
+            }
+            await ClinicService.SendWhatsAppMessageAsync(settingsClinicNum, "ProTouch test message from Kiro setup.");
+            settingsTestMsg = "Test message sent successfully.";
+            settingsTestSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            settingsTestMsg = "Test failed: " + ex.Message;
+            settingsTestSuccess = false;
+        }
+        StateHasChanged();
     }
 
     // Meal delete (Task 9.6)

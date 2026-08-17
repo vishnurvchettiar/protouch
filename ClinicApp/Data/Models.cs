@@ -97,6 +97,7 @@ public class Appointment
     public string TreatmentType { get; set; } = string.Empty; // Slimming, Physio, Checkup
     public string Status { get; set; } = "Scheduled"; // Scheduled, Completed, Cancelled
     public string Notes { get; set; } = string.Empty;
+    public bool ReminderSent { get; set; } = false;
 }
 
 public class PaymentNotification

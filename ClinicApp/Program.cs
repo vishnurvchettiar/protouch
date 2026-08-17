@@ -73,6 +73,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<ClinicApp.Services.ClinicService>();
 builder.Services.AddScoped<ClinicApp.Services.FileUploadService>();
+builder.Services.AddHostedService<ClinicApp.Services.AppointmentReminderService>();
 
 // Task 14.3: Rate limiter for /book - 5 requests per IP per 60-minute window
 builder.Services.AddRateLimiter(options =>
