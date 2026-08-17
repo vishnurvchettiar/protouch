@@ -2331,3 +2331,291 @@ a:hover {
     }
 }
 /* ══════════════════════════════════════════════════════════════ */
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HOMEPAGE ATTRACTION REDESIGN — Additive CSS blocks
+   ALL rules scoped to .wellness-page — no existing rules modified.
+   .dashboard-theme and admin panel styles are never touched.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Task 3.1 — Scroll-reveal base and revealed-state rules ── */
+.wellness-page [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 500ms ease-out, transform 500ms ease-out;
+}
+.wellness-page [data-reveal].revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+    .wellness-page [data-reveal] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+/* ── Task 3.2 — Social Proof section CSS ── */
+.wellness-page .social-proof-section {
+    background: #f5f9f6;
+    border-top: 1px solid #d8ead0;
+    border-bottom: 1px solid #d8ead0;
+    max-width: none;
+    padding-inline: max(30px, calc((100vw - 1180px) / 2));
+}
+.wellness-page .sp-stats-grid {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin: 2.5rem 0 3rem;
+}
+.wellness-page .stat-card-sp {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+    text-align: center;
+}
+.wellness-page .sp-count {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 800;
+    color: #008d36;
+    line-height: 1;
+    display: block;
+}
+.wellness-page .sp-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #5a5260;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: block;
+}
+.wellness-page .sp-testimonials {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 2rem;
+}
+.wellness-page .testimonial-card {
+    background: #fff;
+    border-left: 4px solid #008d36;
+    border-radius: 0 12px 12px 0;
+    padding: 24px 28px;
+    margin: 0;
+}
+.wellness-page .testimonial-card p {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #3d3640;
+    font-style: italic;
+    margin-bottom: 12px;
+}
+.wellness-page .testimonial-card footer {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #008d36;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+@media (max-width: 520px) {
+    .wellness-page .sp-stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        justify-items: center;
+    }
+    .wellness-page .sp-testimonials {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Task 3.3 — Floating Sticky Bar CSS ── */
+.wellness-page .sticky-booking-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 200;
+    background: #1a4d2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 14px 24px;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 300ms ease, transform 300ms ease;
+    pointer-events: none;
+}
+.wellness-page .sticky-booking-bar.sticky-bar--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.wellness-page .sticky-bar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background 0.2s ease;
+    min-width: 160px;
+    justify-content: center;
+}
+.wellness-page .sticky-bar-btn--book {
+    background: #008d36;
+    color: #fff !important;
+}
+.wellness-page .sticky-bar-btn--book:hover { background: #006d2a; }
+.wellness-page .sticky-bar-btn--wa {
+    background: #25d366;
+    color: #fff !important;
+}
+.wellness-page .sticky-bar-btn--wa:hover { background: #1ebe59; }
+@media (prefers-reduced-motion: reduce) {
+    .wellness-page .sticky-booking-bar {
+        transition: none;
+    }
+}
+@media (max-width: 380px) {
+    .wellness-page .sticky-booking-bar {
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 16px;
+    }
+    .wellness-page .sticky-bar-btn {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+/* ── Task 3.4 — Guarantee Strip ticker CSS ── */
+.wellness-page .guarantee-strip--ticker {
+    overflow: hidden;
+    padding: 0;
+    display: block;
+    flex-wrap: unset;
+    justify-content: unset;
+    gap: unset;
+}
+.wellness-page .guarantee-ticker-track {
+    display: flex;
+    width: max-content;
+    animation: ticker-scroll 18s linear infinite;
+}
+.wellness-page .guarantee-item {
+    padding: 18px 38px;
+    font-weight: 800;
+    font-size: 0.88rem;
+    white-space: nowrap;
+    color: #fff;
+}
+@keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .wellness-page .guarantee-ticker-track {
+        animation: none;
+        width: auto;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .wellness-page .guarantee-item[aria-hidden="true"] {
+        display: none;
+    }
+}
+
+/* ── Task 3.5 — Service card hover micro-interactions ── */
+.wellness-page .service-card-home {
+    transition: transform 220ms ease-out, box-shadow 220ms ease-out;
+}
+.wellness-page .service-card-link:hover .service-card-home,
+.wellness-page .service-card-link:focus-visible .service-card-home {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+.wellness-page .svc-icon-wrap {
+    transition: transform 220ms ease-out;
+}
+.wellness-page .service-card-link:hover .svc-icon-wrap,
+.wellness-page .service-card-link:focus-visible .svc-icon-wrap {
+    transform: scale(1.12) rotate(6deg);
+}
+@media (prefers-reduced-motion: reduce) {
+    .wellness-page .service-card-link:hover .service-card-home,
+    .wellness-page .service-card-link:focus-visible .service-card-home {
+        transform: none;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+    }
+    .wellness-page .service-card-link:hover .svc-icon-wrap,
+    .wellness-page .service-card-link:focus-visible .svc-icon-wrap {
+        transform: none;
+    }
+}
+
+/* ── Task 3.6 — Gallery carousel visual polish ── */
+.wellness-page .carousel-slide {
+    transition: opacity 600ms ease;
+}
+.wellness-page .carousel-section {
+    box-shadow: 0 16px 56px rgba(0, 141, 54, 0.15);
+}
+.wellness-page .carousel-dot.active {
+    background: #008d36;
+    transform: scale(1.4);
+    border-color: #008d36;
+}
+.wellness-page .carousel-dot {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 7px;
+    box-sizing: content-box;
+}
+@media (prefers-reduced-motion: reduce) {
+    .wellness-page .carousel-slide {
+        transition: none;
+    }
+}
+
+/* ── Task 3.7 — Contact section urgency + typography ── */
+.wellness-page .contact-urgency {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffeb00;
+    margin-top: 12px;
+    line-height: 1.5;
+}
+.wellness-page .contact-wa-cta {
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+.wellness-page .contact-wa-cta:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff !important;
+}
+/* Typography catch-all — Playfair Display for all headings within .wellness-page */
+.wellness-page h1,
+.wellness-page h2,
+.wellness-page h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+}
+/* Ensure section kicker labels stay in Outfit (prevent Playfair bleed) */
+.wellness-page .section-kicker {
+    font-family: 'Outfit', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 900;
+    color: #008d36;
+    font-size: 0.72rem;
+}
+/* ══════════════════════════════════════════════════════════════════════════ */
