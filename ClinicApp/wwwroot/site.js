@@ -170,3 +170,24 @@ window.initStickyBar = (function () {
         window._stickyBarObserver = _observer;
     };
 })();
+
+
+// ── initHeroStagger ────────────────────────────────────────
+// Adds .hero-animated to .hero-content to trigger CSS stagger animation.
+// Called from OnAfterRenderAsync on firstRender.
+window.initHeroStagger = function () {
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var content = document.querySelector('.wellness-page .hero-content');
+    if (!content) return;
+    if (reduced) {
+        // Make all lines visible instantly
+        content.querySelectorAll('.hero-line').forEach(function (el) {
+            el.style.opacity = '1';
+        });
+        return;
+    }
+    // Small delay so Blazor has finished rendering
+    setTimeout(function () {
+        content.classList.add('hero-animated');
+    }, 80);
+};
