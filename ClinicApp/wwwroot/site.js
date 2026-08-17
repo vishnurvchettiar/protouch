@@ -191,3 +191,129 @@ window.initHeroStagger = function () {
         content.classList.add('hero-animated');
     }, 80);
 };
+
+
+
+// ═══════════════════════════════════════════════════════════
+// SERVICES VISUAL UPGRADE — Concepts 2, 3, 4
+// All functions appended — existing functions never modified.
+// ═══════════════════════════════════════════════════════════
+
+// Concept 2: 3D glassmorphic tilt on service detail treatment cards
+window.initGlassCardTilt = function (selector, maxDeg) {
+    maxDeg = (typeof maxDeg === 'number') ? maxDeg : 6;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+    var cards = document.querySelectorAll(selector);
+    var cleanups = [];
+    cards.forEach(function (card) {
+        function onMove(e) {
+            var r = card.getBoundingClientRect();
+            var rx = ((e.clientX - r.left) / r.width  - 0.5) * 2;
+            var ry = ((e.clientY - r.top)  / r.height - 0.5) * 2;
+            var rotY = Math.max(-maxDeg, Math.min(maxDeg, rx * maxDeg));
+            var rotX = Math.max(-maxDeg, Math.min(maxDeg, -ry * maxDeg));
+            card.style.transition = 'transform 0.08s linear';
+            card.style.transform = 'perspective(700px) rotateX('+rotX+'deg) rotateY('+rotY+'deg) translateZ(10px)';
+        }
+        function onLeave() {
+            card.style.transition = 'transform 0.45s cubic-bezier(0.23,1,0.32,1)';
+            card.style.transform = '';
+        }
+        card.addEventListener('mousemove', onMove);
+        card.addEventListener('mouseleave', onLeave);
+        cleanups.push(function() {
+            card.removeEventListener('mousemove', onMove);
+            card.removeEventListener('mouseleave', onLeave);
+        });
+    });
+    window._glassCardTiltCleanup = function() { cleanups.forEach(function(fn){ fn(); }); };
+};
+
+window.destroyGlassCardTilt = function() {
+    if (window._glassCardTiltCleanup) {
+        window._glassCardTiltCleanup();
+        window._glassCardTiltCleanup = null;
+    }
+};
+
+// Concept 3: SVG line-art self-draw animation on scroll
+window.initSvgDraw = function (selector) {
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+        document.querySelectorAll(selector).forEach(function(el){ el.classList.add('svc-drawn'); });
+        return;
+    }
+    if (!('IntersectionObserver' in window)) {
+        document.querySelectorAll(selector).forEach(function(el){ el.classList.add('svc-drawn'); });
+        return;
+    }
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('svc-drawn');
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.3 });
+    document.querySelectorAll(selector).forEach(function(el){ obs.observe(el); });
+    window._svgDrawObserver = obs;
+};
+
+// Concept 4: Dynamic ambient glow that shifts colour as user scrolls through services
+window.initServiceAmbientGlow = function () {
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+
+    var section = document.querySelector('.wellness-page .services');
+    if (!section) return;
+
+    // Colour stops: green → yellow → purple across the 4 cards
+    var stops = [
+        [0,   141, 54],   // #008d36 green
+        [124, 179, 66],   // mid-green-yellow
+        [244, 180, 26],   // #f4b41a yellow
+        [124,  27, 104],  // #7c1b68 purple
+    ];
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    function handler() {
+        var rect = section.getBoundingClientRect();
+        var viewH = window.innerHeight;
+        // Progress 0→1 as section scrolls through viewport
+        var progress = 1 - (rect.bottom / (viewH + rect.height));
+        var t = Math.max(0, Math.min(1, progress));
+
+        // Map t to colour stops
+        var seg = t * (stops.length - 1);
+        var i = Math.min(Math.floor(seg), stops.length - 2);
+        var f = seg - i;
+        var r = Math.round(lerp(stops[i][0], stops[i+1][0], f));
+        var g = Math.round(lerp(stops[i][1], stops[i+1][1], f));
+        var b = Math.round(lerp(stops[i][2], stops[i+1][2], f));
+
+        section.style.setProperty('--glow-r', r);
+        section.style.setProperty('--glow-g', g);
+        section.style.setProperty('--glow-b', b);
+        section.style.setProperty('--glow-x', (20 + t * 60) + '%');
+    }
+
+    window.addEventListener('scroll', handler, { passive: true });
+    window._ambientGlowHandler = handler;
+    handler(); // seed on init
+};
+
+// Extended destroy — also cleans up ambient glow handler and SVG observer
+var _origDestroy = window.destroyHomepageAnimations;
+window.destroyHomepageAnimations = function() {
+    if (_origDestroy) _origDestroy();
+    if (window._ambientGlowHandler) {
+        window.removeEventListener('scroll', window._ambientGlowHandler);
+        window._ambientGlowHandler = null;
+    }
+    if (window._svgDrawObserver) {
+        window._svgDrawObserver.disconnect();
+        window._svgDrawObserver = null;
+    }
+};
