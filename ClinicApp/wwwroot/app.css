@@ -4124,3 +4124,1373 @@ a:hover {
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
+
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   AESTHETIC CLINIC REDESIGN — ac-page
+   All new rules are scoped to .ac-page — existing .wellness-page,
+   .glass-panel, .btn-clinic, .dashboard-theme, .pt-* rules are untouched.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Task 1: Design tokens ── */
+.ac-page {
+    /* Typography */
+    --ac-font-body:    'Outfit', sans-serif;
+    --ac-font-serif:   'Playfair Display', Georgia, serif;
+
+    /* Brand colours */
+    --ac-green:        #008d36;
+    --ac-green-dark:   #006428;
+    --ac-purple:       #7c1b68;
+    --ac-yellow:       #ffeb00;
+    --ac-red:          #e52321;
+    --ac-black:        #0f0a14;
+    --ac-white:        #ffffff;
+    --ac-cream:        #f5f0eb;
+    --ac-dark-hero:    #1a1025;
+
+    /* Text */
+    --ac-text-light:   #f8f4f2;
+    --ac-text-muted:   #8a7f8e;
+    --ac-text-body:    #2f2732;
+
+    /* Shadows & glows */
+    --ac-shadow-card:  0 4px 24px rgba(0,0,0,0.10);
+    --ac-shadow-pop:   0 12px 48px rgba(0,0,0,0.18);
+    --ac-glow-green:   0 0 24px rgba(0,141,54,0.35);
+    --ac-glow-purple:  0 0 24px rgba(124,27,104,0.35);
+
+    /* Transitions */
+    --ac-ease:         cubic-bezier(0.4, 0, 0.2, 1);
+    --ac-transition:   all 0.3s var(--ac-ease);
+
+    background: #fff;
+    color: var(--ac-text-body);
+    font-family: var(--ac-font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.ac-page * {
+    box-sizing: border-box;
+}
+
+.ac-kicker {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    font-weight: 900;
+    color: var(--ac-green);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* ── Task 2.1: Header ── */
+.ac-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 72px;
+    transition: background 0.35s ease, box-shadow 0.35s ease;
+    background: transparent;
+}
+
+.ac-header--scrolled {
+    background: #fff;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+}
+
+.ac-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.ac-logo img {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #fff;
+    padding: 3px;
+}
+
+.ac-nav {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+}
+
+.ac-nav a {
+    color: var(--ac-text-light);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.2s;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.ac-header--scrolled .ac-nav a {
+    color: var(--ac-text-body);
+    text-shadow: none;
+}
+
+.ac-nav a:hover {
+    color: var(--ac-green);
+    text-shadow: none;
+}
+
+.ac-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ac-login-btn {
+    color: var(--ac-text-light);
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.45);
+    transition: var(--ac-transition);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.ac-header--scrolled .ac-login-btn {
+    color: var(--ac-text-body);
+    border-color: rgba(0,0,0,0.2);
+    text-shadow: none;
+}
+
+.ac-login-btn:hover {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    text-shadow: none;
+}
+
+.ac-header--scrolled .ac-login-btn:hover {
+    background: var(--ac-green);
+    color: #fff;
+    border-color: var(--ac-green);
+}
+
+.ac-call-btn {
+    background: var(--ac-green);
+    color: #fff !important;
+    font-weight: 800;
+    font-size: 0.88rem;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: var(--ac-transition);
+    white-space: nowrap;
+}
+
+.ac-call-btn:hover {
+    background: var(--ac-green-dark);
+    color: #fff;
+}
+
+/* ── Task 3.1: Hero ── */
+.ac-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+.ac-hero-left {
+    background: var(--ac-dark-hero);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 60px 80px 60px;
+    position: relative;
+}
+
+.ac-hero-left .ac-kicker {
+    color: var(--ac-yellow);
+    letter-spacing: 0.2em;
+}
+
+.ac-hero-h1 {
+    font-size: clamp(2.8rem, 4.5vw, 5rem);
+    line-height: 1.0;
+    color: var(--ac-text-light);
+    margin: 18px 0;
+    font-family: var(--ac-font-body);
+    font-weight: 800;
+}
+
+.ac-hero-h1 em {
+    font-family: var(--ac-font-serif);
+    font-weight: 400;
+    color: var(--ac-yellow);
+    font-style: italic;
+}
+
+.ac-hero-sub {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba(248,244,242,0.75);
+    max-width: 500px;
+    margin-bottom: 36px;
+}
+
+.ac-hero-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+}
+
+.ac-btn-primary {
+    background: var(--ac-green);
+    color: #fff !important;
+    font-weight: 800;
+    font-size: 0.95rem;
+    padding: 14px 28px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--ac-transition);
+    border: none;
+    cursor: pointer;
+}
+
+.ac-btn-primary:hover {
+    background: var(--ac-green-dark);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: var(--ac-glow-green);
+}
+
+.ac-btn-ghost {
+    background: transparent;
+    color: var(--ac-text-light) !important;
+    font-weight: 800;
+    font-size: 0.95rem;
+    padding: 13px 26px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid rgba(248,244,242,0.45);
+    transition: var(--ac-transition);
+    cursor: pointer;
+}
+
+.ac-btn-ghost:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: #fff;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.ac-trust-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.ac-trust-row .ac-trust-item {
+    color: rgba(248,244,242,0.70);
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ac-trust-row .ac-trust-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(255,255,255,0.25);
+}
+
+.ac-hero-right {
+    background: var(--ac-cream);
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+}
+
+.ac-hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.ac-hero-slide.active {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ac-hero-slide {
+        opacity: 0 !important;
+    }
+    .ac-hero-slide.active {
+        opacity: 1 !important;
+        transition: none;
+    }
+}
+
+.ac-hero-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ac-hero-badge {
+    position: absolute;
+    bottom: 40px;
+    left: -40px;
+    background: var(--ac-yellow);
+    color: var(--ac-black);
+    padding: 20px 24px;
+    min-width: 240px;
+    z-index: 10;
+}
+
+.ac-hero-badge strong {
+    display: block;
+    font-size: 1.15rem;
+    line-height: 1.2;
+}
+
+.ac-hero-badge span {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+/* ── Task 4.2: Ticker ── */
+.ac-ticker {
+    background: var(--ac-purple);
+    overflow: hidden;
+    padding: 14px 0;
+    white-space: nowrap;
+}
+
+.ac-ticker-track {
+    display: inline-flex;
+    gap: 0;
+    animation: ac-ticker-scroll 22s linear infinite;
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ac-ticker-track {
+        animation-play-state: paused;
+    }
+}
+
+@keyframes ac-ticker-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.ac-ticker-item {
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ac-ticker-item::before {
+    content: '✦';
+    color: var(--ac-yellow);
+    font-size: 0.7rem;
+}
+
+/* ── Task 5.2: Services ── */
+.ac-services {
+    padding: 100px 0;
+    background: #fafaf8;
+}
+
+.ac-services-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.ac-services-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.ac-services-header h2 {
+    font-size: clamp(2rem, 3.5vw, 3.2rem);
+    color: var(--ac-text-body);
+    margin-top: 8px;
+    line-height: 1.1;
+}
+
+.ac-services-tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+.ac-tab {
+    background: #fff;
+    border: 2px solid #e8e3e4;
+    color: var(--ac-text-muted);
+    font-family: var(--ac-font-body);
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--ac-transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ac-tab:hover {
+    border-color: var(--ac-green);
+    color: var(--ac-green);
+}
+
+.ac-tab--active {
+    background: var(--ac-green);
+    border-color: var(--ac-green);
+    color: #fff !important;
+    box-shadow: var(--ac-glow-green);
+}
+
+.ac-services-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: var(--ac-shadow-card);
+    overflow: hidden;
+}
+
+.ac-panel-left {
+    padding: 52px 48px;
+}
+
+.ac-panel-left .ac-svc-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 16px;
+}
+
+.ac-panel-left h3 {
+    font-size: 1.9rem;
+    color: var(--ac-text-body);
+    margin-bottom: 12px;
+    line-height: 1.1;
+}
+
+.ac-panel-left p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #665f68;
+    margin-bottom: 20px;
+}
+
+.ac-panel-left ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px 0;
+}
+
+.ac-panel-left ul li {
+    font-size: 0.93rem;
+    color: var(--ac-text-body);
+    padding: 7px 0;
+    border-bottom: 1px solid #f0ecee;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ac-panel-left ul li::before {
+    content: '✓';
+    color: var(--ac-green);
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.ac-panel-right {
+    background: var(--ac-cream);
+    height: 100%;
+    min-height: 400px;
+    overflow: hidden;
+}
+
+.ac-panel-right img {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    object-fit: cover;
+    filter: saturate(0.85);
+}
+
+/* ── Task 6.2: Doctor Section ── */
+.ac-doctor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 100px 40px;
+    align-items: center;
+    gap: 72px;
+}
+
+.ac-doctor-photo {
+    position: relative;
+}
+
+.ac-doctor-photo img {
+    width: 100%;
+    border-radius: 6px;
+    object-fit: cover;
+    height: 560px;
+    filter: saturate(0.85);
+    display: block;
+}
+
+.ac-doctor-cred-badge {
+    position: absolute;
+    bottom: 28px;
+    right: -20px;
+    background: var(--ac-green);
+    color: #fff;
+    font-weight: 900;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    padding: 14px 18px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    box-shadow: var(--ac-glow-green);
+}
+
+.ac-doctor-copy h2 {
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    color: var(--ac-text-body);
+    margin: 8px 0 4px;
+    line-height: 1.1;
+}
+
+.ac-doctor-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ac-purple);
+    margin-bottom: 20px;
+}
+
+.ac-doctor-bio {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #655e66;
+    margin-bottom: 24px;
+}
+
+.ac-doctor-credentials {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px 0;
+}
+
+.ac-doctor-credentials li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.93rem;
+    color: var(--ac-text-body);
+    padding: 8px 0;
+    border-bottom: 1px solid #f0ecee;
+    line-height: 1.5;
+}
+
+.ac-doctor-credentials li::before {
+    content: '✦';
+    color: var(--ac-green);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+/* ── Task 7.2: Stats ── */
+.ac-stats {
+    background: var(--ac-green-dark);
+    padding: 70px 40px;
+}
+
+.ac-stats-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+/* social-proof-section reuse — override for new dark theme */
+.ac-page .social-proof-section.ac-stats {
+    background: var(--ac-green-dark);
+    border-radius: 0;
+    padding: 70px 40px;
+}
+
+.ac-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+}
+
+.ac-stat-card {
+    text-align: center;
+    padding: 40px 24px;
+    border-right: 1px solid rgba(255,255,255,0.15);
+}
+
+.ac-stat-card:last-child {
+    border-right: none;
+}
+
+.ac-stat-card .ac-stat-num {
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: var(--ac-yellow);
+    line-height: 1;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.ac-stat-card .ac-stat-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.75);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ── Task 8.3: Before/After ── */
+.ac-before-after {
+    padding: 100px 40px;
+    background: var(--ac-cream);
+    text-align: center;
+}
+
+.ac-before-after-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.ac-before-after h2 {
+    font-size: clamp(1.9rem, 3vw, 3rem);
+    color: var(--ac-text-body);
+    margin: 8px 0 48px;
+    line-height: 1.1;
+}
+
+.ac-ba-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    text-align: left;
+}
+
+.ac-ba-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    user-select: none;
+    aspect-ratio: 4/3;
+    cursor: col-resize;
+    box-shadow: var(--ac-shadow-card);
+}
+
+.ac-ba-before {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.ac-ba-before img,
+.ac-ba-after img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+    -webkit-user-drag: none;
+}
+
+.ac-ba-after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow: hidden;
+    width: 50%;
+    will-change: width;
+}
+
+.ac-ba-after img {
+    width: 200%;
+    max-width: none;
+}
+
+.ac-ba-handle {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    bottom: 0;
+    width: 4px;
+    background: #fff;
+    transform: translateX(-50%);
+    cursor: col-resize;
+    z-index: 10;
+    will-change: left;
+}
+
+.ac-ba-handle::after {
+    content: '⟺';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    color: var(--ac-green-dark);
+    font-size: 1.1rem;
+    font-weight: 900;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    line-height: 36px;
+    text-align: center;
+}
+
+.ac-ba-label {
+    position: absolute;
+    bottom: 12px;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 3px;
+}
+
+.ac-ba-before .ac-ba-label {
+    right: 12px;
+}
+
+.ac-ba-after .ac-ba-label {
+    left: 12px;
+}
+
+.ac-ba-pair-label {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ac-green);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    padding: 4px 12px;
+    border-radius: 3px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* ── Task 9.2: Testimonials ── */
+.ac-testimonials {
+    padding: 100px 40px;
+    background: #fff;
+    text-align: center;
+}
+
+.ac-testimonials-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.ac-testimonials h2 {
+    font-size: clamp(1.9rem, 3vw, 2.8rem);
+    color: var(--ac-text-body);
+    margin: 8px 0 48px;
+    line-height: 1.1;
+}
+
+.ac-testi-track {
+    position: relative;
+    min-height: 240px;
+}
+
+.ac-testi-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ac-testi--active {
+    opacity: 1 !important;
+    pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ac-testi-slide {
+        transition: none;
+    }
+}
+
+.ac-stars {
+    color: var(--ac-yellow);
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    display: block;
+    /* Ensure stars show (override any inherited filter) */
+    filter: none;
+    -webkit-text-fill-color: var(--ac-yellow);
+}
+
+.ac-testi-quote {
+    font-family: var(--ac-font-serif);
+    font-size: 1.25rem;
+    font-style: italic;
+    line-height: 1.7;
+    color: #3a3040;
+    max-width: 680px;
+    margin-bottom: 20px;
+}
+
+.ac-testi-footer {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ac-purple);
+    letter-spacing: 0.05em;
+}
+
+.ac-testi-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 56px;
+}
+
+.ac-testi-arrows button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #e0d8e0;
+    background: #fff;
+    color: var(--ac-text-body);
+    font-size: 1.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--ac-transition);
+    line-height: 1;
+}
+
+.ac-testi-arrows button:hover {
+    background: var(--ac-green);
+    border-color: var(--ac-green);
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.ac-testi-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.ac-testi-dots button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background: #d4ccd4;
+    cursor: pointer;
+    transition: var(--ac-transition);
+    padding: 0;
+}
+
+.ac-testi-dots button.active {
+    background: var(--ac-purple);
+    transform: scale(1.3);
+}
+
+/* ── Task 10.2: FAQ ── */
+.ac-faq {
+    padding: 100px 40px;
+    background: var(--ac-cream);
+}
+
+.ac-faq-inner {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.ac-faq h2 {
+    font-size: clamp(1.9rem, 3vw, 2.8rem);
+    color: var(--ac-text-body);
+    margin: 8px 0 40px;
+    line-height: 1.1;
+}
+
+.ac-faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ac-faq-item {
+    border-bottom: 1px solid #e0d8e0;
+}
+
+.ac-faq-item:first-child {
+    border-top: 1px solid #e0d8e0;
+}
+
+.ac-faq-q {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 0;
+    font-family: var(--ac-font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ac-text-body);
+    text-align: left;
+    gap: 16px;
+    transition: color 0.2s;
+}
+
+.ac-faq-q:hover {
+    color: var(--ac-purple);
+}
+
+.ac-faq--open .ac-faq-q {
+    color: var(--ac-purple);
+}
+
+.ac-faq-icon {
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--ac-purple);
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+    width: 28px;
+    text-align: center;
+    line-height: 1;
+}
+
+.ac-faq--open .ac-faq-icon {
+    transform: rotate(45deg);
+}
+
+.ac-faq-a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+    padding: 0;
+}
+
+.ac-faq--open .ac-faq-a {
+    max-height: 400px;
+    padding-bottom: 22px;
+}
+
+.ac-faq-a p {
+    font-size: 0.96rem;
+    line-height: 1.75;
+    color: #655e66;
+    margin: 0;
+}
+
+/* ── Task 11.2: Contact & Footer ── */
+.ac-contact {
+    background: var(--ac-purple);
+    padding: 100px 40px;
+}
+
+.ac-contact-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 72px;
+    align-items: start;
+}
+
+.ac-contact-left .ac-kicker {
+    color: var(--ac-yellow);
+}
+
+.ac-contact-left h2 {
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    color: var(--ac-yellow);
+    margin: 8px 0 16px;
+    line-height: 1.05;
+}
+
+.ac-contact-left p {
+    color: rgba(255,255,255,0.85);
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-bottom: 32px;
+}
+
+.ac-contact-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.ac-contact-actions .ac-btn-primary {
+    background: var(--ac-yellow);
+    color: var(--ac-black) !important;
+}
+
+.ac-contact-actions .ac-btn-primary:hover {
+    background: #ffe000;
+    color: var(--ac-black);
+}
+
+.ac-contact-actions .ac-btn-ghost {
+    border-color: rgba(255,255,255,0.5);
+    color: #fff !important;
+}
+
+.ac-contact-right {
+    border-left: 1px solid rgba(255,255,255,0.25);
+    padding-left: 56px;
+}
+
+.ac-contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.ac-contact-detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.ac-contact-detail-item .ac-detail-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.ac-contact-detail-item strong {
+    display: block;
+    color: #fff;
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.ac-contact-detail-item span {
+    display: block;
+    color: rgba(255,255,255,0.65);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ac-contact-detail-item a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.ac-contact-detail-item a:hover strong {
+    color: var(--ac-yellow);
+}
+
+.ac-directions-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 28px;
+    color: var(--ac-yellow) !important;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.ac-directions-link:hover {
+    border-bottom-color: var(--ac-yellow);
+}
+
+.ac-footer {
+    background: #1a0f1e;
+    color: rgba(255,255,255,0.55);
+    text-align: center;
+    padding: 28px 24px;
+    font-size: 0.82rem;
+}
+
+.ac-footer span {
+    color: var(--ac-yellow);
+    margin: 0 7px;
+}
+
+/* ── Task 12.2: Floating CTA ── */
+.ac-floating-cta {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 999;
+}
+
+.ac-float-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    text-decoration: none;
+    box-shadow: var(--ac-shadow-pop);
+    transition: var(--ac-transition);
+    cursor: pointer;
+}
+
+.ac-float-btn:hover {
+    transform: scale(1.12) translateY(-2px);
+}
+
+.ac-float-wa {
+    background: #25d366;
+    color: #fff;
+}
+
+.ac-float-wa:hover {
+    background: #128c7e;
+}
+
+.ac-float-book {
+    background: var(--ac-purple);
+    color: #fff !important;
+}
+
+.ac-float-book:hover {
+    background: #5e1350;
+    color: #fff;
+}
+
+/* ── Task 14.1: Responsive 850px ── */
+@media (max-width: 850px) {
+    .ac-header {
+        padding: 0 20px;
+        height: 64px;
+    }
+
+    .ac-nav {
+        display: none;
+    }
+
+    .ac-hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .ac-hero-left {
+        padding: 110px 28px 60px;
+    }
+
+    .ac-hero-right {
+        height: 55vw;
+        min-height: 300px;
+    }
+
+    .ac-hero-badge {
+        left: 16px;
+        bottom: 16px;
+    }
+
+    .ac-services-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .ac-panel-right {
+        min-height: 260px;
+    }
+
+    .ac-services-tabs {
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 8px;
+    }
+
+    .ac-tab {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .ac-doctor {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        padding: 72px 24px;
+    }
+
+    .ac-doctor-photo img {
+        height: 380px;
+    }
+
+    .ac-doctor-cred-badge {
+        right: 0;
+    }
+
+    .ac-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ac-stat-card {
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .ac-stat-card:nth-child(odd) {
+        border-right: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .ac-contact-inner {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .ac-contact-right {
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,0.25);
+        padding-left: 0;
+        padding-top: 40px;
+    }
+
+    .ac-services-inner,
+    .ac-before-after-inner,
+    .ac-testimonials-inner,
+    .ac-faq-inner {
+        padding: 0 20px;
+    }
+
+    .ac-services {
+        padding: 72px 0;
+    }
+
+    .ac-before-after {
+        padding: 72px 20px;
+    }
+
+    .ac-testimonials {
+        padding: 72px 20px;
+    }
+
+    .ac-faq {
+        padding: 72px 20px;
+    }
+
+    .ac-contact {
+        padding: 72px 20px;
+    }
+}
+
+/* ── Task 14.2: Responsive 600px ── */
+@media (max-width: 600px) {
+    .ac-ba-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ac-hero-h1 {
+        font-size: 2.5rem;
+    }
+
+    .ac-float-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+    }
+
+    .ac-hero-left {
+        padding: 100px 20px 50px;
+    }
+
+    .ac-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ac-testi-quote {
+        font-size: 1.05rem;
+    }
+}
+
+/* Scroll reveal for ac-page data-reveal elements */
+.ac-page [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.55s var(--ac-ease), transform 0.55s var(--ac-ease);
+}
+
+.ac-page [data-reveal].revealed {
+    opacity: 1;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ac-page [data-reveal] {
+        opacity: 1;
+        transform: none;
+    }
+}
