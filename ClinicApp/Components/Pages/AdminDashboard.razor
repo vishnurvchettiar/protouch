@@ -7,29 +7,16 @@
 @rendermode InteractiveServer
 @inject ClinicService ClinicService
 @inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
 @inject ILogger<AdminDashboard> _logger
 
 <PageTitle>PROTOUCH | Admin Control Center</PageTitle>
 
 <div class="container-fluid py-4 admin-shell">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div><span class="eyebrow">PROTOUCH PHYSIO - SLIMMING CLINIC • ADMIN</span><h1 class="gradient-text display-5 mb-1">Clinic Control Center</h1><p class="text-secondary mb-0">Clients, visits, care plans and secure WhatsApp communication.</p></div>
-        <button class="btn-clinic" @onclick="LoadAdminDataAsync">Refresh</button>
-    </div>
-
-    <!-- Stat Cards -->
-    <div class="dashboard-grid mb-4">
-        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "clients"'><div><span class="text-secondary small">Active Clients</span><h2>@clients.Count(c => c.IsActive)</h2><span class="text-muted small">Open client directory</span></div><div class="stat-icon">👥</div></button>
-        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "visits"'><div><span class="text-secondary small">Today's Visits</span><h2>@todayAttendanceCount</h2><span class="text-muted small">Open visit register</span></div><div class="stat-icon">🏥</div></button>
-        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "clients"'><div><span class="text-secondary small">Pending Fees</span><h2>@pendingInvoicesCount</h2><span class="text-muted small">Review client billing</span></div><div class="stat-icon">₹</div></button>
-        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "whatsapp"'><div><span class="text-secondary small">WhatsApp Activity</span><h2>@whatsappLogs.Count</h2><span class="text-muted small">Open broadcast center</span></div><div class="stat-icon">💬</div></button>
-        <button class="glass-panel stat-card text-start border-0" @onclick='() => activeTab = "bookings"'><div><span class="text-secondary small">Pending Bookings</span><h2>@pendingBookingsCount</h2><span class="text-muted small">Open bookings tab</span></div><div class="stat-icon">📅</div></button>
-    </div>
-
-
     <!-- Tab Bar -->
     <div class="glass-panel p-2 mb-4 d-flex flex-wrap gap-2">
+        <button class="btn @(activeTab == "overview" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "overview"'>Overview</button>
         <button class="btn @(activeTab == "clients" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "clients"'>Clients</button>
         <button class="btn @(activeTab == "add" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "add"'>Add user</button>
         <button class="btn @(activeTab == "visits" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "visits"'>Visits</button>
@@ -40,6 +27,116 @@
         <button class="btn @(activeTab == "settings" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "settings"'>Settings</button>
     </div>
 
+    <!-- OVERVIEW TAB (tasks 4.5, 4.6) -->
+    @if (activeTab == "overview")
+    {
+        <!-- Error banner -->
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="clinic-alert clinic-alert-danger mb-4">
+                <div><strong>Error:</strong> @errorMessage</div>
+                <button class="btn-clinic-secondary ms-auto" @onclick="LoadAdminDataAsync">Retry</button>
+            </div>
+        }
+
+        <!-- Greeting bar -->
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+            <div>
+                <p class="eyebrow mb-1">PROTOUCH PHYSIO — ADMIN OVERVIEW</p>
+                <h1 class="gradient-text display-5 mb-1">@GetGreeting(), @adminName 👋</h1>
+                <p class="text-secondary mb-0 small">
+                    @TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, GetIst()).ToString("dddd, dd MMMM yyyy")
+                </p>
+            </div>
+            <button class="btn-clinic-secondary" @onclick="LoadAdminDataAsync">↻ Refresh</button>
+        </div>
+
+        <!-- 5 Stat cards -->
+        <div class="dashboard-grid mb-4">
+            @foreach (var card in BuildStatCards())
+            {
+                <button class="glass-panel pt-stat-card text-start border-0"
+                        style="--accent-colour: @card.AccentColour"
+                        @onclick='() => NavigateToTab(card.TabTarget)'>
+                    <div>
+                        <span class="text-secondary small">@card.Label</span>
+                        <div class="stat-number">@card.Value</div>
+                        <span class="stat-trend neutral">@card.Trend</span>
+                    </div>
+                    <div class="stat-icon" style="background: rgba(255,255,255,0.05);">@card.Icon</div>
+                </button>
+            }
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="pt-quick-actions">
+            <button class="pt-quick-btn" @onclick='() => NavigateToTab("add")'>➕ Add Client</button>
+            <button class="pt-quick-btn" @onclick='() => NavigateToTab("visits")'>🏥 Log a Visit</button>
+            <button class="pt-quick-btn" @onclick='() => NavigateToTab("bookings")'>📅 View Bookings</button>
+            <button class="pt-quick-btn" @onclick='() => NavigateToTab("whatsapp")'>💬 Send WhatsApp</button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Recent Activity Feed -->
+            <div class="col-lg-6">
+                <div class="glass-panel p-4 h-100">
+                    <div class="section-heading mb-3">
+                        <div><span class="eyebrow">ACTIVITY</span><h3>Recent Activity</h3></div>
+                    </div>
+                    @if (!recentActivity.Any())
+                    {
+                        <p class="text-secondary">No recent activity.</p>
+                    }
+                    else
+                    {
+                        <div class="pt-activity-feed">
+                            @foreach (var item in recentActivity)
+                            {
+                                <div class="pt-activity-item">
+                                    <div class="pt-activity-dot @item.Kind"></div>
+                                    <div class="pt-activity-content">
+                                        <div class="pt-activity-title">@item.Title</div>
+                                        <div class="pt-activity-sub">@item.SubText</div>
+                                    </div>
+                                    <span class="pt-activity-time">@TimeAgo(item.Timestamp)</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Today's Appointments Strip -->
+            <div class="col-lg-6">
+                <div class="glass-panel p-4 h-100">
+                    <div class="section-heading mb-3">
+                        <div><span class="eyebrow">TODAY</span><h3>Today's Appointments</h3></div>
+                        <span class="soft-pill">@todayAppointments.Count scheduled</span>
+                    </div>
+                    @if (!todayAppointments.Any())
+                    {
+                        <p class="text-secondary">No appointments today.</p>
+                    }
+                    else
+                    {
+                        <div class="pt-appt-strip">
+                            @foreach (var appt in todayAppointments)
+                            {
+                                <div class="pt-appt-chip">
+                                    <div class="chip-time">
+                                        @TimeZoneInfo.ConvertTimeFromUtc(appt.AppointmentDate, GetIst()).ToString("h:mm tt")
+                                    </div>
+                                    <div class="chip-service">@appt.TreatmentType</div>
+                                    <div class="chip-service small">@(appt.User?.FullName ?? "—")</div>
+                                    <div class="chip-status">@appt.Status</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- ADD USER TAB -->
     @if (activeTab == "add")
@@ -593,6 +690,10 @@
 
 
 @code {
+    // ── Overview view-model records (task 4.1) ────────────────────────────
+    private record ActivityItem(string Title, string SubText, DateTime Timestamp, string Kind);
+    private record StatCardModel(string Label, string Value, string Icon, string AccentColour, string Trend, string TabTarget);
+
     // State
     private List<ClientProfile> clients = new();
     private List<AttendanceRecord> attendanceLogs = new();
@@ -605,9 +706,15 @@
     private List<AttendanceRecord> selectedClientVisits = new();
     private List<Appointment> selectedClientAppts = new();
     private List<PaymentNotification> selectedClientPayments = new();
-    private string activeTab = "clients", searchQuery = "", selectedRole = "Client";
+    private string activeTab = "overview", searchQuery = "", selectedRole = "Client";
     private int todayAttendanceCount, pendingInvoicesCount, pendingBookingsCount;
     private int mealPage = 1;
+
+    // Overview-specific state (task 4.1)
+    private string adminName = "Admin";
+    private string? errorMessage;
+    private List<ActivityItem> recentActivity = new();
+    private List<Appointment> todayAppointments = new();
 
     // Add/Edit user
     private string? editingUserId = null;
@@ -678,23 +785,64 @@
         clients = new(); attendanceLogs = new(); whatsappLogs = new();
         selectedClient = null; selectedClientLogs = new(); selectedClientVisits = new();
         selectedClientPayments = new(); selectedClientAppts = new();
-        activeTab = "clients";
+        // Default to overview tab; query string can override
+        var uri = new Uri(NavManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        activeTab = query.TryGetValue("tab", out var tab) ? tab.ToString() : "overview";
+
         await LoadAdminDataAsync();
         await LoadSettingsAsync();
     }
 
     private async Task LoadAdminDataAsync()
     {
-        clients = await ClinicService.GetAllClientsAsync();
-        attendanceLogs = await ClinicService.GetAllAttendanceAsync();
-        whatsappLogs = await ClinicService.GetWhatsAppLogsAsync();
-        allAppointments = await ClinicService.GetAllAppointmentsAsync();
-        pendingInvoicesCount = (await ClinicService.GetAllPaymentsAsync()).Count(x => !x.IsPaid);
-        todayAttendanceCount = attendanceLogs.Count(x => x.CheckInTime.ToLocalTime().Date == DateTime.Today);
-        allBookings = await ClinicService.GetAllBookingRequestsAsync();
-        pendingBookingsCount = allBookings.Count(b => b.Status == "Pending");
-        // Seed remindersSent from DB state (Task 4.2)
-        remindersSent = allAppointments.Where(a => a.ReminderSent).Select(a => a.Id).ToHashSet();
+        errorMessage = null;
+        try
+        {
+            // Fan-out all data loads in parallel (task 4.2)
+            var clientsTask       = ClinicService.GetAllClientsAsync();
+            var attendanceTask    = ClinicService.GetAllAttendanceAsync();
+            var whatsappTask      = ClinicService.GetWhatsAppLogsAsync();
+            var appointmentsTask  = ClinicService.GetAllAppointmentsAsync();
+            var bookingsTask      = ClinicService.GetAllBookingRequestsAsync();
+
+            await Task.WhenAll(clientsTask, attendanceTask, whatsappTask, appointmentsTask, bookingsTask);
+
+            clients         = clientsTask.Result;
+            attendanceLogs  = attendanceTask.Result;
+            whatsappLogs    = whatsappTask.Result;
+            allAppointments = appointmentsTask.Result;
+            allBookings     = bookingsTask.Result;
+
+            pendingInvoicesCount  = (await ClinicService.GetAllPaymentsAsync()).Count(x => !x.IsPaid);
+            pendingBookingsCount  = allBookings.Count(b => b.Status == "Pending");
+
+            // IST date comparisons (task 4.2)
+            var ist = GetIst();
+            var istNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ist);
+            todayAttendanceCount = attendanceLogs
+                .Count(a => TimeZoneInfo.ConvertTimeFromUtc(a.CheckInTime, ist).Date == istNow.Date);
+
+            // Seed remindersSent from DB state
+            remindersSent = allAppointments.Where(a => a.ReminderSent).Select(a => a.Id).ToHashSet();
+
+            // Build overview collections
+            recentActivity    = BuildActivityItems();
+            todayAppointments = allAppointments
+                .Where(a => TimeZoneInfo.ConvertTimeFromUtc(a.AppointmentDate, ist).Date == istNow.Date)
+                .OrderBy(a => a.AppointmentDate)
+                .ToList();
+
+            // Resolve admin display name
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var appUser   = await UserManager.GetUserAsync(authState.User);
+            adminName = appUser?.FullName ?? appUser?.UserName ?? "Admin";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "LoadAdminDataAsync failed");
+            errorMessage = "Unable to load dashboard data. Please try again.";
+        }
         StateHasChanged();
     }
 
@@ -1030,6 +1178,75 @@
     {
         showDietPanel = false;
         dietPlanStatus = string.Empty;
+    }
+
+    // ── Overview helper methods (tasks 4.3, 4.4, 4.6) ────────────────────
+
+    private List<StatCardModel> BuildStatCards()
+    {
+        return new List<StatCardModel>
+        {
+            new("Active Clients",    clients.Count(c => c.IsActive).ToString(),         "👥", "#008d36", "—", "clients"),
+            new("Today's Visits",    todayAttendanceCount.ToString(),                    "🏥", "#7c1b68", "—", "visits"),
+            new("Pending Bookings",  pendingBookingsCount.ToString(),                    "📅", "#ffeb00", "—", "bookings"),
+            new("Pending Fees",      $"₹{pendingInvoicesCount}",                        "₹",  "#ef4444", "—", "clients"),
+            new("WhatsApp Sent",     whatsappLogs.Count.ToString(),                      "💬", "#3b82f6", "—", "whatsapp"),
+        };
+    }
+
+    private List<ActivityItem> BuildActivityItems()
+    {
+        var visits = attendanceLogs
+            .OrderByDescending(a => a.CheckInTime)
+            .Take(8)
+            .Select(a => new ActivityItem(
+                $"{a.User?.FullName ?? "Client"} logged a visit",
+                a.TreatmentReceived ?? "Treatment",
+                a.CheckInTime,
+                "visit"));
+
+        var bookings = allBookings
+            .OrderByDescending(b => b.SubmittedAt)
+            .Take(8)
+            .Select(b => new ActivityItem(
+                $"Booking: {b.FullName} ({b.ServiceType})",
+                b.PreferredDate.ToString("dd MMM yyyy"),
+                b.SubmittedAt,
+                "booking"));
+
+        return visits.Concat(bookings)
+            .OrderByDescending(x => x.Timestamp)
+            .Take(8)
+            .ToList();
+    }
+
+    private void NavigateToTab(string tab)
+    {
+        activeTab = tab;
+        NavManager.NavigateTo($"/admin-dashboard?tab={tab}");
+    }
+
+    private static string GetGreeting()
+    {
+        var ist = GetIst();
+        var hour = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ist).Hour;
+        return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    }
+
+    private static string TimeAgo(DateTime utc)
+    {
+        var diff = DateTime.UtcNow - utc;
+        if (diff.TotalMinutes < 1)  return "just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} min ago";
+        if (diff.TotalHours < 24)   return $"{(int)diff.TotalHours} hr ago";
+        if (diff.TotalDays < 7)     return $"{(int)diff.TotalDays} days ago";
+        return utc.ToString("dd MMM");
+    }
+
+    private static TimeZoneInfo GetIst()
+    {
+        try { return TimeZoneInfo.FindSystemTimeZoneById("Asia/Kolkata"); }
+        catch { return TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"); }
     }
 
     private async Task SendDietPlanAsync()

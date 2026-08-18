@@ -38,6 +38,135 @@ else if (userProfile == null)
 else
 {
     <div class="container py-3">
+
+        <!-- ── pt-client-hero section (tasks 6.1-6.5) ───────────────────── -->
+        @{
+            const double HeroR = 44.0;
+            const double HeroC = 2 * Math.PI * HeroR;
+            double kgLost    = userProfile.StartWeight - latestWeight;
+            double heroTotal = userProfile.StartWeight - userProfile.TargetWeight;
+            int    goalPct   = heroTotal > 0
+                                 ? (int)Math.Clamp(kgLost / heroTotal * 100.0, 0.0, 100.0)
+                                 : 0;
+            double dashOffset = HeroC * (1.0 - goalPct / 100.0);
+            string ringLabel  = heroTotal <= 0 ? "Goal not set" : $"{goalPct}% of goal";
+            var    nextAppt   = GetNextAppointment(appointments);
+            string dietPreview = GetDietPreview(userProfile.DietPlan);
+            string heroGreet   = GetClientGreeting();
+        }
+
+        <section class="pt-client-hero mb-4" aria-label="Client overview hero">
+            <div class="pt-client-hero-left">
+                <!-- SVG Progress Ring -->
+                <div class="pt-progress-ring" aria-label="Weight goal @goalPct% achieved">
+                    <svg viewBox="0 0 100 100" class="pt-ring-svg">
+                        <!-- Background grey ring -->
+                        <circle cx="50" cy="50" r="@HeroR"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.08)"
+                                stroke-width="8" />
+                        <!-- Green progress arc -->
+                        <circle cx="50" cy="50" r="@HeroR"
+                                fill="none"
+                                stroke="#008d36"
+                                stroke-width="8"
+                                stroke-linecap="round"
+                                stroke-dasharray="@HeroC.ToString("F2")"
+                                stroke-dashoffset="@dashOffset.ToString("F2")"
+                                transform="rotate(-90 50 50)" />
+                        <!-- Centre label -->
+                        <text x="50" y="45" text-anchor="middle"
+                              fill="#f8fafc"
+                              font-size="12" font-weight="900"
+                              font-family="Outfit, sans-serif">
+                            @($"{kgLost:F1} kg")
+                        </text>
+                        <text x="50" y="60" text-anchor="middle"
+                              fill="#94a3b8"
+                              font-size="8"
+                              font-family="Outfit, sans-serif">
+                            @ringLabel
+                        </text>
+                    </svg>
+                </div>
+
+                <!-- Greeting + stat pills -->
+                <div class="flex-grow-1">
+                    <h2 class="gradient-text mb-1">@heroGreet, @(userProfile.User?.FullName ?? currentUser?.FullName ?? "Patient") 👋</h2>
+                    <p class="text-secondary mb-3">Keep going — every session counts.</p>
+
+                    <!-- Stat Pills -->
+                    <div class="pt-stat-pills">
+                        <div class="pt-stat-pill">
+                            <span class="pill-value">@latestWeight.ToString("F1") kg</span>
+                            <span class="pill-label">Current Weight</span>
+                        </div>
+                        <div class="pt-stat-pill">
+                            <span class="pill-value">@userProfile.TargetWeight.ToString("F1") kg</span>
+                            <span class="pill-label">Target Weight</span>
+                        </div>
+                        <div class="pt-stat-pill">
+                            <span class="pill-value">@dailyLogs.Count</span>
+                            <span class="pill-label">Total Visits</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-client-hero-right">
+                <!-- Daily Check-In Prompt (task 6.5) -->
+                <div class="pt-checkin-prompt @(hasLoggedWeightToday ? "logged" : "needs-log")">
+                    @if (hasLoggedWeightToday)
+                    {
+                        <span>✅ Weight logged today — great work!</span>
+                    }
+                    else
+                    {
+                        <span>⏰ Log your weight today to stay on track.</span>
+                    }
+                </div>
+
+                <!-- Next Appointment Card (task 6.4) -->
+                @if (nextAppt != null)
+                {
+                    <div class="pt-next-appt-card">
+                        <span class="eyebrow mb-1">NEXT APPOINTMENT</span>
+                        <div class="appt-time">
+                            @TimeZoneInfo.ConvertTimeFromUtc(nextAppt.AppointmentDate, GetClientIst()).ToString("ddd dd MMM, h:mm tt")
+                        </div>
+                        <div class="appt-service">@nextAppt.TreatmentType</div>
+                        <span class="soft-pill mt-2" style="font-size: 0.7rem;">@nextAppt.Status</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="pt-next-appt-card">
+                        <span class="eyebrow mb-1">NEXT APPOINTMENT</span>
+                        <p class="text-secondary small mt-1 mb-1">No upcoming appointments</p>
+                        <a href="#appointments" class="text-success small">Book now →</a>
+                    </div>
+                }
+
+                <!-- Diet Preview (task 6.5) -->
+                @if (!string.IsNullOrWhiteSpace(dietPreview))
+                {
+                    <div class="pt-diet-preview">
+                        <span class="eyebrow mb-1">DIET PLAN PREVIEW</span>
+                        <p>@dietPreview</p>
+                        <a href="#diet" class="text-success small">View full plan →</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="pt-diet-preview">
+                        <span class="eyebrow mb-1">DIET PLAN</span>
+                        <p>No plan assigned yet — contact your clinic.</p>
+                    </div>
+                }
+            </div>
+        </section>
+        <!-- ── end pt-client-hero ────────────────────────────────────────── -->
+
         <!-- Dashboard Header -->
         <div class="glass-panel p-4 mb-4 client-hero">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
@@ -810,4 +939,34 @@ else
 
         return (svgHeight - padding) - ((targetWeight - minWeight) / weightRange) * (svgHeight - 2 * padding);
     }
+
+    // ── Client hero helpers (tasks 6.1, 6.2, 6.3) ────────────────────────
+
+    private static string GetDietPreview(string? dietPlan)
+    {
+        if (string.IsNullOrWhiteSpace(dietPlan)) return "";
+        return dietPlan.Length > 120 ? dietPlan[..120] + "…" : dietPlan;
+    }
+
+    private static Appointment? GetNextAppointment(List<Appointment> appts)
+    {
+        return appts
+            .Where(a => a.AppointmentDate > DateTime.UtcNow && a.Status != "Cancelled")
+            .OrderBy(a => a.AppointmentDate)
+            .FirstOrDefault();
+    }
+
+    private static string GetClientGreeting()
+    {
+        var ist = GetClientIst();
+        var hour = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ist).Hour;
+        return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    }
+
+    private static TimeZoneInfo GetClientIst()
+    {
+        try { return TimeZoneInfo.FindSystemTimeZoneById("Asia/Kolkata"); }
+        catch { return TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"); }
+    }
+
 }
