@@ -6,346 +6,445 @@
 
 <PageTitle>PROTOUCH Physio - Slimming Clinic | Chhatrapati Sambhajinagar</PageTitle>
 
-<div class="wellness-page">
+<div class="ac-page">
 
-    <!-- ── Header ── -->
-    <header class="pt-header">
-        <a href="#top" class="pt-logo">
-            <img src="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg" alt="ProTouch Physio - Slimming Clinic" />
+    <!-- ═══════════════════════════════════════════════════
+         1. STICKY HEADER
+         ═══════════════════════════════════════════════════ -->
+    <header class="ac-header" id="ac-header">
+        <a href="#top" class="ac-logo">
+            <img src="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg"
+                 alt="ProTouch Physio - Slimming Clinic"
+                 onerror="this.style.display='none'" />
         </a>
-        <nav class="pt-nav">
+        <nav class="ac-nav">
             <a href="#services">Services</a>
-            <a href="#approach">Approach</a>
+            <a href="#doctor">About</a>
             <a href="#gallery">Gallery</a>
             <a href="#contact">Contact</a>
         </nav>
-        <div class="pt-header-actions">
-            <a class="pt-login-btn" href="/Account/Login">Login</a>
-            <a class="pt-call-btn" href="tel:9673530031">📞 Call Now</a>
+        <div class="ac-header-actions">
+            <a class="ac-login-btn" href="/Account/Login">Login</a>
+            <a class="ac-call-btn" href="tel:9673530031">📞 Call Now</a>
         </div>
     </header>
 
-    <main id="top">
-
-        <!-- ═════════════════════════════════════════════
-             HERO — 5-image sub-carousel, no personal photos
-             ═════════════════════════════════════════════ -->
-        <section class="wellness-hero">
-            <div class="hero-content">
-                <p class="iso-mark">✦ ISO 9001:2015 CERTIFIED COMPANY</p>
-                <h1>
-                    <span class="hero-line" style="--i:0">Your journey to a</span>
-                    <span class="hero-line hero-line-em" style="--i:1"><em>healthier, stronger</em></span>
-                    <span class="hero-line" style="--i:2">you starts here.</span>
-                </h1>
-                <p class="hero-copy">Physiotherapy-led slimming, rehabilitation and wellness plans by <strong>Dr. Manjari</strong> — created for lasting results, not temporary fixes.</p>
-                <div class="wellness-actions">
-                    <a class="hero-cta-primary" href="/book">Book an Appointment <span class="cta-arrow">→</span></a>
-                    <a class="hero-cta-secondary" href="https://wa.me/919028027888" target="_blank" rel="noopener">💬 WhatsApp Us</a>
-                </div>
-                <div class="hero-trust-badges">
-                    <div class="trust-stars">★★★★★ <span>4.9 / 5.0</span></div>
-                    <div class="trust-divider"></div>
-                    <div class="trust-item">✓ ISO 9001:2015</div>
-                    <div class="trust-divider"></div>
-                    <div class="trust-item">✓ 500+ Patients</div>
-                </div>
+    <!-- ═══════════════════════════════════════════════════
+         2. HERO — dark left / light right split
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-hero" id="top">
+        <div class="ac-hero-left">
+            <p class="ac-kicker">✦ ISO 9001:2015 CERTIFIED CLINIC</p>
+            <h1 class="ac-hero-h1">
+                Your journey to a<br />
+                <em>healthier, stronger</em><br />
+                you starts here.
+            </h1>
+            <p class="ac-hero-sub">
+                Physiotherapy-led slimming, rehabilitation and wellness plans by
+                <strong style="color:var(--ac-yellow)">Dr. Manjari</strong> — created
+                for lasting results, not temporary fixes.
+            </p>
+            <div class="ac-hero-actions">
+                <a class="ac-btn-primary" href="/book">Book Appointment →</a>
+                <a class="ac-btn-ghost" href="https://wa.me/919028027888"
+                   target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
             </div>
-            <div class="hero-photo">
-                @for (var i = 0; i < heroImages.Count; i++)
-                {
-                    var idx = i;
+            <div class="ac-trust-row">
+                <span class="ac-trust-item">★★★★★ 4.9 / 5.0</span>
+                <span class="ac-trust-divider"></span>
+                <span class="ac-trust-item">✓ ISO 9001:2015</span>
+                <span class="ac-trust-divider"></span>
+                <span class="ac-trust-item">✓ 500+ Patients</span>
+            </div>
+        </div>
+
+        <div class="ac-hero-right">
+            @for (var i = 0; i < heroImages.Count; i++)
+            {
+                var idx = i;
+                <div class="ac-hero-slide @(idx == activeHeroIndex ? "active" : "")">
                     <img src="@heroImages[idx]"
-                         alt="Protouch clinic"
-                         class="hero-slide @(idx == activeHeroIndex ? "active" : "")"
+                         alt="ProTouch Clinic"
                          loading="@(idx == 0 ? "eager" : "lazy")"
                          fetchpriority="@(idx == 0 ? "high" : "auto")"
                          onerror="this.style.display='none'" />
-                }
-                <div class="hero-badge">
-                    <strong>Providing the<br />Caring Touch..!</strong>
-                    <span>Dr. Manjari<br />Physiotherapist &amp; Slimming Expert</span>
                 </div>
+            }
+            <div class="ac-hero-badge">
+                <strong>Providing the<br />Caring Touch..!</strong>
+                <span>Dr. Manjari<br />Physiotherapist &amp; Slimming Expert</span>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Guarantee strip — animated ticker -->
-        <section class="guarantee-strip guarantee-strip--ticker" aria-label="Our care promise">
-            <div class="guarantee-ticker-track">
-                <span class="guarantee-header-pill">✦ Our Promise</span>
-                @foreach (var g in guarantees) { <span class="guarantee-item">✓ @g</span> }
-                @* Duplicate for seamless loop *@
-                <span class="guarantee-header-pill" aria-hidden="true">✦ Our Promise</span>
-                @foreach (var g in guarantees) { <span class="guarantee-item" aria-hidden="true">✓ @g</span> }
-            </div>
-        </section>
+    <!-- ═══════════════════════════════════════════════════
+         3. GUARANTEE TICKER
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-ticker" aria-label="Our care promise">
+        <div class="ac-ticker-track">
+            @foreach (var g in guarantees)
+            {
+                <span class="ac-ticker-item">@g</span>
+            }
+            @* Duplicate for seamless loop *@
+            @foreach (var g in guarantees)
+            {
+                <span class="ac-ticker-item" aria-hidden="true">@g</span>
+            }
+        </div>
+    </section>
 
-        <!-- ═════════════════════════════════════════════
-             APPROACH
-             ═════════════════════════════════════════════ -->
-        <section id="approach" class="wellness-section split-intro" data-reveal>
-            <div>
-                <p class="section-kicker">A SMARTER, SAFER APPROACH</p>
-                <h2>Lose weight,<br /><em>not money.</em></h2>
+    <!-- ═══════════════════════════════════════════════════
+         4. TABBED SERVICES
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-services" id="services" data-reveal>
+        <div class="ac-services-inner">
+            <div class="ac-services-header">
+                <p class="ac-kicker">OUR SERVICES</p>
+                <h2>Care for every stage of your wellness journey.</h2>
             </div>
-            <div>
-                <p class="large-copy">We combine expert physiotherapy, personalised movement and modern body-care technology to help you feel better — without extreme restrictions or invasive procedures.</p>
-                <p class="muted-copy">The intelligent alternative to liposuction and other aesthetic devices, designed around your health and your goals.</p>
-            </div>
-        </section>
 
-        <!-- ═════════════════════════════════════════════
-             SERVICES — cards that link to dedicated pages
-             ═════════════════════════════════════════════ -->
-        <section id="services" class="wellness-section services">
-            <p class="section-kicker">OUR SERVICES</p>
-            <h2>Care for every stage of your wellness journey.</h2>
-            <div class="service-grid-v2">
+            <div class="ac-services-tabs">
                 @foreach (var svc in serviceCards)
                 {
-                    <a class="service-card-link" href="/services/@svc.Id" data-reveal>
-                        <div class="service-card-home svc-reveal-card" style="border-top-color:@svc.AccentColor; --svc-accent:@svc.AccentColor;">
-                            <div class="svc-before-layer"></div>
-                            <div class="svc-after-layer"></div>
-                            <div class="svc-card-content">
-                                <span class="svc-num svc-num-badge" style="color:@svc.AccentColor;">@svc.Number</span>
-                                <div class="svc-icon-wrap" style="background:@svc.IconBg;">@svc.Icon</div>
-                                <h3>@svc.Name</h3>
-                                <p>@svc.Summary</p>
-                                <ul>@foreach (var b in svc.Bullets) { <li>@b</li> }</ul>
-                                <span class="svc-cta-hint">View service &amp; book →</span>
-                            </div>
-                            <div class="svc-reveal-label">
-                                <span class="svc-before-tag">Before</span>
-                                <span class="svc-after-tag">After →</span>
-                            </div>
-                        </div>
-                    </a>
+                    <button class="ac-tab @(activeTab == svc.Id ? "ac-tab--active" : "")"
+                            type="button"
+                            @onclick="() => SetTab(svc.Id)"
+                            style="@(activeTab == svc.Id ? $"background:{svc.AccentColor};border-color:{svc.AccentColor};" : "")">
+                        <span>@svc.Icon</span> @svc.Name
+                    </button>
                 }
             </div>
-        </section>
 
-        <!-- ═════════════════════════════════════════════
-             WHY PROTOUCH
-             ═════════════════════════════════════════════ -->
-        <section class="wellness-section care-panel" data-reveal>
-            <div class="care-photo">
-                <img src="/images/clinic-gallery/gallery-27.jpeg" alt="Protouch clinic care" />
-            </div>
-            <div class="care-copy">
-                <p class="section-kicker">WHY PROTOUCH</p>
-                <h2>Because your body deserves more than a one-size-fits-all plan.</h2>
-                <div class="care-reasons">
-                    <div data-reveal>
-                        <b>Physiotherapy-first</b>
-                        <span>Safe movement plans that respect pain, injury and existing health concerns.</span>
-                    </div>
-                    <div data-reveal>
-                        <b>Personalised guidance</b>
-                        <span>Diet, treatment and wellness support shaped around your daily life.</span>
-                    </div>
-                    <div data-reveal>
-                        <b>Lasting wellbeing</b>
-                        <span>We help minimise underlying biological problems — not just reduce a number.</span>
-                    </div>
+            @{
+                var activeSvc = serviceCards.FirstOrDefault(s => s.Id == activeTab) ?? serviceCards[0];
+                var svcImgIndex = serviceCards.IndexOf(activeSvc) * 9 + 1;
+                var svcImgPath = $"/images/clinic-gallery/gallery-{svcImgIndex:D2}.jpeg";
+            }
+
+            <div class="ac-services-panel">
+                <div class="ac-panel-left">
+                    <span class="ac-svc-icon">@activeSvc.Icon</span>
+                    <p class="ac-kicker" style="color:@activeSvc.AccentColor">@activeSvc.Number — @activeSvc.Name</p>
+                    <h3>@activeSvc.Name</h3>
+                    <p>@activeSvc.Summary</p>
+                    <ul>
+                        @foreach (var b in activeSvc.Bullets)
+                        {
+                            <li>@b</li>
+                        }
+                    </ul>
+                    <a class="ac-btn-primary" href="/services/@activeSvc.Id"
+                       style="background:@activeSvc.AccentColor">
+                        View Service &amp; Book →
+                    </a>
+                </div>
+                <div class="ac-panel-right">
+                    <img src="@svcImgPath"
+                         alt="@activeSvc.Name"
+                         loading="lazy"
+                         onerror="this.style.display='none'" />
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- ═════════════════════════════════════════════
-             SOCIAL PROOF — animated stat counters and outcome testimonials
-             ═════════════════════════════════════════════ -->
-        <section class="wellness-section social-proof-section" data-reveal aria-labelledby="sp-heading">
-            <p class="section-kicker">CLINIC OUTCOMES</p>
-            <h2 id="sp-heading">Results backed by <em>science and care.</em></h2>
+    <!-- ═══════════════════════════════════════════════════
+         5. MEET THE EXPERT — Dr. Manjari
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-doctor" id="doctor" data-reveal>
+        <div class="ac-doctor-photo">
+            <img src="/images/clinic-gallery/gallery-27.jpeg"
+                 alt="Dr. Manjari — Physiotherapist &amp; Slimming Expert"
+                 onerror="this.style.display='none'" />
+            <div class="ac-doctor-cred-badge">ISO 9001:2015</div>
+        </div>
 
-            <div class="sp-stats-grid">
+        <div class="ac-doctor-copy">
+            <p class="ac-kicker">MEET THE EXPERT</p>
+            <h2>Dr. Manjari</h2>
+            <p class="ac-doctor-title">Physiotherapist &amp; Slimming Expert</p>
+            <p class="ac-doctor-bio">
+                With over a decade of clinical experience, Dr. Manjari combines advanced
+                physiotherapy techniques with evidence-based slimming protocols to deliver
+                real, lasting results. Her patient-first philosophy ensures every plan is
+                personalised, safe and built around your lifestyle — no fasting, no medicine,
+                no surgery.
+            </p>
+            <ul class="ac-doctor-credentials">
+                <li>ISO 9001:2015 Certified Clinic — National & International Accreditation</li>
+                <li>Specialised in Weight Loss, Inch Loss &amp; Body Contouring</li>
+                <li>Expert in Physiotherapy, Rehabilitation &amp; Sports Medicine</li>
+                <li>Certified Yoga Therapist — Holistic &amp; Nature Cure</li>
+                <li>Height Increase Programs (up to 23 years of age)</li>
+                <li>10+ Years of Dedicated Clinical Practice</li>
+            </ul>
+            <a class="ac-btn-primary" href="/book">Book a Consultation →</a>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         6. ANIMATED STATS STRIP
+         Reuses .social-proof-section so initScrollReveal
+         automatically triggers initStatCounters
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-stats social-proof-section" data-reveal>
+        <div class="ac-stats-inner">
+            <div class="ac-stats-grid">
                 @foreach (var stat in socialProofStats)
                 {
-                    <div class="stat-card-sp" data-reveal>
-                        <span class="sp-count"
+                    <div class="ac-stat-card">
+                        <span class="ac-stat-num"
                               data-count-target="@stat.CountTarget"
                               data-count-display="@stat.CountDisplay">@stat.CountDisplay</span>
-                        <span class="sp-label">@stat.Label</span>
+                        <span class="ac-stat-label">@stat.Label</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         7. BEFORE / AFTER COMPARISON SLIDER
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-before-after" id="gallery" data-reveal>
+        <div class="ac-before-after-inner">
+            <p class="ac-kicker" style="text-align:center">TREATMENT RESULTS</p>
+            <h2>Real results from real patients.</h2>
+
+            <div class="ac-ba-grid">
+                @foreach (var pair in beforeAfterPairs)
+                {
+                    <div class="ac-ba-item" data-ba>
+                        <div class="ac-ba-before">
+                            <img src="@pair.Before" alt="Before treatment"
+                                 onerror="this.style.display='none'" />
+                            <span class="ac-ba-label">Before</span>
+                        </div>
+                        <div class="ac-ba-after" style="width:50%">
+                            <img src="@pair.After" alt="After treatment"
+                                 onerror="this.style.display='none'" />
+                            <span class="ac-ba-label">After</span>
+                        </div>
+                        <div class="ac-ba-handle" aria-label="Drag to compare"></div>
+                        <span class="ac-ba-pair-label">@pair.Label</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         8. TESTIMONIAL CAROUSEL
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-testimonials" data-reveal>
+        <div class="ac-testimonials-inner">
+            <p class="ac-kicker" style="text-align:center">PATIENT STORIES</p>
+            <h2>Hear from our patients.</h2>
+
+            <div class="ac-testi-track">
+                @for (var i = 0; i < testimonials.Count; i++)
+                {
+                    var t = testimonials[i];
+                    var ti = i;
+                    <div class="ac-testi-slide @(ti == activeTestiIndex ? "ac-testi--active" : "")">
+                        <span class="ac-stars">★★★★★</span>
+                        <p class="ac-testi-quote">@t.Quote</p>
+                        <footer class="ac-testi-footer">— @t.RoleLabel</footer>
                     </div>
                 }
             </div>
 
-            <div class="sp-testimonials">
-                @foreach (var t in testimonials)
+            <div class="ac-testi-arrows">
+                <button type="button" @onclick="PrevTesti" aria-label="Previous testimonial">‹</button>
+                <button type="button" @onclick="NextTesti" aria-label="Next testimonial">›</button>
+            </div>
+
+            <div class="ac-testi-dots" role="tablist" aria-label="Testimonial slides">
+                @for (var i = 0; i < testimonials.Count; i++)
                 {
-                    <blockquote class="testimonial-card" data-reveal>
-                        <div class="tc-stars">★★★★★</div>
-                        <p>@t.Quote</p>
-                        <footer>— @t.RoleLabel</footer>
-                    </blockquote>
+                    var di = i;
+                    <button type="button"
+                            class="@(di == activeTestiIndex ? "active" : "")"
+                            @onclick="() => JumpToTesti(di)"
+                            aria-label="Testimonial @(di + 1)"></button>
                 }
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- ═════════════════════════════════════════════
-             PROGRAMS
-             ═════════════════════════════════════════════ -->
-        <section class="wellness-section programs" data-reveal>
-            <div>
-                <p class="section-kicker">YOUR CARE, CONNECTED</p>
-                <h2>Support that continues between clinic visits.</h2>
-            </div>
-            <div class="program-points">
-                <p><b>01</b> Book consultations directly with the clinic.</p>
-                <p><b>02</b> Track daily weight, treatments and wellness progress.</p>
-                <p><b>03</b> Receive personal diet guidance and appointment reminders.</p>
-            </div>
-        </section>
+    <!-- ═══════════════════════════════════════════════════
+         9. FAQ ACCORDION
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-faq" data-reveal>
+        <div class="ac-faq-inner">
+            <p class="ac-kicker">FREQUENTLY ASKED</p>
+            <h2>Your questions, answered.</h2>
 
-        <!-- ═════════════════════════════════════════════
-             GALLERY — auto-rotating carousel
-             ═════════════════════════════════════════════ -->
-        <section id="gallery" class="wellness-section carousel-section-wrap" data-reveal>
-            <p class="section-kicker">CLINIC GALLERY</p>
-            <h2>A glimpse inside ProTouch Clinic.</h2>
-
-            <div class="carousel-section">
-                <div class="carousel-track">
-                    @for (var i = 0; i < carouselSlides.Count; i++)
-                    {
-                        var idx = i;
-                        <div class="carousel-slide @(idx == activeSlideIndex ? "active" : "")">
-                            <img src="@carouselSlides[idx].ImagePath"
-                                 alt="@carouselSlides[idx].Caption"
-                                 loading="lazy"
-                                 onerror="this.parentElement.style.background='linear-gradient(135deg,#008d36,#eef6f1)'" />
-                            @if (!string.IsNullOrWhiteSpace(carouselSlides[idx].Caption))
-                            {
-                                <div class="carousel-caption">@carouselSlides[idx].Caption</div>
-                            }
+            <div class="ac-faq-list">
+                @for (var i = 0; i < faqItems.Count; i++)
+                {
+                    var fi = i;
+                    var fq = faqItems[fi];
+                    <div class="ac-faq-item @(openFaq == fi ? "ac-faq--open" : "")">
+                        <button class="ac-faq-q" type="button" @onclick="() => ToggleFaq(fi)">
+                            @fq.Q
+                            <span class="ac-faq-icon">+</span>
+                        </button>
+                        <div class="ac-faq-a">
+                            <p>@fq.A</p>
                         </div>
-                    }
-                </div>
-                <div class="carousel-dots" role="tablist" aria-label="Gallery slides">
-                    @for (var i = 0; i < carouselSlides.Count; i++)
-                    {
-                        var idx = i;
-                        <button class="carousel-dot @(idx == activeSlideIndex ? "active" : "")"
-                                @onclick="() => JumpToSlide(idx)"
-                                aria-label="Slide @(idx + 1)"
-                                type="button"></button>
-                    }
-                </div>
+                    </div>
+                }
             </div>
+        </div>
+    </section>
 
-        </section>
-
-        <!-- ═════════════════════════════════════════════
-             CONTACT
-             ═════════════════════════════════════════════ -->
-        <section id="contact" class="contact-section" data-reveal>
-            <div>
-                <p class="section-kicker">VISIT PROTOUCH CLINIC</p>
+    <!-- ═══════════════════════════════════════════════════
+         10. CONTACT SECTION
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-contact" id="contact" data-reveal>
+        <div class="ac-contact-inner">
+            <div class="ac-contact-left">
+                <p class="ac-kicker">GET IN TOUCH</p>
                 <h2>Let's take the first step together.</h2>
-                <p>Contact Dr. Manjari to discuss a physiotherapy, slimming or wellness plan that fits you.</p>
-                <p class="contact-urgency">Consultations available now — call us or use the booking bar below.</p>
+                <p>
+                    Contact Dr. Manjari to discuss a physiotherapy, slimming or wellness
+                    plan that fits you. Consultations available now.
+                </p>
+                <div class="ac-contact-actions">
+                    <a class="ac-btn-primary" href="/book">Book an Appointment →</a>
+                    <a class="ac-btn-ghost"
+                       href="https://wa.me/919028027888"
+                       target="_blank"
+                       rel="noopener noreferrer">💬 WhatsApp Us</a>
+                </div>
             </div>
-            <div class="contact-details">
-                <a href="tel:9673530031"><strong>96735 30031</strong><span>Primary phone</span></a>
-                <a href="tel:+919028027888"><strong>+91 90280 27888</strong><span>Alternate / WhatsApp</span></a>
-                <a href="mailto:protouch1998@gmail.com"><strong>protouch1998@gmail.com</strong><span>Email us</span></a>
-                <p>Row H. No. 22, Kasliwal Bhagyoday,<br />Opposite Surya Lawns / Near Datta Mandir, Beed By-pass,<br />Mirajgave Nagari, Ch. Sambhajinagar – 431010</p>
-                <a class="wellness-primary directions" target="_blank" rel="noopener"
-                   href="https://www.google.com/maps/search/?api=1&query=Kasliwal+Bhagyoday+Beed+By-pass+Chhatrapati+Sambhajinagar">Get directions →</a>
+
+            <div class="ac-contact-right">
+                <div class="ac-contact-details">
+                    <div class="ac-contact-detail-item">
+                        <span class="ac-detail-icon">📞</span>
+                        <div>
+                            <a href="tel:9673530031">
+                                <strong>96735 30031</strong>
+                            </a>
+                            <a href="tel:+919028027888" style="margin-top:4px;display:block;">
+                                <strong>+91 90280 27888</strong>
+                            </a>
+                            <span>Primary &amp; WhatsApp</span>
+                        </div>
+                    </div>
+                    <div class="ac-contact-detail-item">
+                        <span class="ac-detail-icon">✉️</span>
+                        <div>
+                            <a href="mailto:protouch1998@gmail.com">
+                                <strong>protouch1998@gmail.com</strong>
+                            </a>
+                            <span>Email Us</span>
+                        </div>
+                    </div>
+                    <div class="ac-contact-detail-item">
+                        <span class="ac-detail-icon">📍</span>
+                        <div>
+                            <strong>
+                                Row H. No. 22, Kasliwal Bhagyoday,<br />
+                                Beed By-pass, Chhatrapati Sambhajinagar – 431010
+                            </strong>
+                            <span>Clinic Address</span>
+                        </div>
+                    </div>
+                </div>
+                <a class="ac-directions-link"
+                   href="https://www.google.com/maps/search/?api=1&query=Kasliwal+Bhagyoday+Beed+By-pass+Chhatrapati+Sambhajinagar"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    Get Directions →
+                </a>
             </div>
-        </section>
+        </div>
+    </section>
 
-    </main>
+    <!-- ═══════════════════════════════════════════════════
+         11. FOOTER
+         ═══════════════════════════════════════════════════ -->
+    <footer class="ac-footer">
+        © @DateTime.Now.Year PROTOUCH Physio - Slimming Clinic
+        <span>•</span>
+        Dr. Manjari
+        <span>•</span>
+        Chhatrapati Sambhajinagar
+    </footer>
 
-    <footer>© @DateTime.Now.Year PROTOUCH Physio - Slimming Clinic <span>•</span> Dr. Manjari</footer>
-
-    <!-- ═════════════════════════════════════════════
-         FLOATING STICKY BOOKING BAR
-         Fixed to viewport bottom; shown when hero scrolls out of view.
-         Not inside <main> — must NOT have data-reveal.
-         ═════════════════════════════════════════════ -->
-    <div class="sticky-booking-bar" role="complementary" aria-label="Quick booking bar">
-        <a class="sticky-bar-btn sticky-bar-btn--book"
-           href="/book"
-           aria-label="Book an online appointment at ProTouch Clinic">
-            📅 Book Online
-        </a>
-        <a class="sticky-bar-btn sticky-bar-btn--wa"
+    <!-- ═══════════════════════════════════════════════════
+         12. FLOATING CTA — fixed bottom-right
+         ═══════════════════════════════════════════════════ -->
+    <div class="ac-floating-cta" role="complementary" aria-label="Quick actions">
+        <a class="ac-float-btn ac-float-wa"
            href="https://wa.me/919028027888"
            target="_blank"
-           rel="noopener"
-           aria-label="Contact ProTouch Clinic via WhatsApp">
-            💬 WhatsApp Us
-        </a>
+           rel="noopener noreferrer"
+           aria-label="WhatsApp us">💬</a>
+        <a class="ac-float-btn ac-float-book"
+           href="/book"
+           aria-label="Book appointment">📅</a>
     </div>
 
 </div>
 
 @code {
-    private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"];
-
+    // ── Records ──────────────────────────────────────────────
     private record CarouselSlide(string ImagePath, string Caption);
     private record ServiceCard(string Id, string Number, string Icon, string Name, string Summary, string[] Bullets, string AccentColor, string IconBg);
-
-    // Social Proof data models
     private record StatCounter(string CountDisplay, double CountTarget, string Label);
     private record Testimonial(string Quote, string RoleLabel);
+    private record BeforeAfterPair(string Before, string After, string Label);
+    private record FaqItem(string Q, string A);
 
-    // Carousel
-    private List<CarouselSlide> carouselSlides = new();
-    private int activeSlideIndex = 0;
-    private System.Threading.Timer? _carouselTimer;
-
-    // Hero
+    // ── Hero ─────────────────────────────────────────────────
     private List<string> heroImages = new();
     private int activeHeroIndex = 0;
     private System.Threading.Timer? _heroTimer;
 
-    // Service cards (link to /services/{id})
-    private List<ServiceCard> serviceCards = new();
+    // ── Testimonial carousel ─────────────────────────────────
+    private int activeTestiIndex = 0;
+    private System.Threading.Timer? _testiTimer;
 
-    // Social Proof — stat counters and outcome testimonials
+    // ── Services tabs ────────────────────────────────────────
+    private string activeTab = "weight-loss";
+
+    // ── FAQ ──────────────────────────────────────────────────
+    private int openFaq = -1;
+
+    // ── Data lists ───────────────────────────────────────────
+    private List<ServiceCard> serviceCards = new();
     private List<StatCounter> socialProofStats = new();
     private List<Testimonial> testimonials = new();
+    private List<BeforeAfterPair> beforeAfterPairs = new();
+    private List<FaqItem> faqItems = new();
+    private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"];
 
+    // ── Kept for backwards compatibility (gallery carousel — data only) ──
+    private List<CarouselSlide> carouselSlides = new();
+    private int activeSlideIndex = 0;
+
+    // ════════════════════════════════════════════════════════
+    // OnInitialized — populate all static data
+    // ════════════════════════════════════════════════════════
     protected override void OnInitialized()
     {
-        // Hero images — clinic treatment/environment shots only, no personal photos
+        // Hero images
         heroImages = new List<string>
         {
-            "/images/clinic-gallery/gallery-37.jpeg",   // high-res clinic treatment shot
-            "/images/clinic-gallery/gallery-42.jpeg",   // high-res clinic interior
-            "/images/clinic-gallery/gallery-55.jpeg",   // premium clinic photo
-            "/images/clinic-gallery/gallery-29.jpeg",   // rich quality clinic shot
-            "/images/clinic-gallery/gallery-38.jpeg",   // high-res treatment room
+            "/images/clinic-gallery/gallery-37.jpeg",
+            "/images/clinic-gallery/gallery-42.jpeg",
+            "/images/clinic-gallery/gallery-55.jpeg",
+            "/images/clinic-gallery/gallery-29.jpeg",
+            "/images/clinic-gallery/gallery-38.jpeg",
         };
 
-        // Carousel — 18 curated interleaved slides across all 4 categories
-        carouselSlides = new List<CarouselSlide>
-        {
-            // Fresh selection — spread evenly across all 60 clinic gallery images
-            new("/images/clinic-gallery/gallery-03.jpeg",  "ProTouch Physio Clinic"),
-            new("/images/clinic-gallery/gallery-06.jpeg",  "Weight Loss Programs"),
-            new("/images/clinic-gallery/gallery-09.jpeg",  "Physiotherapy & Rehabilitation"),
-            new("/images/clinic-gallery/gallery-12.jpeg",  "Expert Treatment Care"),
-            new("/images/clinic-gallery/gallery-15.jpeg",  "Advanced Slimming Therapy"),
-            new("/images/clinic-gallery/gallery-19.jpeg",  "Clinic Facilities"),
-            new("/images/clinic-gallery/gallery-24.jpeg",  "Specialised Equipment"),
-            new("/images/clinic-gallery/gallery-26.jpeg",  "Body Contouring & Toning"),
-            new("/images/clinic-gallery/gallery-33.jpeg",  "Personalised Care Plans"),
-            new("/images/clinic-gallery/gallery-40.jpeg",  "Slimming & Inch Loss"),
-            new("/images/clinic-gallery/gallery-44.jpeg",  "RF & Cryotherapy"),
-            new("/images/clinic-gallery/gallery-50.jpeg",  "Children's Programmes"),
-            new("/images/clinic-gallery/gallery-54.jpeg",  "Yoga & Nature Cure"),
-            new("/images/clinic-gallery/gallery-57.jpeg",  "Sports Rehabilitation"),
-            new("/images/clinic-gallery/gallery-60.jpeg",  "Dr. Manjari's Clinic"),
-            new("/images/clinic-gallery/gallery-25.jpeg",  "Treatment Room"),
-            new("/images/clinic-gallery/gallery-34.jpeg",  "Our Team & Approach"),
-            new("/images/clinic-gallery/gallery-45.jpeg",  "Sri Sai ProTouch"),
-        };
-
-        // Service cards — each links to its dedicated page
+        // Service cards
         serviceCards = new List<ServiceCard>
         {
             new("weight-loss", "01", "⚖️", "Weight Loss & Slimming",
@@ -366,7 +465,7 @@
                 "#e52321", "rgba(229,35,33,0.08)"),
         };
 
-        // Social Proof — clinic-documented outcomes; no patient names or photos
+        // Social proof stats
         socialProofStats = new List<StatCounter>
         {
             new("4–8 kg",  8,   "Weight Loss / Month"),
@@ -375,60 +474,148 @@
             new("10+",     10,  "Years of Experience"),
         };
 
+        // Testimonials (extended set)
         testimonials = new List<Testimonial>
         {
             new("\"Lost 6 kg in the first month without any fasting or medicine — the physiotherapy approach made all the difference.\"",
                 "Weight Loss Patient"),
             new("\"My knee pain reduced significantly within two weeks of targeted rehabilitation. Finally able to walk without discomfort.\"",
                 "Physiotherapy Patient"),
+            new("\"The personalised yoga program helped manage my thyroid and I feel more energetic than ever. Highly recommend Dr. Manjari!\"",
+                "Yoga & Wellness Patient"),
+            new("\"My child gained 2 inches through the specialised height increase program. We are extremely happy with the results.\"",
+                "Parent — Specialised Program"),
+            new("\"The slimming program was completely safe — no side effects, no surgery. Lost 8 kg in just 5 weeks.\"",
+                "Slimming Program Patient"),
+        };
+
+        // Before/After pairs
+        beforeAfterPairs = new List<BeforeAfterPair>
+        {
+            new("/images/clinic-gallery/gallery-03.jpeg", "/images/clinic-gallery/gallery-06.jpeg", "Weight Loss - 4 weeks"),
+            new("/images/clinic-gallery/gallery-09.jpeg", "/images/clinic-gallery/gallery-12.jpeg", "Physiotherapy Recovery"),
+            new("/images/clinic-gallery/gallery-15.jpeg", "/images/clinic-gallery/gallery-19.jpeg", "Body Contouring"),
+            new("/images/clinic-gallery/gallery-24.jpeg", "/images/clinic-gallery/gallery-26.jpeg", "Slimming Program"),
+        };
+
+        // FAQ items
+        faqItems = new List<FaqItem>
+        {
+            new("Is the weight loss treatment safe?",
+                "Yes, all treatments are physiotherapy-led with no surgery, no medicine, no fasting, and no side effects. The clinic is ISO 9001:2015 certified, ensuring the highest quality and safety standards."),
+            new("How quickly will I see results?",
+                "Most patients see visible inch loss from the very first session. Weight loss results of 4–8 kg per month are typical with the full treatment plan."),
+            new("Who is eligible for the slimming program?",
+                "Anyone above 16 years of age is eligible. A brief health assessment is conducted before starting. Pregnant women should consult with Dr. Manjari first."),
+            new("How many sessions do I need?",
+                "Typically 12–24 sessions depending on your goal. Dr. Manjari will create a personalised plan after your first consultation, with clear milestones throughout."),
+            new("Does the physiotherapy program work for chronic pain?",
+                "Yes. We treat back, neck and knee pain, arthritis, spondylitis, paralysis and many more conditions using electrotherapy and manual therapy — all personalised to your condition."),
+            new("Can children join the height increase program?",
+                "Yes, the height increase program is available up to 23 years of age with potential growth of 1–3 inches. Results vary by individual; a consultation with Dr. Manjari will determine suitability."),
+        };
+
+        // Gallery carousel (kept for backwards-compat — not rendered on new page)
+        carouselSlides = new List<CarouselSlide>
+        {
+            new("/images/clinic-gallery/gallery-03.jpeg", "ProTouch Physio Clinic"),
+            new("/images/clinic-gallery/gallery-09.jpeg", "Physiotherapy & Rehabilitation"),
+            new("/images/clinic-gallery/gallery-15.jpeg", "Advanced Slimming Therapy"),
+            new("/images/clinic-gallery/gallery-24.jpeg", "Specialised Equipment"),
         };
     }
 
+    // ════════════════════════════════════════════════════════
+    // OnAfterRenderAsync — start timers and init JS
+    // ════════════════════════════════════════════════════════
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender) return;
+
+        // Hero carousel — 5s auto-advance
+        _heroTimer = new System.Threading.Timer(_ =>
         {
-            _carouselTimer = new System.Threading.Timer(_ =>
+            InvokeAsync(() =>
             {
-                InvokeAsync(() =>
-                {
-                    activeSlideIndex = (activeSlideIndex + 1) % carouselSlides.Count;
-                    StateHasChanged();
-                });
-            }, null, TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(4));
+                activeHeroIndex = (activeHeroIndex + 1) % heroImages.Count;
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
 
-            _heroTimer = new System.Threading.Timer(_ =>
+        // Testimonial carousel — 6s auto-advance
+        _testiTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
             {
-                InvokeAsync(() =>
-                {
-                    activeHeroIndex = (activeHeroIndex + 1) % heroImages.Count;
-                    StateHasChanged();
-                });
-            }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+                activeTestiIndex = (activeTestiIndex + 1) % testimonials.Count;
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(6));
 
-            // Initialise all homepage animations via site.js (each called exactly once)
-            await JS.InvokeVoidAsync("initHeroStagger");
-            await JS.InvokeVoidAsync("initScrollReveal");
-            await JS.InvokeVoidAsync("initGuaranteeTicker");
-            await JS.InvokeVoidAsync("initStickyBar", ".wellness-hero", ".sticky-booking-bar");
-            // Note: initStatCounters is NOT called here — it is triggered internally by
-            // initScrollReveal when .social-proof-section enters the viewport.
-            // Concept 4: Dynamic ambient glow on services section
-            await JS.InvokeVoidAsync("initServiceAmbientGlow");
-        }
+        // JS initialisations (wrapped in try/catch per spec)
+        try { await JS.InvokeVoidAsync("initStickyHeader", "#ac-header"); } catch { }
+        try { await JS.InvokeVoidAsync("initScrollReveal"); } catch { }
+        try { await JS.InvokeVoidAsync("initGuaranteeTicker"); } catch { }
+        try { await JS.InvokeVoidAsync("initBeforeAfterSliders", "[data-ba]"); } catch { }
     }
 
-    private void JumpToSlide(int index)
+    // ════════════════════════════════════════════════════════
+    // Service tab methods
+    // ════════════════════════════════════════════════════════
+    private void SetTab(string id)
     {
-        activeSlideIndex = index;
-        _carouselTimer?.Change(TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(4));
+        activeTab = id;
+    }
+
+    // ════════════════════════════════════════════════════════
+    // FAQ accordion
+    // ════════════════════════════════════════════════════════
+    private void ToggleFaq(int index)
+    {
+        openFaq = (openFaq == index) ? -1 : index;
+    }
+
+    // ════════════════════════════════════════════════════════
+    // Testimonial carousel navigation
+    // ════════════════════════════════════════════════════════
+    private void NextTesti()
+    {
+        activeTestiIndex = (activeTestiIndex + 1) % testimonials.Count;
+        _testiTimer?.Change(TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(6));
         StateHasChanged();
     }
 
+    private void PrevTesti()
+    {
+        activeTestiIndex = (activeTestiIndex - 1 + testimonials.Count) % testimonials.Count;
+        _testiTimer?.Change(TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(6));
+        StateHasChanged();
+    }
+
+    private void JumpToTesti(int index)
+    {
+        activeTestiIndex = index;
+        _testiTimer?.Change(TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(6));
+        StateHasChanged();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // Gallery carousel helper (data only, not rendered)
+    // ════════════════════════════════════════════════════════
+    private void JumpToSlide(int index)
+    {
+        activeSlideIndex = index;
+        StateHasChanged();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // DisposeAsync — clean up timers and JS listeners
+    // ════════════════════════════════════════════════════════
     public async ValueTask DisposeAsync()
     {
-        try { await JS.InvokeVoidAsync("destroyHomepageAnimations"); } catch { }
-        try { _carouselTimer?.Dispose(); } catch { }
         try { _heroTimer?.Dispose(); } catch { }
+        try { _testiTimer?.Dispose(); } catch { }
+        try { await JS.InvokeVoidAsync("destroyAestheticAnimations"); } catch { }
+        try { await JS.InvokeVoidAsync("destroyHomepageAnimations"); } catch { }
     }
 }

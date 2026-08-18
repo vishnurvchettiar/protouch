@@ -317,3 +317,125 @@ window.destroyHomepageAnimations = function() {
         window._svgDrawObserver = null;
     }
 };
+
+
+
+// ═══════════════════════════════════════════════════════════
+// AESTHETIC CLINIC REDESIGN — New JS functions (append only)
+// All existing functions above are untouched.
+// ═══════════════════════════════════════════════════════════
+
+// ── initStickyHeader ───────────────────────────────────────
+// Toggles .ac-header--scrolled when page scrolls > 80px.
+// Stores listener as window._stickyHeaderHandler for cleanup.
+window.initStickyHeader = function (headerSelector) {
+    var header = document.querySelector(headerSelector);
+    if (!header) return;
+
+    function handler() {
+        if (window.scrollY > 80) {
+            header.classList.add('ac-header--scrolled');
+        } else {
+            header.classList.remove('ac-header--scrolled');
+        }
+    }
+
+    // Seed on init (page may already be scrolled)
+    handler();
+    window.addEventListener('scroll', handler, { passive: true });
+    window._stickyHeaderHandler = handler;
+};
+
+// ── initBeforeAfterSliders ─────────────────────────────────
+// Pointer-events drag on .ac-ba-handle for each [data-ba] element.
+// Clamps pct to [0.05, 0.95]; updates .ac-ba-after width and
+// .ac-ba-handle left position on pointermove.
+// Stores cleanup as window._baCleanup.
+window.initBeforeAfterSliders = function (selector) {
+    var items = document.querySelectorAll(selector);
+    if (!items || items.length === 0) return;
+
+    var allCleanups = [];
+
+    items.forEach(function (item) {
+        var handle = item.querySelector('.ac-ba-handle');
+        var afterLayer = item.querySelector('.ac-ba-after');
+        if (!handle || !afterLayer) return;
+
+        var dragging = false;
+
+        function onPointerDown(e) {
+            dragging = true;
+            item.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        }
+
+        function onPointerMove(e) {
+            if (!dragging) return;
+            var rect = item.getBoundingClientRect();
+            var pct = (e.clientX - rect.left) / rect.width;
+            pct = Math.max(0.05, Math.min(0.95, pct));
+            afterLayer.style.width = (pct * 100) + '%';
+            handle.style.left = (pct * 100) + '%';
+        }
+
+        function onPointerUp(e) {
+            if (!dragging) return;
+            dragging = false;
+            item.releasePointerCapture(e.pointerId);
+        }
+
+        handle.addEventListener('pointerdown', onPointerDown);
+        item.addEventListener('pointermove', onPointerMove);
+        item.addEventListener('pointerup', onPointerUp);
+        item.addEventListener('pointercancel', onPointerUp);
+
+        allCleanups.push(function () {
+            handle.removeEventListener('pointerdown', onPointerDown);
+            item.removeEventListener('pointermove', onPointerMove);
+            item.removeEventListener('pointerup', onPointerUp);
+            item.removeEventListener('pointercancel', onPointerUp);
+        });
+    });
+
+    window._baCleanup = function () {
+        allCleanups.forEach(function (fn) { fn(); });
+        allCleanups = [];
+        window._baCleanup = null;
+    };
+};
+
+// ── destroyBeforeAfterSliders ──────────────────────────────
+window.destroyBeforeAfterSliders = function () {
+    if (window._baCleanup) {
+        window._baCleanup();
+    }
+};
+
+// ── destroyAestheticAnimations ─────────────────────────────
+// Removes sticky header scroll listener, before/after pointer
+// listeners, and disconnects scroll reveal observer.
+window.destroyAestheticAnimations = function () {
+    // Remove sticky header listener
+    if (window._stickyHeaderHandler) {
+        window.removeEventListener('scroll', window._stickyHeaderHandler);
+        window._stickyHeaderHandler = null;
+    }
+
+    // Remove before/after slider listeners
+    if (window._baCleanup) {
+        window._baCleanup();
+    }
+
+    // Disconnect scroll reveal observer
+    if (window._scrollRevealObserver) {
+        window._scrollRevealObserver.disconnect();
+        window._scrollRevealObserver = null;
+    }
+
+    // Disconnect sticky bar observer if present
+    if (window._stickyBarObserver) {
+        window._stickyBarObserver.disconnect();
+        window._stickyBarObserver = null;
+    }
+};
