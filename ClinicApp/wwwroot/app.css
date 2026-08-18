@@ -3624,3 +3624,49 @@ a:hover {
     .login-spinner { animation: loginSpin 0.7s linear infinite; }
 }
 /* ══════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE UI FIXES — Additive responsive corrections
+   Author: Vishnurv Chettiar
+   1. Login submit button always visible on mobile (≤ 768 px)
+   2. Service grid 2-column on tablets / landscape phones (≤ 1024 px)
+   3. Approach section single-column on tablets / landscape phones (≤ 1024 px)
+   All rules are additive — no existing desktop rules modified or removed.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    /* Fix 1 — Login submit button always reachable */
+    .login-split-page {
+        grid-template-columns: 1fr;
+    }
+    .login-form-panel {
+        align-items: flex-start;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-top: 40px;
+        min-height: 100vh;
+    }
+    .login-form-inner {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+@media (max-width: 1024px) {
+    /* Fix 2 — Service grid: 2 columns on tablets / landscape phones */
+    .wellness-page .service-grid-v2 {
+        grid-template-columns: 1fr 1fr;
+    }
+    .wellness-page .service-card-home {
+        min-height: auto;
+    }
+    .wellness-page .wellness-section {
+        padding: 60px 20px;
+    }
+
+    /* Fix 3 — Approach section: single column on tablets / landscape phones */
+    .wellness-page .split-intro {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+}
