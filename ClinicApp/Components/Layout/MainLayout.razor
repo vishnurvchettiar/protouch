@@ -6,37 +6,39 @@
     </div>
 
     <main>
-        <div class="top-row px-4 justify-content-between">
-            <div class="d-flex align-items-center">
-                <span class="text-secondary small d-none d-md-inline">ProTouch Physio - Slimming Clinic | Management Portal</span>
+        <header class="pt-topbar">
+            <!-- Left slot: mini logo -->
+            <div class="d-flex align-items-center gap-2">
+                <img src="/images/logo-mark.png" width="16" height="16" alt="ProTouch" class="me-1"
+                     onerror="this.style.display='none'" />
+                <span class="pt-topbar-title">PROTOUCH Physio · Management Portal</span>
             </div>
-            <div class="d-flex align-items-center gap-3">
-                <!-- Visit Website button — takes any logged-in user back to the public home page -->
+
+            <!-- Right slot: actions + role chip + username -->
+            <div class="d-flex align-items-center gap-2">
                 <AuthorizeView>
-                    <Authorized>
-                        <a href="/" class="visit-website-btn" title="Go to public website">
+                    <Authorized Context="authCtx">
+                        <a href="/" class="btn-clinic-secondary btn-sm" title="Go to public website">
                             🏠 <span class="d-none d-sm-inline">Visit Website</span>
                         </a>
-                    </Authorized>
-                </AuthorizeView>
-
-                <AuthorizeView>
-                    <Authorized>
-                        <div class="user-badge">
-                            <span class="text-teal" style="font-weight: 700; font-size: 0.85rem;">
-                                @(context.User.IsInRole("Admin") ? "ADMIN" : "CLIENT")
-                            </span>
+                        <AuthorizeView Roles="Admin" Context="adminTopCtx">
+                            <span class="pt-role-chip admin">ADMIN</span>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="Client" Context="clientTopCtx">
+                            <span class="pt-role-chip client">CLIENT</span>
+                        </AuthorizeView>
+                        <span class="user-badge">
                             <span style="color: var(--text-primary); font-size: 0.85rem; font-weight: 500;">
-                                @(context.User.Identity?.Name)
+                                @authCtx.User.Identity?.Name
                             </span>
-                        </div>
+                        </span>
                     </Authorized>
                     <NotAuthorized>
                         <span class="text-secondary small">Not signed in</span>
                     </NotAuthorized>
                 </AuthorizeView>
             </div>
-        </div>
+        </header>
 
         <article class="content px-4 py-4" style="flex: 1; overflow-y: auto;">
             @Body
