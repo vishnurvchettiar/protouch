@@ -3,13 +3,14 @@
 @rendermode InteractiveServer
 @implements IAsyncDisposable
 @inject IJSRuntime JS
+@inject ClinicApp.Services.ClinicService ClinicService
 
 <PageTitle>PROTOUCH Physio - Slimming Clinic | Chhatrapati Sambhajinagar</PageTitle>
 
 <div class="ac-page">
 
     <!-- ═══════════════════════════════════════════════════
-         1. STICKY HEADER
+         1. STICKY HEADER (Task 5 — updated nav links + hamburger)
          ═══════════════════════════════════════════════════ -->
     <header class="ac-header" id="ac-header">
         <a href="#top" class="ac-logo">
@@ -21,13 +22,30 @@
             <a href="#services">Services</a>
             <a href="#doctor">About</a>
             <a href="#gallery">Gallery</a>
+            <a href="#feedback">Feedback</a>
             <a href="#contact">Contact</a>
         </nav>
         <div class="ac-header-actions">
             <a class="ac-login-btn" href="/Account/Login">Login</a>
             <a class="ac-call-btn" href="tel:9673530031">📞 Call Now</a>
         </div>
+        <!-- Hamburger (mobile) -->
+        <button class="ac-hamburger" type="button"
+                @onclick="ToggleMobileMenu"
+                aria-label="Toggle navigation menu"
+                aria-expanded="@_mobileMenuOpen">
+            <span></span><span></span><span></span>
+        </button>
     </header>
+
+    <!-- Mobile nav dropdown -->
+    <div class="ac-mobile-nav @(_mobileMenuOpen ? "ac-mobile-nav--open" : "")">
+        <a href="#services" @onclick="ToggleMobileMenu">Services</a>
+        <a href="#doctor" @onclick="ToggleMobileMenu">About</a>
+        <a href="#gallery" @onclick="ToggleMobileMenu">Gallery</a>
+        <a href="#feedback" @onclick="ToggleMobileMenu">Feedback</a>
+        <a href="#contact" @onclick="ToggleMobileMenu">Contact</a>
+    </div>
 
     <!-- ═══════════════════════════════════════════════════
          2. HERO — dark left / light right split
@@ -96,13 +114,27 @@
     </section>
 
     <!-- ═══════════════════════════════════════════════════
-         4. TABBED SERVICES
+         4. TABBED SERVICES (Task 6: Filter Chips + Task 7: Hotspot Map)
          ═══════════════════════════════════════════════════ -->
     <section class="ac-services" id="services" data-reveal>
         <div class="ac-services-inner">
             <div class="ac-services-header">
                 <p class="ac-kicker">OUR SERVICES</p>
                 <h2>Care for every stage of your wellness journey.</h2>
+            </div>
+
+            <!-- Task 6: Service Filter Chips (above tabs) -->
+            <div class="ac-chip-row" role="group" aria-label="Filter services by category">
+                @foreach (var svc in serviceCards)
+                {
+                    <button class="ac-tab-chip @(activeTab == svc.Id ? "ac-tab-chip--active" : "")"
+                            type="button"
+                            aria-pressed="@(activeTab == svc.Id ? "true" : "false")"
+                            style="@(activeTab == svc.Id ? $"--chip-accent:{svc.AccentColor};" : "")"
+                            @onclick="() => SetTab(svc.Id)">
+                        <span>@svc.Icon</span> @svc.Name
+                    </button>
+                }
             </div>
 
             <div class="ac-services-tabs">
@@ -141,6 +173,53 @@
                     </a>
                 </div>
                 <div class="ac-panel-right">
+                    <!-- Task 7: SVG Body Hotspot Map -->
+                    <div class="ac-hotspot-wrap">
+                        <svg class="ac-body-svg" viewBox="0 0 300 450" role="img"
+                             aria-label="Interactive body diagram — click a region to explore treatments">
+                            <!-- Simplified human body outline -->
+                            <path class="ac-body-outline" d="M150,20 C160,20 175,30 175,50 C175,70 165,80 165,80
+                                L175,100 L195,95 C210,90 220,100 220,115 L215,160 L195,160 L190,220
+                                L200,280 L205,340 L200,380 L195,420 L185,420 L180,380 L175,340
+                                L165,295 L150,290 L135,295 L125,340 L120,380 L115,420 L105,420
+                                L100,380 L95,340 L100,280 L110,220 L105,160 L85,160 L80,115
+                                C80,100 90,90 105,95 L125,100 L135,80 C135,80 125,70 125,50
+                                C125,30 140,20 150,20 Z" />
+
+                            <!-- Shoulder/Neck hotspot -->
+                            <ellipse class="ac-hotspot @(_hoveredHotspot == "shoulder" ? "ac-hotspot--hover" : "") @(activeTab == "physiotherapy" ? "ac-hotspot--active" : "")"
+                                     cx="150" cy="80" rx="30" ry="20"
+                                     role="button" tabindex="0"
+                                     aria-label="Shoulder and neck region — click to view Physiotherapy and Rehabilitation services"
+                                     @onclick='() => SetTab("physiotherapy")'
+                                     @onmouseenter='() => _hoveredHotspot = "shoulder"'
+                                     @onmouseleave='() => _hoveredHotspot = ""'>
+                                <title>Shoulder / Neck → Physiotherapy &amp; Rehabilitation</title>
+                            </ellipse>
+
+                            <!-- Waist/Abdomen hotspot -->
+                            <ellipse class="ac-hotspot @(_hoveredHotspot == "waist" ? "ac-hotspot--hover" : "") @(activeTab == "weight-loss" ? "ac-hotspot--active" : "")"
+                                     cx="150" cy="185" rx="35" ry="28"
+                                     role="button" tabindex="0"
+                                     aria-label="Waist and abdomen region — click to view Weight Loss and Slimming services"
+                                     @onclick='() => SetTab("weight-loss")'
+                                     @onmouseenter='() => _hoveredHotspot = "waist"'
+                                     @onmouseleave='() => _hoveredHotspot = ""'>
+                                <title>Waist / Abdomen → Weight Loss &amp; Slimming</title>
+                            </ellipse>
+
+                            <!-- Knee/Lower Limb hotspot -->
+                            <ellipse class="ac-hotspot @(_hoveredHotspot == "knee" ? "ac-hotspot--hover" : "") @(activeTab == "physiotherapy" ? "ac-hotspot--active" : "")"
+                                     cx="150" cy="300" rx="25" ry="20"
+                                     role="button" tabindex="0"
+                                     aria-label="Knee and lower limb region — click to view Physiotherapy and Rehabilitation services"
+                                     @onclick='() => SetTab("physiotherapy")'
+                                     @onmouseenter='() => _hoveredHotspot = "knee"'
+                                     @onmouseleave='() => _hoveredHotspot = ""'>
+                                <title>Knee / Lower Limb → Physiotherapy &amp; Rehabilitation</title>
+                            </ellipse>
+                        </svg>
+                    </div>
                     <img src="@svcImgPath"
                          alt="@activeSvc.Name"
                          loading="lazy"
@@ -186,8 +265,6 @@
 
     <!-- ═══════════════════════════════════════════════════
          6. ANIMATED STATS STRIP
-         Reuses .social-proof-section so initScrollReveal
-         automatically triggers initStatCounters
          ═══════════════════════════════════════════════════ -->
     <section class="ac-stats social-proof-section" data-reveal>
         <div class="ac-stats-inner">
@@ -206,37 +283,128 @@
     </section>
 
     <!-- ═══════════════════════════════════════════════════
-         7. BEFORE / AFTER COMPARISON SLIDER
+         Blob divider 1: Stats → BMI
          ═══════════════════════════════════════════════════ -->
-    <section class="ac-before-after" id="gallery" data-reveal>
-        <div class="ac-before-after-inner">
-            <p class="ac-kicker" style="text-align:center">TREATMENT RESULTS</p>
-            <h2>Real results from real patients.</h2>
+    <div class="ac-blob-divider ac-blob-divider--1" aria-hidden="true">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="rgba(0,141,54,0.08)" />
+        </svg>
+    </div>
 
-            <div class="ac-ba-grid">
-                @foreach (var pair in beforeAfterPairs)
-                {
-                    <div class="ac-ba-item" data-ba>
-                        <div class="ac-ba-before">
-                            <img src="@pair.Before" alt="Before treatment"
-                                 onerror="this.style.display='none'" />
-                            <span class="ac-ba-label">Before</span>
-                        </div>
-                        <div class="ac-ba-after" style="width:50%">
-                            <img src="@pair.After" alt="After treatment"
-                                 onerror="this.style.display='none'" />
-                            <span class="ac-ba-label">After</span>
-                        </div>
-                        <div class="ac-ba-handle" aria-label="Drag to compare"></div>
-                        <span class="ac-ba-pair-label">@pair.Label</span>
-                    </div>
-                }
+    <!-- ═══════════════════════════════════════════════════
+         7. BMI / RESULT ESTIMATOR WIDGET (Task 8)
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-bmi" id="bmi-estimator" data-reveal>
+        <div class="ac-bmi-inner">
+            <p class="ac-kicker">WELLNESS ESTIMATOR</p>
+            <h2>Discover your personalised wellness plan.</h2>
+            <p class="ac-bmi-intro">Enter your details below for an instant, personalised estimate — then book a free consultation with Dr. Manjari.</p>
+
+            <div class="ac-bmi-form">
+                <div class="ac-bmi-field">
+                    <label for="bmi-height">Height (cm)</label>
+                    <input id="bmi-height" type="number" min="100" max="250"
+                           placeholder="e.g. 165"
+                           @bind="_heightCm" @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(_heightError))
+                    {
+                        <span class="ac-field-error">@_heightError</span>
+                    }
+                </div>
+                <div class="ac-bmi-field">
+                    <label for="bmi-weight">Weight (kg)</label>
+                    <input id="bmi-weight" type="number" min="20" max="300" step="0.1"
+                           placeholder="e.g. 70.5"
+                           @bind="_weightKg" @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(_weightError))
+                    {
+                        <span class="ac-field-error">@_weightError</span>
+                    }
+                </div>
+                <div class="ac-bmi-field">
+                    <label for="bmi-goal">Wellness Goal</label>
+                    <select id="bmi-goal" @bind="_bmiGoal">
+                        <option value="">Select a goal…</option>
+                        <option>Weight Loss</option>
+                        <option>Inch Loss</option>
+                        <option>Physiotherapy / Pain Relief</option>
+                        <option>Yoga &amp; Wellness</option>
+                        <option>Height Increase</option>
+                    </select>
+                    @if (!string.IsNullOrEmpty(_goalError))
+                    {
+                        <span class="ac-field-error">@_goalError</span>
+                    }
+                </div>
+                <button class="ac-btn-primary" type="button" @onclick="ComputeBmi">
+                    Calculate My Estimate →
+                </button>
             </div>
+
+            @if (_bmiValue.HasValue)
+            {
+                <div class="ac-bmi-result" style="--bmi-color: @_bmiColor">
+                    <div class="ac-bmi-score">
+                        <span class="ac-bmi-num">@_bmiValue</span>
+                        <span class="ac-bmi-label">BMI — @_bmiCategory</span>
+                    </div>
+                    <p class="ac-bmi-message">@_bmiMessage</p>
+                    <p class="ac-bmi-outcome"><em>@_bmiOutcome</em></p>
+                    <a class="ac-btn-primary ac-btn-green" href="/book">
+                        Book Your Free Consultation →
+                    </a>
+                </div>
+            }
         </div>
     </section>
 
     <!-- ═══════════════════════════════════════════════════
-         8. TESTIMONIAL CAROUSEL
+         Blob divider 2: BMI → Gallery
+         ═══════════════════════════════════════════════════ -->
+    <div class="ac-blob-divider ac-blob-divider--2" aria-hidden="true">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,20 C480,80 960,0 1440,20 L1440,80 L0,80 Z" fill="rgba(124,27,104,0.07)" />
+        </svg>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         8. PHOTO GALLERY GRID (Task 9 — replaces Before/After)
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-gallery" id="gallery" data-reveal>
+        <p class="ac-kicker" style="text-align:center">CLINIC GALLERY</p>
+        <h2>A glimpse inside ProTouch.</h2>
+
+        <div class="ac-gallery-grid">
+            @for (int i = 0; i < _galleryVisible; i++)
+            {
+                var idx = i;
+                <div class="ac-gallery-item" @onclick="() => OpenLightbox(idx)">
+                    <img src="@GalleryImages[idx]"
+                         alt="ProTouch Clinic Gallery @(idx + 1)"
+                         loading="@(idx < 6 ? "eager" : "lazy")"
+                         onerror="this.style.display='none'" />
+                </div>
+            }
+        </div>
+
+        @if (CanLoadMore)
+        {
+            <button class="ac-load-more" @onclick="LoadMoreGallery">Load More</button>
+        }
+
+        @if (_isLightboxOpen)
+        {
+            <div class="ac-lightbox" role="dialog" aria-modal="true">
+                <button class="ac-lightbox-close" @onclick="CloseLightbox" aria-label="Close lightbox">✕</button>
+                <button class="ac-lightbox-prev" @onclick="LightboxPrev" aria-label="Previous image">‹</button>
+                <img src="@GalleryImages[_selectedLightboxIndex]" alt="Gallery image @(_selectedLightboxIndex + 1)" />
+                <button class="ac-lightbox-next" @onclick="LightboxNext" aria-label="Next image">›</button>
+            </div>
+        }
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         9. TESTIMONIAL CAROUSEL
          ═══════════════════════════════════════════════════ -->
     <section class="ac-testimonials" data-reveal>
         <div class="ac-testimonials-inner">
@@ -275,7 +443,7 @@
     </section>
 
     <!-- ═══════════════════════════════════════════════════
-         9. FAQ ACCORDION
+         10. FAQ ACCORDION
          ═══════════════════════════════════════════════════ -->
     <section class="ac-faq" data-reveal>
         <div class="ac-faq-inner">
@@ -302,7 +470,65 @@
     </section>
 
     <!-- ═══════════════════════════════════════════════════
-         10. CONTACT SECTION
+         Blob divider 3: FAQ → Feedback
+         ═══════════════════════════════════════════════════ -->
+    <div class="ac-blob-divider ac-blob-divider--3" aria-hidden="true">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,60 C720,0 1440,80 1440,60 L1440,80 L0,80 Z" fill="rgba(255,235,0,0.1)" />
+        </svg>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════
+         11. FEEDBACK WIDGET (Task 11)
+         ═══════════════════════════════════════════════════ -->
+    <section class="ac-feedback" id="feedback" data-reveal>
+        <div class="ac-feedback-inner">
+            <p class="ac-kicker">SHARE YOUR EXPERIENCE</p>
+            <h2>How was your visit?</h2>
+            @if (_feedbackSuccess)
+            {
+                <div class="ac-feedback-success">
+                    <span>⭐</span>
+                    <p>Thank you for your feedback! Your response has been recorded.</p>
+                </div>
+            }
+            else
+            {
+                <div class="ac-feedback-form">
+                    <div class="ac-stars-row" role="group" aria-label="Star rating">
+                        @for (int s = 1; s <= 5; s++)
+                        {
+                            var star = s;
+                            <button type="button"
+                                    class="ac-star-btn @((_feedbackHoverRating > 0 ? star <= _feedbackHoverRating : star <= _feedbackRating) ? "ac-star--lit" : "")"
+                                    @onclick="() => SetFeedbackStar(star)"
+                                    @onmouseenter="() => HoverFeedbackStar(star)"
+                                    @onmouseleave="UnhoverFeedbackStar"
+                                    aria-label="@star star@(star > 1 ? "s" : "")">★</button>
+                        }
+                    </div>
+                    @if (!string.IsNullOrEmpty(_feedbackError))
+                    {
+                        <p class="ac-feedback-error" role="alert">@_feedbackError</p>
+                    }
+                    <textarea class="ac-feedback-textarea"
+                              maxlength="500"
+                              placeholder="Tell us about your experience (optional)..."
+                              @bind="_feedbackComment"
+                              @bind:event="oninput"></textarea>
+                    <p class="ac-char-counter">@FeedbackCharsRemaining characters remaining</p>
+                    <button class="ac-btn-primary" type="button"
+                            disabled="@_feedbackSubmitting"
+                            @onclick="SubmitFeedbackAsync">
+                        @(_feedbackSubmitting ? "Submitting…" : "Submit Feedback →")
+                    </button>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         12. CONTACT SECTION
          ═══════════════════════════════════════════════════ -->
     <section class="ac-contact" id="contact" data-reveal>
         <div class="ac-contact-inner">
@@ -367,7 +593,7 @@
     </section>
 
     <!-- ═══════════════════════════════════════════════════
-         11. FOOTER
+         13. FOOTER
          ═══════════════════════════════════════════════════ -->
     <footer class="ac-footer">
         © @DateTime.Now.Year PROTOUCH Physio - Slimming Clinic
@@ -378,7 +604,7 @@
     </footer>
 
     <!-- ═══════════════════════════════════════════════════
-         12. FLOATING CTA — fixed bottom-right
+         14. FLOATING CTA — fixed bottom-right
          ═══════════════════════════════════════════════════ -->
     <div class="ac-floating-cta" role="complementary" aria-label="Quick actions">
         <a class="ac-float-btn ac-float-wa"
@@ -391,6 +617,16 @@
            aria-label="Book appointment">📅</a>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════
+         15. BACK TO TOP BUTTON (Task 5)
+         ═══════════════════════════════════════════════════ -->
+    <button class="ac-back-to-top" id="ac-back-to-top"
+            type="button"
+            aria-label="Back to top"
+            @onclick='async () => await JS.InvokeVoidAsync("scrollToTop")'>
+        ↑
+    </button>
+
 </div>
 
 @code {
@@ -399,7 +635,6 @@
     private record ServiceCard(string Id, string Number, string Icon, string Name, string Summary, string[] Bullets, string AccentColor, string IconBg);
     private record StatCounter(string CountDisplay, double CountTarget, string Label);
     private record Testimonial(string Quote, string RoleLabel);
-    private record BeforeAfterPair(string Before, string After, string Label);
     private record FaqItem(string Q, string A);
 
     // ── Hero ─────────────────────────────────────────────────
@@ -421,13 +656,57 @@
     private List<ServiceCard> serviceCards = new();
     private List<StatCounter> socialProofStats = new();
     private List<Testimonial> testimonials = new();
-    private List<BeforeAfterPair> beforeAfterPairs = new();
     private List<FaqItem> faqItems = new();
     private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"];
 
-    // ── Kept for backwards compatibility (gallery carousel — data only) ──
+    // ── Kept for backwards compatibility ──────────────────────
     private List<CarouselSlide> carouselSlides = new();
     private int activeSlideIndex = 0;
+
+    // ── Task 5: Navigation ────────────────────────────────────
+    private bool _mobileMenuOpen = false;
+    private void ToggleMobileMenu() => _mobileMenuOpen = !_mobileMenuOpen;
+
+    // ── Task 7: SVG Hotspot Map ───────────────────────────────
+    private string _hoveredHotspot = "";
+
+    // ── Task 8: BMI Estimator ─────────────────────────────────
+    private int    _heightCm    = 0;
+    private double _weightKg    = 0;
+    private string _bmiGoal     = "";
+    private double? _bmiValue   = null;
+    private string  _bmiCategory  = "";
+    private string  _bmiColor     = "";
+    private string  _bmiMessage   = "";
+    private string  _bmiOutcome   = "";
+    private string  _heightError  = "";
+    private string  _weightError  = "";
+    private string  _goalError    = "";
+
+    // ── Task 9: Gallery ───────────────────────────────────────
+    private int  _galleryVisible        = 24;
+    private int  _galleryTotal          = 60;
+    private bool _isLightboxOpen        = false;
+    private int  _selectedLightboxIndex = 0;
+    private bool _lightboxInited        = false;
+
+    private List<string> GalleryImages =>
+        Enumerable.Range(1, _galleryTotal)
+                  .Select(i => $"/images/clinic-gallery/gallery-{i:D2}.jpeg")
+                  .ToList();
+
+    private bool CanLoadMore => _galleryVisible < _galleryTotal;
+
+    // ── Task 11: Feedback Widget ──────────────────────────────
+    private int    _feedbackRating      = 0;
+    private int    _feedbackHoverRating = 0;
+    private string _feedbackComment     = "";
+    private bool   _feedbackSubmitting  = false;
+    private bool   _feedbackSuccess     = false;
+    private string _feedbackError       = "";
+    private const int FeedbackMaxChars  = 500;
+
+    private int FeedbackCharsRemaining => FeedbackMaxChars - _feedbackComment.Length;
 
     // ════════════════════════════════════════════════════════
     // OnInitialized — populate all static data
@@ -474,7 +753,7 @@
             new("10+",     10,  "Years of Experience"),
         };
 
-        // Testimonials (extended set)
+        // Testimonials
         testimonials = new List<Testimonial>
         {
             new("\"Lost 6 kg in the first month without any fasting or medicine — the physiotherapy approach made all the difference.\"",
@@ -487,15 +766,6 @@
                 "Parent — Specialised Program"),
             new("\"The slimming program was completely safe — no side effects, no surgery. Lost 8 kg in just 5 weeks.\"",
                 "Slimming Program Patient"),
-        };
-
-        // Before/After pairs
-        beforeAfterPairs = new List<BeforeAfterPair>
-        {
-            new("/images/clinic-gallery/gallery-03.jpeg", "/images/clinic-gallery/gallery-06.jpeg", "Weight Loss - 4 weeks"),
-            new("/images/clinic-gallery/gallery-09.jpeg", "/images/clinic-gallery/gallery-12.jpeg", "Physiotherapy Recovery"),
-            new("/images/clinic-gallery/gallery-15.jpeg", "/images/clinic-gallery/gallery-19.jpeg", "Body Contouring"),
-            new("/images/clinic-gallery/gallery-24.jpeg", "/images/clinic-gallery/gallery-26.jpeg", "Slimming Program"),
         };
 
         // FAQ items
@@ -515,7 +785,7 @@
                 "Yes, the height increase program is available up to 23 years of age with potential growth of 1–3 inches. Results vary by individual; a consultation with Dr. Manjari will determine suitability."),
         };
 
-        // Gallery carousel (kept for backwards-compat — not rendered on new page)
+        // Gallery carousel (kept for backwards-compat)
         carouselSlides = new List<CarouselSlide>
         {
             new("/images/clinic-gallery/gallery-03.jpeg", "ProTouch Physio Clinic"),
@@ -556,7 +826,12 @@
         try { await JS.InvokeVoidAsync("initStickyHeader", "#ac-header"); } catch { }
         try { await JS.InvokeVoidAsync("initScrollReveal"); } catch { }
         try { await JS.InvokeVoidAsync("initGuaranteeTicker"); } catch { }
-        try { await JS.InvokeVoidAsync("initBeforeAfterSliders", "[data-ba]"); } catch { }
+        // Task 5 additions
+        try { await JS.InvokeVoidAsync("initActiveNavHighlight"); } catch { }
+        try { await JS.InvokeVoidAsync("initBackToTop"); } catch { }
+        // Task 9: Gallery lightbox ESC key handler
+        try { await JS.InvokeVoidAsync("initGalleryLightbox", DotNetObjectReference.Create(this)); } catch { }
+        _lightboxInited = true;
     }
 
     // ════════════════════════════════════════════════════════
@@ -606,6 +881,150 @@
     {
         activeSlideIndex = index;
         StateHasChanged();
+    }
+
+    // ════════════════════════════════════════════════════════
+    // Task 9: Gallery Grid methods
+    // ════════════════════════════════════════════════════════
+    private void LoadMoreGallery()
+    {
+        _galleryVisible = Math.Min(_galleryVisible + 12, _galleryTotal);
+    }
+
+    private void OpenLightbox(int index)
+    {
+        _selectedLightboxIndex = index;
+        _isLightboxOpen = true;
+    }
+
+    [Microsoft.JSInterop.JSInvokable]
+    public void CloseLightbox()
+    {
+        _isLightboxOpen = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void LightboxNext()
+    {
+        _selectedLightboxIndex = (_selectedLightboxIndex + 1) % _galleryVisible;
+    }
+
+    private void LightboxPrev()
+    {
+        _selectedLightboxIndex = (_selectedLightboxIndex - 1 + _galleryVisible) % _galleryVisible;
+    }
+
+    // ════════════════════════════════════════════════════════
+    // Task 8: BMI Estimator
+    // ════════════════════════════════════════════════════════
+    private void ComputeBmi()
+    {
+        _heightError = _weightError = _goalError = "";
+        _bmiValue = null;
+
+        bool valid = true;
+        if (_heightCm < 100 || _heightCm > 250)
+        { _heightError = "Height must be between 100 and 250 cm."; valid = false; }
+        if (_weightKg < 20 || _weightKg > 300)
+        { _weightError = "Weight must be between 20 and 300 kg."; valid = false; }
+        if (string.IsNullOrWhiteSpace(_bmiGoal))
+        { _goalError = "Please select a wellness goal."; valid = false; }
+        if (!valid) return;
+
+        double h = _heightCm / 100.0;
+        double bmi = Math.Round(_weightKg / (h * h), 1);
+        _bmiValue = bmi;
+
+        (_bmiCategory, _bmiColor) = bmi < 18.5
+            ? ("Underweight", "#7c1b68")
+            : bmi < 25.0
+                ? ("Normal", "#008d36")
+                : bmi < 30.0
+                    ? ("Overweight", "#ffeb00")
+                    : ("Obese", "#e52321");
+
+        _bmiMessage = WellnessMessageMap
+            .GetValueOrDefault(_bmiCategory, new())
+            .GetValueOrDefault(_bmiGoal, "Your health journey starts here. Book a consultation today.");
+
+        _bmiOutcome = OutcomeMap.GetValueOrDefault(_bmiGoal,
+            "Based on your profile, Dr. Manjari will design a personalised plan for you.");
+    }
+
+    private static readonly System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>> WellnessMessageMap = new()
+    {
+        ["Underweight"] = new()
+        {
+            ["Weight Loss"]                      = "Your BMI indicates you are underweight. Dr. Manjari recommends a tailored nutrition and strength plan before pursuing weight loss goals.",
+            ["Inch Loss"]                        = "Inch loss at your current BMI requires careful guidance. Dr. Manjari will design a safe programme that builds lean mass.",
+            ["Physiotherapy / Pain Relief"]      = "Even at a lower BMI, physiotherapy can address pain effectively. Let's start with a full assessment.",
+            ["Yoga & Wellness"]                  = "Yoga is an excellent way to build strength and balance at your BMI. Dr. Manjari's nature-cure approach will support your overall wellness.",
+            ["Height Increase"]                  = "A structured growth programme may help. Dr. Manjari specialises in height increase programmes for those up to 23 years of age.",
+        },
+        ["Normal"] = new()
+        {
+            ["Weight Loss"]                      = "Your BMI is in the healthy range — ideal for a targeted toning and inch-loss programme. Dr. Manjari can help you sculpt and maintain.",
+            ["Inch Loss"]                        = "With a healthy BMI, inch loss is achievable quickly. Dr. Manjari's body-contouring techniques can deliver visible results from session one.",
+            ["Physiotherapy / Pain Relief"]      = "A healthy BMI supports faster recovery. Dr. Manjari's physiotherapy plans are designed to resolve pain and restore full mobility.",
+            ["Yoga & Wellness"]                  = "You are in great shape to benefit from an advanced yoga wellness plan. Dr. Manjari will help you reach peak vitality.",
+            ["Height Increase"]                  = "Excellent baseline health. Dr. Manjari's specialised growth programme can be started immediately.",
+        },
+        ["Overweight"] = new()
+        {
+            ["Weight Loss"]                      = "Your BMI indicates room to shed excess weight safely. Dr. Manjari's 4–8 kg/month programme — no fasting, no medicine — is designed exactly for your profile.",
+            ["Inch Loss"]                        = "Targeted inch loss is very effective at your BMI. Expect visible waist and hip reduction within the first few sessions.",
+            ["Physiotherapy / Pain Relief"]      = "Excess weight often strains joints. Dr. Manjari will combine physiotherapy with a supervised weight-management plan for lasting relief.",
+            ["Yoga & Wellness"]                  = "Yoga combined with Dr. Manjari's dietary guidance is a powerful tool for bringing your BMI back to the healthy range.",
+            ["Height Increase"]                  = "Healthy weight management supports posture and height. Dr. Manjari will assess suitability during your consultation.",
+        },
+        ["Obese"] = new()
+        {
+            ["Weight Loss"]                      = "Significant, safe weight loss is within reach. Dr. Manjari's medically supervised programme combines physiotherapy and slimming for sustainable results.",
+            ["Inch Loss"]                        = "You can start seeing inch loss immediately. Dr. Manjari's targeted body-contouring approach shows results from the very first session.",
+            ["Physiotherapy / Pain Relief"]      = "Pain management and weight reduction go hand in hand. Dr. Manjari will prioritise pain relief while guiding you toward a healthier weight.",
+            ["Yoga & Wellness"]                  = "Dr. Manjari's gentle, adapted yoga programme is designed to be safe and effective at all BMI levels.",
+            ["Height Increase"]                  = "A consultation with Dr. Manjari will determine the best integrated plan for your specific goals.",
+        },
+    };
+
+    private static readonly Dictionary<string, string> OutcomeMap = new()
+    {
+        ["Weight Loss"]                 = "Based on your profile, you could achieve 4–8 kg weight loss in your first month with Dr. Manjari's programme.",
+        ["Inch Loss"]                   = "Based on your profile, expect 2–5 inches of targeted reduction per session with Dr. Manjari's body-contouring plan.",
+        ["Physiotherapy / Pain Relief"] = "Based on your profile, most patients experience significant pain relief within 2–4 physiotherapy sessions.",
+        ["Yoga & Wellness"]             = "Based on your profile, a personalised 12-session yoga plan with Dr. Manjari will improve energy, flexibility and metabolic balance.",
+        ["Height Increase"]             = "Based on your profile and age, Dr. Manjari's height-increase programme may help you gain 1–3 inches with a dedicated plan.",
+    };
+
+    // ════════════════════════════════════════════════════════
+    // Task 11: Feedback Widget
+    // ════════════════════════════════════════════════════════
+    private void SetFeedbackStar(int star)   => _feedbackRating = star;
+    private void HoverFeedbackStar(int star) => _feedbackHoverRating = star;
+    private void UnhoverFeedbackStar()       => _feedbackHoverRating = 0;
+
+    private async Task SubmitFeedbackAsync()
+    {
+        _feedbackError = "";
+        if (_feedbackRating == 0)
+        {
+            _feedbackError = "Please select a star rating before submitting.";
+            return;
+        }
+        _feedbackSubmitting = true;
+        try
+        {
+            await ClinicService.SaveFeedbackAsync(_feedbackRating, _feedbackComment);
+            _feedbackSuccess = true;
+        }
+        catch
+        {
+            _feedbackError = "Unable to save your feedback. Please try again.";
+        }
+        finally
+        {
+            _feedbackSubmitting = false;
+        }
     }
 
     // ════════════════════════════════════════════════════════

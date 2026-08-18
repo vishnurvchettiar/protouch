@@ -397,6 +397,27 @@ namespace ClinicApp.Migrations
                     b.ToTable("Settings");
                 });
 
+            modelBuilder.Entity("ClinicApp.Data.SiteFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SiteFeedbacks");
+                });
+
             modelBuilder.Entity("ClinicApp.Data.WhatsAppLog", b =>
                 {
                     b.Property<int>("Id")

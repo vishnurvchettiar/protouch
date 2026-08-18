@@ -439,3 +439,101 @@ window.destroyAestheticAnimations = function () {
         window._stickyBarObserver = null;
     }
 };
+
+
+
+// ═══════════════════════════════════════════════════════════
+// HOMEPAGE ENHANCEMENT — append-only JS functions
+// Never modifying existing functions above.
+// ═══════════════════════════════════════════════════════════
+
+// ── initBackToTop ──────────────────────────────────────────
+// Shows/hides Back-to-Top button after user scrolls 400px.
+window.initBackToTop = function () {
+    var btn = document.getElementById('ac-back-to-top');
+    if (!btn) return;
+    function handler() {
+        btn.classList.toggle('ac-back-to-top--visible', window.scrollY > 400);
+    }
+    handler();
+    window.addEventListener('scroll', handler, { passive: true });
+    window._backToTopHandler = handler;
+};
+
+// ── scrollToTop ────────────────────────────────────────────
+// Smooth scrolls to page top. Called from Blazor onclick.
+window.scrollToTop = function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// ── initActiveNavHighlight ─────────────────────────────────
+// IntersectionObserver: adds ac-nav--active to nav link of
+// the section currently occupying > 50% of the viewport.
+window.initActiveNavHighlight = function () {
+    if (window._navHighlightObserver) return; // idempotency guard
+    var sections = document.querySelectorAll('.ac-page section[id]');
+    var navLinks = document.querySelectorAll('.ac-nav a[href^="#"]');
+    if (!sections.length || !navLinks.length) return;
+
+    window._navHighlightObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                navLinks.forEach(function (l) { l.classList.remove('ac-nav--active'); });
+                var link = document.querySelector('.ac-nav a[href="#' + entry.target.id + '"]');
+                if (link) link.classList.add('ac-nav--active');
+            }
+        });
+    }, { threshold: 0.5 });
+
+    sections.forEach(function (s) { window._navHighlightObserver.observe(s); });
+};
+
+// ── smoothScrollTo ─────────────────────────────────────────
+// Smooth scroll to a CSS selector target.
+window.smoothScrollTo = function (selector) {
+    var el = document.querySelector(selector);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+// ── initGalleryLightbox ────────────────────────────────────
+// Registers a keydown ESC listener that calls Blazor
+// CloseLightbox() on the provided DotNetObjectReference.
+window.initGalleryLightbox = function (dotNetRef) {
+    // Remove any previous listener first
+    if (window._galleryEscHandler) {
+        document.removeEventListener('keydown', window._galleryEscHandler);
+    }
+    window._galleryEscHandler = function (e) {
+        if (e.key === 'Escape') {
+            try { dotNetRef.invokeMethodAsync('CloseLightbox'); } catch (_) {}
+        }
+    };
+    document.addEventListener('keydown', window._galleryEscHandler);
+};
+
+// ── destroyAestheticAnimations (updated) ──────────────────
+// Extends the existing function to also clean up new listeners.
+(function () {
+    var _prev = window.destroyAestheticAnimations;
+    window.destroyAestheticAnimations = function () {
+        if (_prev) _prev();
+
+        // Back-to-top listener
+        if (window._backToTopHandler) {
+            window.removeEventListener('scroll', window._backToTopHandler);
+            window._backToTopHandler = null;
+        }
+
+        // Nav highlight observer
+        if (window._navHighlightObserver) {
+            window._navHighlightObserver.disconnect();
+            window._navHighlightObserver = null;
+        }
+
+        // Gallery ESC listener
+        if (window._galleryEscHandler) {
+            document.removeEventListener('keydown', window._galleryEscHandler);
+            window._galleryEscHandler = null;
+        }
+    };
+})();
