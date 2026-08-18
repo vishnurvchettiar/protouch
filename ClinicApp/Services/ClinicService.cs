@@ -1094,4 +1094,55 @@ public class ClinicService
         _db.WhatsAppLogs.Add(log);
         await _db.SaveChangesAsync();
     }
+
+    // ==========================================
+    // Feedback methods (homepage-enhancement spec)
+    // ==========================================
+
+    /// <summary>
+    /// Validates rating [1–5], trims comment, sets SubmittedAt to UTC, persists, returns entity.
+    /// </summary>
+    public async Task<SiteFeedback> SaveFeedbackAsync(int rating, string? comment)
+    {
+        if (rating < 1 || rating > 5)
+            throw new ArgumentOutOfRangeException(nameof(rating), "Rating must be between 1 and 5.");
+
+        var trimmed = comment?.Trim();
+        if (trimmed?.Length > 500)
+            throw new ArgumentException("Comment must not exceed 500 characters.", nameof(comment));
+
+        var entity = new SiteFeedback
+        {
+            Rating = rating,
+            Comment = string.IsNullOrWhiteSpace(trimmed) ? null : trimmed,
+            SubmittedAt = DateTime.UtcNow
+        };
+        _db.SiteFeedbacks.Add(entity);
+        await _db.SaveChangesAsync();
+        return entity;
+    }
+
+    /// <summary>
+    /// Returns a page of feedback records ordered by SubmittedAt descending.
+    /// </summary>
+    public async Task<List<SiteFeedback>> GetFeedbackAsync(int page = 1, int pageSize = 20)
+    {
+        return await _db.SiteFeedbacks
+            .OrderByDescending(f => f.SubmittedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Removes a feedback record by PK; throws KeyNotFoundException if not found.
+    /// </summary>
+    public async Task DeleteFeedbackAsync(int id)
+    {
+        var entity = await _db.SiteFeedbacks.FindAsync(id);
+        if (entity == null)
+            throw new KeyNotFoundException($"SiteFeedback with Id {id} was not found.");
+        _db.SiteFeedbacks.Remove(entity);
+        await _db.SaveChangesAsync();
+    }
 }

@@ -24,6 +24,7 @@
         <button class="btn @(activeTab == "mealreview" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => SwitchToMealReview()'>Meal Review</button>
         <button class="btn @(activeTab == "bookings" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => SwitchToBookings()'>Bookings @(pendingBookingsCount > 0 ? $"({pendingBookingsCount})" : "")</button>
         <button class="btn @(activeTab == "whatsapp" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "whatsapp"'>WhatsApp Center</button>
+        <button class="btn @(activeTab == "feedback" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => SwitchToFeedback()'>Feedback</button>
         <button class="btn @(activeTab == "settings" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "settings"'>Settings</button>
     </div>
 
@@ -456,12 +457,102 @@
             </div>
         </div>
     }
+    else if (activeTab == "feedback")
+    {
+        <div class="glass-panel p-4">
+            <div class="section-heading">
+                <div><span class="eyebrow">PATIENT FEEDBACK</span><h3>Feedback Management</h3></div>
+            </div>
+
+            <!-- Summary stats -->
+            @if (_feedbackList.Any())
+            {
+                <div class="pt-feedback-stats d-flex flex-wrap gap-3 mb-4">
+                    <span class="soft-pill">Total: <strong>@_feedbackTotal</strong></span>
+                    <span class="soft-pill">Average: <strong>@_feedbackAvgRating ★</strong></span>
+                    @foreach (var r in Enumerable.Range(1, 5))
+                    {
+                        <span class="soft-pill">@r★: <strong>@_feedbackPerStar[r]</strong></span>
+                    }
+                </div>
+            }
+
+            <!-- Star filter -->
+            <div class="mb-3">
+                <label class="clinic-label">Filter by star rating</label>
+                <select class="clinic-input" style="width:auto;"
+                        value="@(_feedbackStarFilter?.ToString() ?? "")"
+                        @onchange="(e) => _feedbackStarFilter = string.IsNullOrEmpty(e.Value?.ToString()) ? (int?)null : int.Parse(e.Value.ToString()!)">
+                    <option value="">All</option>
+                    @foreach (var r in Enumerable.Range(1, 5))
+                    {
+                        <option value="@r">@r ★</option>
+                    }
+                </select>
+            </div>
+
+            @if (!_feedbackList.Any())
+            {
+                <div class="empty-state">No feedback submitted yet.</div>
+            }
+            else
+            {
+                <div class="clinic-table-container">
+                    <table class="clinic-table">
+                        <thead>
+                            <tr>
+                                <th>Date / Time (IST)</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in FilteredFeedback)
+                            {
+                                <tr>
+                                    <td>@TimeZoneInfo.ConvertTimeFromUtc(f.SubmittedAt, GetIst()).ToString("dd MMM yyyy, hh:mm tt")</td>
+                                    <td>@(new string('★', f.Rating))</td>
+                                    <td>
+                                        @if (f.Comment?.Length > 100 && !_feedbackExpandedIds.Contains(f.Id))
+                                        {
+                                            @f.Comment[..100]<text>… </text>
+                                            <button type="button" class="btn-link" @onclick="() => ToggleFeedbackExpand(f.Id)">Show more</button>
+                                        }
+                                        else if (f.Comment?.Length > 100 && _feedbackExpandedIds.Contains(f.Id))
+                                        {
+                                            @f.Comment
+                                            <button type="button" class="btn-link" @onclick="() => ToggleFeedbackExpand(f.Id)">Show less</button>
+                                        }
+                                        else
+                                        {
+                                            @f.Comment
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (_feedbackDeleteId == f.Id)
+                                        {
+                                            <span>Confirm? </span>
+                                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDeleteFeedback(f.Id)">Yes</button>
+                                            <button class="btn btn-sm btn-clinic-secondary" @onclick="() => _feedbackDeleteId = null">No</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => _feedbackDeleteId = f.Id">Delete</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
     else if (activeTab == "settings")
     {
         <div class="glass-panel p-4">
             <div class="section-heading"><div><span class="eyebrow">CONFIGURATION</span><h3>WhatsApp Settings</h3></div></div>
-
-            <!-- Mode Toggle -->
             <div class="mb-4">
                 <label class="clinic-label">WhatsApp Mode</label>
                 <div class="d-flex gap-2">
@@ -849,6 +940,54 @@
     private async Task SwitchToMealReview() { activeTab = "mealreview"; mealPage = 1; await LoadMealLogs(); }
     private async Task SwitchToBookings() { activeTab = "bookings"; allBookings = await ClinicService.GetAllBookingRequestsAsync(); }
     private async Task LoadMealLogs() { mealLogs = await ClinicService.GetAllMealLogsAsync(mealPage); StateHasChanged(); }
+
+    // ── Task 12: Feedback tab ─────────────────────────────────
+    private List<SiteFeedback> _feedbackList      = new();
+    private int                _feedbackPage      = 1;
+    private const int          FeedbackPageSize   = 20;
+    private int?               _feedbackStarFilter = null;
+    private int?               _feedbackDeleteId   = null;
+    private HashSet<int>       _feedbackExpandedIds = new();
+
+    private int _feedbackTotal => _feedbackList.Count;
+    private double _feedbackAvgRating => _feedbackTotal == 0 ? 0 : Math.Round(_feedbackList.Average(f => f.Rating), 1);
+    private Dictionary<int, int> _feedbackPerStar =>
+        Enumerable.Range(1, 5).ToDictionary(r => r, r => _feedbackList.Count(f => f.Rating == r));
+
+    private IEnumerable<SiteFeedback> FilteredFeedback =>
+        (_feedbackStarFilter.HasValue
+            ? _feedbackList.Where(f => f.Rating == _feedbackStarFilter.Value)
+            : _feedbackList)
+        .Skip((_feedbackPage - 1) * FeedbackPageSize)
+        .Take(FeedbackPageSize);
+
+    private async Task SwitchToFeedback()
+    {
+        activeTab = "feedback";
+        _feedbackList = await ClinicService.GetFeedbackAsync(1, 1000);
+    }
+
+    private async Task ConfirmDeleteFeedback(int id)
+    {
+        try
+        {
+            await ClinicService.DeleteFeedbackAsync(id);
+            _feedbackList.RemoveAll(f => f.Id == id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete feedback {Id}", id);
+        }
+        _feedbackDeleteId = null;
+    }
+
+    private void ToggleFeedbackExpand(int id)
+    {
+        if (_feedbackExpandedIds.Contains(id))
+            _feedbackExpandedIds.Remove(id);
+        else
+            _feedbackExpandedIds.Add(id);
+    }
     private async Task PrevMealPage() { if (mealPage > 1) { mealPage--; await LoadMealLogs(); } }
     private async Task NextMealPage() { mealPage++; await LoadMealLogs(); }
 

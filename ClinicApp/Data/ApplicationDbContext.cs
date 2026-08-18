@@ -20,5 +20,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     // Public booking requests from the /book page
     public DbSet<BookingRequest> BookingRequests { get; set; }
+
+    // Patient feedback from the homepage feedback widget
+    public DbSet<SiteFeedback> SiteFeedbacks { get; set; }
 }
 
