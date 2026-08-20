@@ -70,50 +70,50 @@
 }
 .pt-btn-primary {
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--pt-primary); color: var(--pt-white);
+  background: var(--pt-primary) !important; color: #ffffff !important;
   font-family: var(--pt-font-body); font-weight: 600; font-size: var(--pt-text-base);
   padding: 0.75rem 1.75rem; border-radius: 8px; border: none; cursor: pointer;
   transition: background var(--pt-trans-med), transform var(--pt-trans-fast), box-shadow var(--pt-trans-med);
-  text-decoration: none; white-space: nowrap;
+  text-decoration: none !important; white-space: nowrap;
 }
-.pt-btn-primary:hover { background: #007a2f; color: var(--pt-white); transform: translateY(-2px); box-shadow: var(--pt-shadow-hover); }
+.pt-btn-primary:hover { background: #007a2f !important; color: #ffffff !important; transform: translateY(-2px); box-shadow: var(--pt-shadow-hover); }
 .pt-btn-ghost {
   display: inline-flex; align-items: center; justify-content: center;
-  background: transparent; color: var(--pt-primary);
+  background: transparent; color: var(--pt-primary) !important;
   font-family: var(--pt-font-body); font-weight: 600; font-size: var(--pt-text-base);
   padding: 0.75rem 1.75rem; border-radius: 8px; border: 2px solid var(--pt-primary);
-  cursor: pointer; transition: all var(--pt-trans-med); text-decoration: none;
+  cursor: pointer; transition: all var(--pt-trans-med); text-decoration: none !important;
 }
-.pt-btn-ghost:hover { background: var(--pt-primary); color: var(--pt-white); }
+.pt-btn-ghost:hover { background: var(--pt-primary); color: #ffffff !important; }
 .pt-btn-inverse {
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--pt-white); color: var(--pt-primary);
+  background: #ffffff !important; color: var(--pt-primary) !important;
   font-family: var(--pt-font-body); font-weight: 700; font-size: var(--pt-text-base);
   padding: 0.75rem 2rem; border-radius: 8px; border: none; cursor: pointer;
-  transition: all var(--pt-trans-med); text-decoration: none; white-space: nowrap;
+  transition: all var(--pt-trans-med); text-decoration: none !important; white-space: nowrap;
 }
-.pt-btn-inverse:hover { background: var(--pt-cta-bg); color: var(--pt-primary); }
-.pt-link { color: var(--pt-primary); font-weight: 600; text-decoration: underline; }
+.pt-btn-inverse:hover { background: var(--pt-cta-bg) !important; color: var(--pt-primary) !important; }
+.pt-link { color: var(--pt-primary) !important; font-weight: 600; text-decoration: underline !important; }
 
 /* ── 3. Header ────────────────────────────────────────────── */
 .pt-header {
   position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 1.25rem 3rem;
-  background: transparent;
-  color: var(--pt-white);
-  transition: background-color var(--pt-trans-med), box-shadow var(--pt-trans-med), color var(--pt-trans-med);
-}
-.pt-header.ac-header--scrolled {
+  padding: 1rem 3rem;
   background: var(--pt-white);
   color: var(--pt-heading);
-  box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  transition: box-shadow var(--pt-trans-med);
+}
+.pt-header.ac-header--scrolled {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
 }
 .pt-logo img { height: 48px; width: auto; object-fit: contain; }
 .pt-nav { display: flex; align-items: center; gap: 2rem; }
 .pt-nav a {
   font-family: var(--pt-font-body); font-weight: 500; font-size: var(--pt-text-base);
-  color: inherit; text-decoration: none; transition: color var(--pt-trans-fast);
+  color: var(--pt-heading); text-decoration: none; transition: color var(--pt-trans-fast);
   position: relative; padding-bottom: 2px;
 }
 .pt-nav a::after {
@@ -126,7 +126,7 @@
 .pt-header-actions { display: flex; align-items: center; gap: 1rem; }
 .pt-header .ac-login-btn {
   font-family: var(--pt-font-body); font-weight: 500; font-size: var(--pt-text-sm);
-  color: inherit; text-decoration: none; opacity: 0.8;
+  color: var(--pt-text); text-decoration: none;
 }
 .pt-header .ac-login-btn:hover { opacity: 1; }
 .pt-hamburger {
@@ -193,12 +193,12 @@
 .pt-stat-divider { width: 1px; height: 40px; background: var(--pt-mint); }
 .pt-hero-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .pt-hero-link {
-  font-family: var(--pt-font-body); font-weight: 600; color: var(--pt-primary);
-  font-size: var(--pt-text-base); text-decoration: none;
+  font-family: var(--pt-font-body); font-weight: 600; color: var(--pt-primary) !important;
+  font-size: var(--pt-text-base); text-decoration: none !important;
   display: inline-flex; align-items: center; gap: 0.25rem;
   transition: gap var(--pt-trans-fast);
 }
-.pt-hero-link:hover { gap: 0.5rem; color: var(--pt-primary); }
+.pt-hero-link:hover { gap: 0.5rem; color: var(--pt-primary) !important; text-decoration: none !important; }
 
 .pt-hero-right { position: relative; overflow: hidden; }
 .pt-hero-slide {
@@ -232,7 +232,7 @@
 }
 .pt-banner-text {
   font-family: var(--pt-font-heading); font-size: var(--pt-text-xl);
-  font-weight: 600; color: var(--pt-white);
+  font-weight: 600; color: #ffffff !important;
 }
 
 /* ── 6. Body Parts ────────────────────────────────────────── */
@@ -259,7 +259,7 @@
 }
 .pt-bp-tab:hover { color: var(--pt-primary); background: rgba(0,141,54,0.04); }
 .pt-bp-tab--active {
-  color: var(--pt-primary); font-weight: 600;
+  color: var(--pt-primary) !important; font-weight: 600;
   border-bottom-color: var(--pt-primary);
   background: rgba(0,141,54,0.06);
 }
@@ -306,10 +306,10 @@
 .pt-svc-link {
   display: inline-flex; align-items: center; gap: 0.25rem;
   font-family: var(--pt-font-body); font-weight: 600; font-size: var(--pt-text-sm);
-  color: var(--svc-accent, var(--pt-primary)); text-decoration: none;
+  color: var(--svc-accent, var(--pt-primary)) !important; text-decoration: none !important;
   transition: gap var(--pt-trans-fast);
 }
-.pt-svc-link:hover { gap: 0.5rem; color: var(--svc-accent, var(--pt-primary)); }
+.pt-svc-link:hover { gap: 0.5rem; color: var(--svc-accent, var(--pt-primary)) !important; }
 
 /* ── 8. How It Works ──────────────────────────────────────── */
 .pt-how-it-works { padding: var(--pt-section-v) 5rem; background: var(--pt-surface); }
@@ -344,8 +344,8 @@
   max-width: 1200px; margin: 0 auto;
   display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
 }
-.pt-dark-cta-copy h2 { color: var(--pt-white); font-size: var(--pt-text-4xl); margin-bottom: 1rem; }
-.pt-dark-cta-copy p { color: rgba(255,255,255,0.75); font-size: var(--pt-text-lg); line-height: 1.7; margin-bottom: 2rem; }
+.pt-dark-cta-copy h2 { color: #ffffff; font-size: var(--pt-text-4xl); margin-bottom: 1rem; }
+.pt-dark-cta-copy p { color: rgba(255,255,255,0.8); font-size: var(--pt-text-lg); line-height: 1.7; margin-bottom: 2rem; }
 .pt-dark-stats { display: grid; grid-template-columns: repeat(2,1fr); gap: 2rem; }
 .pt-dark-stat {
   background: rgba(255,255,255,0.07); border-radius: 12px;
@@ -437,10 +437,10 @@
   display: block; margin: 0 auto;
   font-family: var(--pt-font-body); font-weight: 600; font-size: var(--pt-text-base);
   padding: 0.75rem 2.5rem; background: transparent;
-  border: 2px solid var(--pt-primary); color: var(--pt-primary);
+  border: 2px solid var(--pt-primary); color: var(--pt-primary) !important;
   border-radius: 8px; cursor: pointer; transition: all var(--pt-trans-med);
 }
-.pt-load-more:hover { background: var(--pt-primary); color: var(--pt-white); }
+.pt-load-more:hover { background: var(--pt-primary) !important; color: #ffffff !important; }
 .pt-lightbox {
   position: fixed; inset: 0; z-index: 2000;
   background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center;
@@ -548,9 +548,9 @@
   max-width: 1200px; margin: 0 auto;
   display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;
 }
-.pt-contact-left h2 { color: var(--pt-white); margin-bottom: 1rem; }
+.pt-contact-left h2 { color: #ffffff; margin-bottom: 1rem; }
 .pt-contact-left .pt-kicker { color: var(--pt-mint); }
-.pt-contact-left > p { color: rgba(255,255,255,0.75); font-size: var(--pt-text-lg); margin-bottom: 2rem; }
+.pt-contact-left > p { color: rgba(255,255,255,0.8); font-size: var(--pt-text-lg); margin-bottom: 2rem; }
 .pt-contact-actions { display: flex; flex-wrap: wrap; gap: 1rem; }
 .pt-contact-right .pt-contact-details { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 1.5rem; }
 .pt-contact-detail-item {
