@@ -537,3 +537,84 @@ window.initGalleryLightbox = function (dotNetRef) {
         }
     };
 })();
+
+
+
+
+// ═══════════════════════════════════════════════════════════
+// HOMEPAGE PERFORMANCE ENHANCEMENTS — append-only JS functions
+// ═══════════════════════════════════════════════════════════
+
+// ── Task 2: initTestiObserver ──────────────────────────────
+// Uses IntersectionObserver on .ac-testimonials to start/stop a
+// setInterval(6000ms) that calls dotNetRef.invokeMethodAsync('AdvanceTesti').
+// Interval is cleared when section leaves viewport → zero CPU off-screen.
+window.initTestiObserver = function (dotNetRef) {
+    if (window._testiObserver) return; // idempotency guard
+
+    var section = document.querySelector('.ac-testimonials');
+    if (!section) return;
+
+    var intervalId = null;
+
+    function startInterval() {
+        if (intervalId) return;
+        intervalId = setInterval(function () {
+            try { dotNetRef.invokeMethodAsync('AdvanceTesti'); } catch (_) {}
+        }, 6000);
+    }
+
+    function stopInterval() {
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+    }
+
+    window._testiObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                startInterval();
+            } else {
+                stopInterval();
+            }
+        });
+    }, { threshold: 0.1 });
+
+    window._testiObserver.observe(section);
+    window._testiIntervalId = null; // reference held inside closure
+    window._testiStopInterval = stopInterval;
+};
+
+// ── Task 2: destroyTestiObserver ───────────────────────────
+window.destroyTestiObserver = function () {
+    if (window._testiObserver) {
+        window._testiObserver.disconnect();
+        window._testiObserver = null;
+    }
+    if (window._testiStopInterval) {
+        window._testiStopInterval();
+        window._testiStopInterval = null;
+    }
+};
+
+
+
+// ── Task 8: scheduleDeferredInit_home ─────────────────────
+// Uses requestIdleCallback (Chrome/Edge) or setTimeout fallback (Safari/Firefox)
+// to defer non-critical JS initialisations until after first paint.
+window.scheduleDeferredInit_home = function () {
+    function runDeferred() {
+        try { window.initScrollReveal(); }     catch (_) {}
+        try { window.initGuaranteeTicker(); }  catch (_) {}
+        try { window.initBackToTop(); }        catch (_) {}
+        try { window.initActiveNavHighlight(); } catch (_) {}
+    }
+
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(runDeferred, { timeout: 2000 });
+    } else {
+        // Fallback for Safari / Firefox
+        setTimeout(runDeferred, 200);
+    }
+};
