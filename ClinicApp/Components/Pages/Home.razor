@@ -2,7 +2,6 @@
 @layout PublicLayout
 @rendermode InteractiveServer
 @implements IAsyncDisposable
-@using System.IO
 @inject IJSRuntime JS
 @inject ClinicApp.Services.ClinicService ClinicService
 
@@ -13,12 +12,9 @@
     <!-- ═══════════════════════ HEADER ═══════════════════════ -->
     <header class="pt-header" id="pt-header">
         <a href="#top" class="pt-logo">
-            <picture>
-                <source srcset="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.webp" type="image/webp" />
-                <img src="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg"
+                                    <img src="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg"
                      alt="ProTouch Physio - Slimming Clinic" width="160" height="48"
                      onerror="this.style.display='none'" />
-            </picture>
         </a>
         <nav class="pt-nav ac-nav" role="navigation" aria-label="Main navigation">
             <a href="#services">Services</a>
@@ -87,13 +83,10 @@
                 var idx = i;
                 var slideClass = idx == 0 ? "pt-hero-slide--1" : idx == 1 ? "pt-hero-slide--2" : "pt-hero-slide--3";
                 <div class="pt-hero-slide @slideClass">
-                    <picture>
-                        <source srcset="@Path.ChangeExtension(heroImages[idx], ".webp")" type="image/webp" />
-                        <img src="@heroImages[idx]" alt="ProTouch Clinic"
+<img src="@heroImages[idx]" alt="ProTouch Clinic"
                              loading="@(idx == 0 ? "eager" : "lazy")"
                              fetchpriority="@(idx == 0 ? "high" : "auto")"
                              onerror="this.style.display='none'" />
-                    </picture>
                 </div>
             }
             <div class="pt-hero-overlay-strip"></div>
@@ -136,11 +129,8 @@
                     <a class="pt-btn-primary" href="/book">Book Treatment →</a>
                 </div>
                 <div class="pt-bp-panel-right" aria-hidden="true">
-                    <picture>
-                        <source srcset="@Path.ChangeExtension(bpImg, ".webp")" type="image/webp" />
-                        <img src="@bpImg" alt="@activeBpTab.Label" loading="lazy"
+<img src="@bpImg" alt="@activeBpTab.Label" loading="lazy"
                              onerror="this.style.display='none'" />
-                    </picture>
                 </div>
             </div>
         </div>
@@ -165,13 +155,10 @@
                 var svcImg = $"/images/clinic-gallery/gallery-{svcImgNum:D2}.jpeg";
                 <div class="pt-svc-card" style="--svc-accent: @svc.AccentColor">
                     <div class="pt-svc-card-img">
-                        <picture>
-                            <source srcset="@Path.ChangeExtension(svcImg, ".webp")" type="image/webp" />
-                            <img src="@svcImg" alt="@svc.Name"
+<img src="@svcImg" alt="@svc.Name"
                                  loading="@(isSvcFirst ? "eager" : "lazy")"
                                  fetchpriority="@(isSvcFirst ? "high" : "auto")"
                                  onerror="this.style.display='none'" />
-                        </picture>
                     </div>
                     <div class="pt-svc-card-body">
                         <h3>@svc.Name</h3>
@@ -242,12 +229,9 @@
                 <!-- Primary: Dr. Manjari -->
                 <div class="pt-specialist-card pt-specialist-card--primary">
                     <div class="pt-specialist-photo">
-                        <picture>
-                            <source srcset="/images/clinic-gallery/gallery-27.webp" type="image/webp" />
-                            <img src="/images/clinic-gallery/gallery-27.jpeg"
+                                                <img src="/images/clinic-gallery/gallery-27.jpeg"
                                  alt="Dr. Manjari — Physiotherapist &amp; Slimming Expert"
                                  loading="lazy" onerror="this.style.display='none'" />
-                        </picture>
                     </div>
                     <div class="pt-specialist-body">
                         <h3>Dr. Manjari</h3>
@@ -345,13 +329,10 @@
             {
                 var idx = i;
                 <div class="pt-gallery-item" @onclick="() => OpenLightbox(idx)">
-                    <picture>
-                        <source srcset="@Path.ChangeExtension(GalleryImages[idx], ".webp")" type="image/webp" />
-                        <img src="@GalleryImages[idx]"
+<img src="@GalleryImages[idx]"
                              alt="ProTouch Clinic @(idx + 1)"
                              loading="@(idx < 6 ? "eager" : "lazy")"
                              onerror="this.style.display='none'" />
-                    </picture>
                 </div>
             }
         </div>
@@ -364,11 +345,8 @@
             <div class="pt-lightbox" role="dialog" aria-modal="true">
                 <button class="pt-lightbox-close" @onclick="CloseLightbox" aria-label="Close lightbox">✕</button>
                 <button class="pt-lightbox-prev" @onclick="LightboxPrev" aria-label="Previous image">‹</button>
-                <picture>
-                    <source srcset="@Path.ChangeExtension(GalleryImages[_selectedLightboxIndex], ".webp")" type="image/webp" />
-                    <img src="@GalleryImages[_selectedLightboxIndex]"
+<img src="@GalleryImages[_selectedLightboxIndex]"
                          alt="Gallery image @(_selectedLightboxIndex + 1)" />
-                </picture>
                 <button class="pt-lightbox-next" @onclick="LightboxNext" aria-label="Next image">›</button>
             </div>
         }
