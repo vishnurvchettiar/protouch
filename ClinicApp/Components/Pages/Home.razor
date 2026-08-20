@@ -8,35 +8,30 @@
 
 <PageTitle>PROTOUCH Physio - Slimming Clinic | Chhatrapati Sambhajinagar</PageTitle>
 
-<div class="ac-page">
+<div class="pt-page ac-page">
 
-    <!-- ═══════════════════════════════════════════════════
-         1. STICKY HEADER (Task 5 — updated nav links + hamburger)
-         ═══════════════════════════════════════════════════ -->
-    <header class="ac-header" id="ac-header">
-        <a href="#top" class="ac-logo">
+    <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+    <header class="pt-header" id="pt-header">
+        <a href="#top" class="pt-logo">
             <picture>
                 <source srcset="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.webp" type="image/webp" />
                 <img src="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg"
-                     alt="ProTouch Physio - Slimming Clinic"
-                     width="180" height="60"
-                     fetchpriority="high"
+                     alt="ProTouch Physio - Slimming Clinic" width="160" height="48"
                      onerror="this.style.display='none'" />
             </picture>
         </a>
-        <nav class="ac-nav">
+        <nav class="pt-nav ac-nav" role="navigation" aria-label="Main navigation">
             <a href="#services">Services</a>
-            <a href="#doctor">About</a>
-            <a href="#gallery">Gallery</a>
+            <a href="#body-parts">Treatments</a>
+            <a href="#team">Team</a>
             <a href="#feedback">Feedback</a>
             <a href="#contact">Contact</a>
         </nav>
-        <div class="ac-header-actions">
+        <div class="pt-header-actions">
             <a class="ac-login-btn" href="/Account/Login">Login</a>
-            <a class="ac-call-btn" href="tel:9673530031">📞 Call Now</a>
+            <a class="pt-btn-primary" href="/book">Book a Visit</a>
         </div>
-        <!-- Hamburger (mobile) -->
-        <button class="ac-hamburger" type="button"
+        <button class="pt-hamburger" type="button"
                 @onclick="ToggleMobileMenu"
                 aria-label="Toggle navigation menu"
                 aria-expanded="@_mobileMenuOpen">
@@ -44,152 +39,106 @@
         </button>
     </header>
 
-    <!-- Mobile nav dropdown -->
-    <div class="ac-mobile-nav @(_mobileMenuOpen ? "ac-mobile-nav--open" : "")">
-        <a href="#services" @onclick="ToggleMobileMenu">Services</a>
-        <a href="#doctor" @onclick="ToggleMobileMenu">About</a>
-        <a href="#gallery" @onclick="ToggleMobileMenu">Gallery</a>
-        <a href="#feedback" @onclick="ToggleMobileMenu">Feedback</a>
-        <a href="#contact" @onclick="ToggleMobileMenu">Contact</a>
+    <div class="pt-mobile-nav @(_mobileMenuOpen ? "pt-mobile-nav--open" : "")">
+        <a href="#services"   @onclick="ToggleMobileMenu">Services</a>
+        <a href="#body-parts" @onclick="ToggleMobileMenu">Treatments</a>
+        <a href="#team"       @onclick="ToggleMobileMenu">Team</a>
+        <a href="#feedback"   @onclick="ToggleMobileMenu">Feedback</a>
+        <a href="#contact"    @onclick="ToggleMobileMenu">Contact</a>
+        <a class="pt-btn-primary" href="/book" @onclick="ToggleMobileMenu">Book a Visit</a>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════
-         2. HERO — dark left / light right split
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-hero" id="top">
-        <div class="ac-hero-left">
-            <p class="ac-kicker">✦ ISO 9001:2015 CERTIFIED CLINIC</p>
-            <h1 class="ac-hero-h1">
-                Your journey to a<br />
-                <em>healthier, stronger</em><br />
-                you starts here.
+    <!-- ═══════════════════════ HERO ═════════════════════════ -->
+    <section class="pt-hero" id="top">
+        <div class="pt-hero-left">
+            <p class="pt-kicker">✦ ISO 9001:2015 CERTIFIED CLINIC</p>
+            <h1 class="pt-hero-h1">
+                Take care of<br />
+                <em>your health</em>
             </h1>
-            <p class="ac-hero-sub">
+            <p class="pt-hero-sub">
                 Physiotherapy-led slimming, rehabilitation and wellness plans by
-                <strong style="color:var(--ac-yellow)">Dr. Manjari</strong> — created
-                for lasting results, not temporary fixes.
+                <strong>Dr. Manjari</strong> — created for lasting results, not temporary fixes.
             </p>
-            <div class="ac-hero-actions">
-                <a class="ac-btn-primary" href="/book">Book Appointment →</a>
-                <a class="ac-btn-ghost" href="https://wa.me/919028027888"
-                   target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+            <div class="pt-hero-stats">
+                <div class="pt-stat-pill">
+                    <span class="pt-stat-num">99%</span>
+                    <span class="pt-stat-label">Cured</span>
+                </div>
+                <span class="pt-stat-divider"></span>
+                <div class="pt-stat-pill">
+                    <span class="pt-stat-num">4–8 kg</span>
+                    <span class="pt-stat-label">/ Month</span>
+                </div>
+                <span class="pt-stat-divider"></span>
+                <div class="pt-stat-pill">
+                    <span class="pt-stat-num">500+</span>
+                    <span class="pt-stat-label">Patients</span>
+                </div>
             </div>
-            <div class="ac-trust-row">
-                <span class="ac-trust-item">★★★★★ 4.9 / 5.0</span>
-                <span class="ac-trust-divider"></span>
-                <span class="ac-trust-item">✓ ISO 9001:2015</span>
-                <span class="ac-trust-divider"></span>
-                <span class="ac-trust-item">✓ 500+ Patients</span>
+            <div class="pt-hero-actions">
+                <a class="pt-btn-primary" href="/book">Book a Visit</a>
+                <a class="pt-hero-link" href="#services">Our Services →</a>
             </div>
         </div>
-
-        <div class="ac-hero-right">
+        <div class="pt-hero-right">
             @for (var i = 0; i < heroImages.Count; i++)
             {
                 var idx = i;
-                <div class="ac-hero-slide ac-hero-slide--@idx @(idx == activeHeroIndex ? "active" : "")">
+                var slideClass = idx == 0 ? "pt-hero-slide--1" : idx == 1 ? "pt-hero-slide--2" : "pt-hero-slide--3";
+                <div class="pt-hero-slide @slideClass">
                     <picture>
                         <source srcset="@Path.ChangeExtension(heroImages[idx], ".webp")" type="image/webp" />
-                        <img src="@heroImages[idx]"
-                             alt="ProTouch Clinic"
-                             width="800" height="600"
+                        <img src="@heroImages[idx]" alt="ProTouch Clinic"
                              loading="@(idx == 0 ? "eager" : "lazy")"
                              fetchpriority="@(idx == 0 ? "high" : "auto")"
                              onerror="this.style.display='none'" />
                     </picture>
                 </div>
             }
-            <div class="ac-hero-badge">
-                <strong>Providing the<br />Caring Touch..!</strong>
-                <span>Dr. Manjari<br />Physiotherapist &amp; Slimming Expert</span>
-            </div>
+            <div class="pt-hero-overlay-strip"></div>
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         3. GUARANTEE TICKER
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-ticker" aria-label="Our care promise">
-        <div class="ac-ticker-track">
-            @foreach (var g in guarantees)
-            {
-                <span class="ac-ticker-item">@g</span>
-            }
-            @* Duplicate for seamless loop *@
-            @foreach (var g in guarantees)
-            {
-                <span class="ac-ticker-item" aria-hidden="true">@g</span>
-            }
-        </div>
+    <!-- ═══════════════════ BOOKING BANNER ═══════════════════ -->
+    <section class="pt-booking-banner" aria-label="Booking call to action">
+        <p class="pt-banner-text">Ready to start your wellness journey?</p>
+        <a class="pt-btn-inverse" href="/book">Book a Visit Now →</a>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         4. TABBED SERVICES (Task 6: Filter Chips + Task 7: Hotspot Map)
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-services" id="services" data-reveal>
-        <div class="ac-services-inner">
-            <div class="ac-services-header">
-                <p class="ac-kicker">OUR SERVICES</p>
-                <h2>Care for every stage of your wellness journey.</h2>
-            </div>
-
-            <!-- Task 6: Service Filter Chips (above tabs) -->
-            <div class="ac-chip-row" role="group" aria-label="Filter services by category">
-                @foreach (var svc in serviceCards)
+    <!-- ═══════════════════ BODY PART TREATMENTS ═════════════ -->
+    <section class="pt-body-parts" id="body-parts" data-reveal>
+        <div class="pt-body-parts-inner">
+            <p class="pt-kicker">TREATMENTS BY AREA</p>
+            <h2>We can help with any part of you</h2>
+            <div class="pt-bp-tabs" role="tablist" aria-label="Body area treatments">
+                @foreach (var tab in bodyPartTabs)
                 {
-                    <button class="ac-tab-chip @(activeTab == svc.Id ? "ac-tab-chip--active" : "")"
-                            type="button"
-                            aria-pressed="@(activeTab == svc.Id ? "true" : "false")"
-                            style="@(activeTab == svc.Id ? $"--chip-accent:{svc.AccentColor};" : "")"
-                            @onclick="() => SetTab(svc.Id)">
-                        <span>@svc.Icon</span> @svc.Name
+                    <button class="pt-bp-tab @(activeBodyPart == tab.Id ? "pt-bp-tab--active" : "")"
+                            type="button" role="tab"
+                            id="tab-@tab.Id"
+                            aria-selected="@(activeBodyPart == tab.Id ? "true" : "false")"
+                            aria-controls="panel-@tab.Id"
+                            @onclick="() => SetBodyPart(tab.Id)">
+                        @tab.Label
                     </button>
                 }
             </div>
-
-            <div class="ac-services-tabs">
-                @foreach (var svc in serviceCards)
-                {
-                    <button class="ac-tab @(activeTab == svc.Id ? "ac-tab--active" : "")"
-                            type="button"
-                            @onclick="() => SetTab(svc.Id)"
-                            style="@(activeTab == svc.Id ? $"background:{svc.AccentColor};border-color:{svc.AccentColor};" : "")">
-                        <span>@svc.Icon</span> @svc.Name
-                    </button>
-                }
-            </div>
-
             @{
-                var activeSvc = serviceCards.FirstOrDefault(s => s.Id == activeTab) ?? serviceCards[0];
-                var svcImgIndex = serviceCards.IndexOf(activeSvc) * 9 + 1;
-                var svcImgPath = $"/images/clinic-gallery/gallery-{svcImgIndex:D2}.jpeg";
+                var activeBpTab = bodyPartTabs.FirstOrDefault(t => t.Id == activeBodyPart) ?? bodyPartTabs[0];
+                var bpIdx = bodyPartTabs.IndexOf(activeBpTab);
+                var bpImg = $"/images/clinic-gallery/gallery-{(bpIdx * 9 + 27):D2}.jpeg";
             }
-
-            <div class="ac-services-panel">
-                <div class="ac-panel-left">
-                    <span class="ac-svc-icon">@activeSvc.Icon</span>
-                    <p class="ac-kicker" style="color:@activeSvc.AccentColor">@activeSvc.Number — @activeSvc.Name</p>
-                    <h3>@activeSvc.Name</h3>
-                    <p>@activeSvc.Summary</p>
-                    <ul>
-                        @foreach (var b in activeSvc.Bullets)
-                        {
-                            <li>@b</li>
-                        }
-                    </ul>
-                    <a class="ac-btn-primary" href="/services/@activeSvc.Id"
-                       style="background:@activeSvc.AccentColor">
-                        View Service &amp; Book →
-                    </a>
+            <div class="pt-bp-panel" id="panel-@activeBpTab.Id" role="tabpanel" aria-labelledby="tab-@activeBpTab.Id">
+                <div class="pt-bp-panel-left">
+                    <h3>@activeBpTab.Label</h3>
+                    <p>@activeBpTab.Description</p>
+                    <a class="pt-btn-primary" href="/book">Book Treatment →</a>
                 </div>
-                <div class="ac-panel-right">
-                    <!-- SVG hotspot map removed (Task 3 — performance) -->
+                <div class="pt-bp-panel-right" aria-hidden="true">
                     <picture>
-                        <source srcset="@Path.ChangeExtension(svcImgPath, ".webp")" type="image/webp" />
-                        <img src="@svcImgPath"
-                             alt="@activeSvc.Name"
-                             width="560" height="420"
-                             loading="lazy"
+                        <source srcset="@Path.ChangeExtension(bpImg, ".webp")" type="image/webp" />
+                        <img src="@bpImg" alt="@activeBpTab.Label" loading="lazy"
                              onerror="this.style.display='none'" />
                     </picture>
                 </div>
@@ -197,104 +146,165 @@
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         5. MEET THE EXPERT — Dr. Manjari
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-doctor" id="doctor" data-reveal>
-        <div class="ac-doctor-photo">
-            <picture>
-                <source srcset="/images/clinic-gallery/gallery-27.webp" type="image/webp" />
-                <img src="/images/clinic-gallery/gallery-27.jpeg"
-                     alt="Dr. Manjari — Physiotherapist &amp; Slimming Expert"
-                     width="480" height="560"
-                     loading="lazy"
-                     onerror="this.style.display='none'" />
-            </picture>
-            <div class="ac-doctor-cred-badge">ISO 9001:2015</div>
-        </div>
-
-        <div class="ac-doctor-copy">
-            <p class="ac-kicker">MEET THE EXPERT</p>
-            <h2>Dr. Manjari</h2>
-            <p class="ac-doctor-title">Physiotherapist &amp; Slimming Expert</p>
-            <p class="ac-doctor-bio">
-                With over a decade of clinical experience, Dr. Manjari combines advanced
-                physiotherapy techniques with evidence-based slimming protocols to deliver
-                real, lasting results. Her patient-first philosophy ensures every plan is
-                personalised, safe and built around your lifestyle — no fasting, no medicine,
-                no surgery.
+    <!-- ═══════════════════════ SERVICES ═════════════════════ -->
+    <section class="pt-services" id="services" data-reveal>
+        <div class="pt-services-header">
+            <p class="pt-kicker">WHAT WE OFFER</p>
+            <h2>Our Services</h2>
+            <p class="pt-services-intro">
+                Expert-led programmes for weight loss, physiotherapy, yoga and specialised care —
+                all under one roof. No fasting, no medicine, no surgery.
             </p>
-            <ul class="ac-doctor-credentials">
-                <li>ISO 9001:2015 Certified Clinic — National & International Accreditation</li>
-                <li>Specialised in Weight Loss, Inch Loss &amp; Body Contouring</li>
-                <li>Expert in Physiotherapy, Rehabilitation &amp; Sports Medicine</li>
-                <li>Certified Yoga Therapist — Holistic &amp; Nature Cure</li>
-                <li>Height Increase Programs (up to 23 years of age)</li>
-                <li>10+ Years of Dedicated Clinical Practice</li>
-            </ul>
-            <a class="ac-btn-primary" href="/book">Book a Consultation →</a>
+        </div>
+        <div class="pt-services-row">
+            @{bool isSvcFirst = true;}
+            @foreach (var svc in serviceCards)
+            {
+                var svcIdx = serviceCards.IndexOf(svc);
+                var svcImgNum = svcIdx * 9 + 1;
+                var svcImg = $"/images/clinic-gallery/gallery-{svcImgNum:D2}.jpeg";
+                <div class="pt-svc-card" style="--svc-accent: @svc.AccentColor">
+                    <div class="pt-svc-card-img">
+                        <picture>
+                            <source srcset="@Path.ChangeExtension(svcImg, ".webp")" type="image/webp" />
+                            <img src="@svcImg" alt="@svc.Name"
+                                 loading="@(isSvcFirst ? "eager" : "lazy")"
+                                 fetchpriority="@(isSvcFirst ? "high" : "auto")"
+                                 onerror="this.style.display='none'" />
+                        </picture>
+                    </div>
+                    <div class="pt-svc-card-body">
+                        <h3>@svc.Name</h3>
+                        <p>@svc.Summary</p>
+                        <a class="pt-svc-link" href="/services/@svc.Id">View &amp; Book →</a>
+                    </div>
+                </div>
+                isSvcFirst = false;
+            }
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         6. ANIMATED STATS STRIP
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-stats social-proof-section" data-reveal>
-        <div class="ac-stats-inner">
-            <div class="ac-stats-grid">
+    <!-- ═══════════════════ HOW IT WORKS ═════════════════════ -->
+    <section class="pt-how-it-works" data-reveal>
+        <div class="pt-how-inner">
+            <p class="pt-kicker">HOW IT WORKS</p>
+            <h2>Our team of specialists is at your service</h2>
+            <div class="pt-steps">
+                @foreach (var step in howItWorksSteps)
+                {
+                    <div class="pt-step">
+                        <span class="pt-step-num" aria-hidden="true">@step.Number</span>
+                        <h3 class="pt-step-title">@step.Title</h3>
+                        <p class="pt-step-desc">@step.Description</p>
+                    </div>
+                }
+            </div>
+            <blockquote class="pt-pull-quote">
+                <p>"The best care for lasting results!"</p>
+                <footer>— ISO 9001:2015 Certified Clinic</footer>
+            </blockquote>
+        </div>
+    </section>
+
+    <!-- ═══════════════════ DARK CTA + STATS ═════════════════ -->
+    <section class="pt-dark-cta" data-reveal>
+        <div class="pt-dark-cta-inner">
+            <div class="pt-dark-cta-copy">
+                <p class="pt-kicker" style="color: var(--pt-mint)">ISO 9001:2015 CERTIFIED</p>
+                <h2>Take care of your health anytime, anywhere</h2>
+                <p>
+                    In-clinic and teleconsultation appointments available.
+                    Dr. Manjari's team is ready to build your personalised plan today —
+                    no fasting, no medicine, no surgery.
+                </p>
+                <a class="pt-btn-primary" href="/book">Book a Visit Now →</a>
+            </div>
+            <div class="pt-dark-stats social-proof-section ac-stats" data-reveal>
                 @foreach (var stat in socialProofStats)
                 {
-                    <div class="ac-stat-card">
-                        <span class="ac-stat-num"
+                    <div class="pt-dark-stat">
+                        <span class="pt-dark-stat-num"
                               data-count-target="@stat.CountTarget"
                               data-count-display="@stat.CountDisplay">@stat.CountDisplay</span>
-                        <span class="ac-stat-label">@stat.Label</span>
+                        <span class="pt-dark-stat-label">@stat.Label</span>
                     </div>
                 }
             </div>
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         Blob divider 1: Stats → BMI
-         ═══════════════════════════════════════════════════ -->
-    <div class="ac-blob-divider ac-blob-divider--1" aria-hidden="true">
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="rgba(0,141,54,0.08)" />
-        </svg>
-    </div>
+    <!-- ═══════════════════ SPECIALISTS / TEAM ═══════════════ -->
+    <section class="pt-specialists" id="team" data-reveal>
+        <div class="pt-specialists-inner">
+            <p class="pt-kicker">MEET THE TEAM</p>
+            <h2>Our team of specialists is at your service</h2>
+            <div class="pt-specialists-grid">
+                <!-- Primary: Dr. Manjari -->
+                <div class="pt-specialist-card pt-specialist-card--primary">
+                    <div class="pt-specialist-photo">
+                        <picture>
+                            <source srcset="/images/clinic-gallery/gallery-27.webp" type="image/webp" />
+                            <img src="/images/clinic-gallery/gallery-27.jpeg"
+                                 alt="Dr. Manjari — Physiotherapist &amp; Slimming Expert"
+                                 loading="lazy" onerror="this.style.display='none'" />
+                        </picture>
+                    </div>
+                    <div class="pt-specialist-body">
+                        <h3>Dr. Manjari</h3>
+                        <p class="pt-specialist-title">Physiotherapist &amp; Slimming Expert</p>
+                        <ul class="pt-specialist-creds">
+                            @foreach (var cred in doctorCredentials)
+                            {
+                                <li>@cred</li>
+                            }
+                        </ul>
+                        <a class="pt-btn-primary" href="/book">Book Consultation →</a>
+                    </div>
+                </div>
+                <!-- Supporting practitioners -->
+                @foreach (var practitioner in supportingPractitioners)
+                {
+                    <div class="pt-specialist-card">
+                        <div class="pt-specialist-photo pt-specialist-photo--placeholder" aria-hidden="true">
+                            <span>👤</span>
+                        </div>
+                        <div class="pt-specialist-body">
+                            <h3>@practitioner.Title</h3>
+                            <p class="pt-specialist-title">ProTouch Specialist</p>
+                            <a class="pt-link" href="#contact">Learn More →</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         7. BMI / RESULT ESTIMATOR WIDGET (Task 8)
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-bmi" id="bmi-estimator" data-reveal>
-        <div class="ac-bmi-inner">
-            <p class="ac-kicker">WELLNESS ESTIMATOR</p>
+    <!-- ═══════════════════ BMI ESTIMATOR ════════════════════ -->
+    <section class="pt-bmi" id="bmi-estimator" data-reveal>
+        <div class="pt-bmi-inner">
+            <p class="pt-kicker">WELLNESS ESTIMATOR</p>
             <h2>Discover your personalised wellness plan.</h2>
-            <p class="ac-bmi-intro">Enter your details below for an instant, personalised estimate — then book a free consultation with Dr. Manjari.</p>
-
-            <div class="ac-bmi-form">
-                <div class="ac-bmi-field">
+            <p class="pt-bmi-intro">Enter your details for an instant, personalised estimate — then book a free consultation.</p>
+            <div class="pt-bmi-form">
+                <div class="pt-bmi-field">
                     <label for="bmi-height">Height (cm)</label>
-                    <input id="bmi-height" type="number" min="100" max="250"
-                           placeholder="e.g. 165"
+                    <input id="bmi-height" type="number" min="100" max="250" placeholder="e.g. 165"
                            @bind="_heightCm" @bind:event="oninput" />
                     @if (!string.IsNullOrEmpty(_heightError))
                     {
-                        <span class="ac-field-error">@_heightError</span>
+                        <span class="pt-field-error">@_heightError</span>
                     }
                 </div>
-                <div class="ac-bmi-field">
+                <div class="pt-bmi-field">
                     <label for="bmi-weight">Weight (kg)</label>
-                    <input id="bmi-weight" type="number" min="20" max="300" step="0.1"
-                           placeholder="e.g. 70.5"
+                    <input id="bmi-weight" type="number" min="20" max="300" step="0.1" placeholder="e.g. 70.5"
                            @bind="_weightKg" @bind:event="oninput" />
                     @if (!string.IsNullOrEmpty(_weightError))
                     {
-                        <span class="ac-field-error">@_weightError</span>
+                        <span class="pt-field-error">@_weightError</span>
                     }
                 </div>
-                <div class="ac-bmi-field">
+                <div class="pt-bmi-field">
                     <label for="bmi-goal">Wellness Goal</label>
                     <select id="bmi-goal" @bind="_bmiGoal">
                         <option value="">Select a goal…</option>
@@ -306,112 +316,86 @@
                     </select>
                     @if (!string.IsNullOrEmpty(_goalError))
                     {
-                        <span class="ac-field-error">@_goalError</span>
+                        <span class="pt-field-error">@_goalError</span>
                     }
                 </div>
-                <button class="ac-btn-primary" type="button" @onclick="ComputeBmi">
-                    Calculate My Estimate →
-                </button>
+                <button class="pt-btn-primary" type="button" @onclick="ComputeBmi">Calculate →</button>
             </div>
-
             @if (_bmiValue.HasValue)
             {
-                <div class="ac-bmi-result" style="--bmi-color: @_bmiColor">
-                    <div class="ac-bmi-score">
-                        <span class="ac-bmi-num">@_bmiValue</span>
-                        <span class="ac-bmi-label">BMI — @_bmiCategory</span>
+                <div class="pt-bmi-result" style="--bmi-color: @_bmiColor">
+                    <div class="pt-bmi-score">
+                        <span class="pt-bmi-num">@_bmiValue</span>
+                        <span class="pt-bmi-label">BMI — @_bmiCategory</span>
                     </div>
-                    <p class="ac-bmi-message">@_bmiMessage</p>
-                    <p class="ac-bmi-outcome"><em>@_bmiOutcome</em></p>
-                    <a class="ac-btn-primary ac-btn-green" href="/book">
-                        Book Your Free Consultation →
-                    </a>
+                    <p class="pt-bmi-message">@_bmiMessage</p>
+                    <p class="pt-bmi-outcome"><em>@_bmiOutcome</em></p>
+                    <a class="pt-btn-primary" href="/book">Book Your Free Consultation →</a>
                 </div>
             }
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         Blob divider 2: BMI → Gallery
-         ═══════════════════════════════════════════════════ -->
-    <div class="ac-blob-divider ac-blob-divider--2" aria-hidden="true">
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,20 C480,80 960,0 1440,20 L1440,80 L0,80 Z" fill="rgba(124,27,104,0.07)" />
-        </svg>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════
-         8. PHOTO GALLERY GRID (Task 9 — replaces Before/After)
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-gallery" id="gallery" data-reveal>
-        <p class="ac-kicker" style="text-align:center">CLINIC GALLERY</p>
+    <!-- ═══════════════════ PHOTO GALLERY ════════════════════ -->
+    <section class="pt-gallery" id="gallery" data-reveal>
+        <p class="pt-kicker">CLINIC GALLERY</p>
         <h2>A glimpse inside ProTouch.</h2>
-
-        <div class="ac-gallery-grid">
+        <div class="pt-gallery-grid">
             @for (int i = 0; i < _galleryVisible; i++)
             {
                 var idx = i;
-                <div class="ac-gallery-item" @onclick="() => OpenLightbox(idx)">
+                <div class="pt-gallery-item" @onclick="() => OpenLightbox(idx)">
                     <picture>
                         <source srcset="@Path.ChangeExtension(GalleryImages[idx], ".webp")" type="image/webp" />
                         <img src="@GalleryImages[idx]"
-                             alt="ProTouch Clinic Gallery @(idx + 1)"
-                             width="600" height="450"
+                             alt="ProTouch Clinic @(idx + 1)"
                              loading="@(idx < 6 ? "eager" : "lazy")"
                              onerror="this.style.display='none'" />
                     </picture>
                 </div>
             }
         </div>
-
         @if (CanLoadMore)
         {
-            <button class="ac-load-more" @onclick="LoadMoreGallery">Load More</button>
+            <button class="pt-load-more" @onclick="LoadMoreGallery">Load More Photos</button>
         }
-
         @if (_isLightboxOpen)
         {
-            <div class="ac-lightbox" role="dialog" aria-modal="true">
-                <button class="ac-lightbox-close" @onclick="CloseLightbox" aria-label="Close lightbox">✕</button>
-                <button class="ac-lightbox-prev" @onclick="LightboxPrev" aria-label="Previous image">‹</button>
+            <div class="pt-lightbox" role="dialog" aria-modal="true">
+                <button class="pt-lightbox-close" @onclick="CloseLightbox" aria-label="Close lightbox">✕</button>
+                <button class="pt-lightbox-prev" @onclick="LightboxPrev" aria-label="Previous image">‹</button>
                 <picture>
                     <source srcset="@Path.ChangeExtension(GalleryImages[_selectedLightboxIndex], ".webp")" type="image/webp" />
                     <img src="@GalleryImages[_selectedLightboxIndex]"
-                         alt="Gallery image @(_selectedLightboxIndex + 1)"
-                         width="600" height="450" />
+                         alt="Gallery image @(_selectedLightboxIndex + 1)" />
                 </picture>
-                <button class="ac-lightbox-next" @onclick="LightboxNext" aria-label="Next image">›</button>
+                <button class="pt-lightbox-next" @onclick="LightboxNext" aria-label="Next image">›</button>
             </div>
         }
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         9. TESTIMONIAL CAROUSEL
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-testimonials" data-reveal>
-        <div class="ac-testimonials-inner">
-            <p class="ac-kicker" style="text-align:center">PATIENT STORIES</p>
+    <!-- ═══════════════════ TESTIMONIALS ═════════════════════ -->
+    <section class="pt-testimonials ac-testimonials" data-reveal>
+        <div class="pt-testimonials-inner">
+            <p class="pt-kicker">PATIENT STORIES</p>
             <h2>Hear from our patients.</h2>
-
-            <div class="ac-testi-track">
+            <div class="pt-testi-track">
                 @for (var i = 0; i < testimonials.Count; i++)
                 {
                     var t = testimonials[i];
                     var ti = i;
-                    <div class="ac-testi-slide @(ti == activeTestiIndex ? "ac-testi--active" : "")">
-                        <span class="ac-stars">★★★★★</span>
-                        <p class="ac-testi-quote">@t.Quote</p>
-                        <footer class="ac-testi-footer">— @t.RoleLabel</footer>
+                    <div class="pt-testi-slide @(ti == activeTestiIndex ? "ac-testi--active" : "")">
+                        <span class="pt-stars">★★★★★</span>
+                        <p class="pt-testi-quote">@t.Quote</p>
+                        <footer class="pt-testi-footer">— @t.RoleLabel</footer>
                     </div>
                 }
             </div>
-
-            <div class="ac-testi-arrows">
+            <div class="pt-testi-arrows">
                 <button type="button" @onclick="PrevTesti" aria-label="Previous testimonial">‹</button>
                 <button type="button" @onclick="NextTesti" aria-label="Next testimonial">›</button>
             </div>
-
-            <div class="ac-testi-dots" role="tablist" aria-label="Testimonial slides">
+            <div class="pt-testi-dots" role="tablist" aria-label="Testimonial slides">
                 @for (var i = 0; i < testimonials.Count; i++)
                 {
                     var di = i;
@@ -424,25 +408,22 @@
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         10. FAQ ACCORDION
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-faq" data-reveal>
-        <div class="ac-faq-inner">
-            <p class="ac-kicker">FREQUENTLY ASKED</p>
+    <!-- ═══════════════════ FAQ ACCORDION ════════════════════ -->
+    <section class="pt-faq" data-reveal>
+        <div class="pt-faq-inner">
+            <p class="pt-kicker">FREQUENTLY ASKED</p>
             <h2>Your questions, answered.</h2>
-
-            <div class="ac-faq-list">
+            <div class="pt-faq-list">
                 @for (var i = 0; i < faqItems.Count; i++)
                 {
                     var fi = i;
                     var fq = faqItems[fi];
-                    <div class="ac-faq-item @(openFaq == fi ? "ac-faq--open" : "")">
-                        <button class="ac-faq-q" type="button" @onclick="() => ToggleFaq(fi)">
+                    <div class="pt-faq-item @(openFaq == fi ? "ac-faq--open" : "")">
+                        <button class="pt-faq-q" type="button" @onclick="() => ToggleFaq(fi)">
                             @fq.Q
-                            <span class="ac-faq-icon">+</span>
+                            <span class="pt-faq-icon">+</span>
                         </button>
-                        <div class="ac-faq-a">
+                        <div class="pt-faq-a">
                             <p>@fq.A</p>
                         </div>
                     </div>
@@ -451,38 +432,27 @@
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         Blob divider 3: FAQ → Feedback
-         ═══════════════════════════════════════════════════ -->
-    <div class="ac-blob-divider ac-blob-divider--3" aria-hidden="true">
-        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,60 C720,0 1440,80 1440,60 L1440,80 L0,80 Z" fill="rgba(255,235,0,0.1)" />
-        </svg>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════
-         11. FEEDBACK WIDGET (Task 11)
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-feedback" id="feedback" data-reveal>
-        <div class="ac-feedback-inner">
-            <p class="ac-kicker">SHARE YOUR EXPERIENCE</p>
+    <!-- ═══════════════════ FEEDBACK WIDGET ══════════════════ -->
+    <section class="pt-feedback" id="feedback" data-reveal>
+        <div class="pt-feedback-inner">
+            <p class="pt-kicker">SHARE YOUR EXPERIENCE</p>
             <h2>How was your visit?</h2>
             @if (_feedbackSuccess)
             {
-                <div class="ac-feedback-success">
+                <div class="pt-feedback-success">
                     <span>⭐</span>
-                    <p>Thank you for your feedback! Your response has been recorded.</p>
+                    <p>Thank you! Your feedback has been recorded.</p>
                 </div>
             }
             else
             {
-                <div class="ac-feedback-form">
-                    <div class="ac-stars-row" role="group" aria-label="Star rating">
+                <div class="pt-feedback-form">
+                    <div class="pt-stars-row" role="group" aria-label="Star rating">
                         @for (int s = 1; s <= 5; s++)
                         {
                             var star = s;
                             <button type="button"
-                                    class="ac-star-btn @((_feedbackHoverRating > 0 ? star <= _feedbackHoverRating : star <= _feedbackRating) ? "ac-star--lit" : "")"
+                                    class="pt-star-btn @((_feedbackHoverRating > 0 ? star <= _feedbackHoverRating : star <= _feedbackRating) ? "ac-star--lit" : "")"
                                     @onclick="() => SetFeedbackStar(star)"
                                     @onmouseenter="() => HoverFeedbackStar(star)"
                                     @onmouseleave="UnhoverFeedbackStar"
@@ -491,15 +461,13 @@
                     </div>
                     @if (!string.IsNullOrEmpty(_feedbackError))
                     {
-                        <p class="ac-feedback-error" role="alert">@_feedbackError</p>
+                        <p class="pt-feedback-error" role="alert">@_feedbackError</p>
                     }
-                    <textarea class="ac-feedback-textarea"
-                              maxlength="500"
+                    <textarea class="pt-feedback-textarea" maxlength="500"
                               placeholder="Tell us about your experience (optional)..."
-                              @bind="_feedbackComment"
-                              @bind:event="oninput"></textarea>
-                    <p class="ac-char-counter">@FeedbackCharsRemaining characters remaining</p>
-                    <button class="ac-btn-primary" type="button"
+                              @bind="_feedbackComment" @bind:event="oninput"></textarea>
+                    <p class="pt-char-counter">@FeedbackCharsRemaining characters remaining</p>
+                    <button class="pt-btn-primary" type="button"
                             disabled="@_feedbackSubmitting"
                             @onclick="SubmitFeedbackAsync">
                         @(_feedbackSubmitting ? "Submitting…" : "Submit Feedback →")
@@ -509,119 +477,83 @@
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         12. CONTACT SECTION
-         ═══════════════════════════════════════════════════ -->
-    <section class="ac-contact" id="contact" data-reveal>
-        <div class="ac-contact-inner">
-            <div class="ac-contact-left">
-                <p class="ac-kicker">GET IN TOUCH</p>
+    <!-- ═══════════════════ CONTACT ═══════════════════════════ -->
+    <section class="pt-contact" id="contact" data-reveal>
+        <div class="pt-contact-inner">
+            <div class="pt-contact-left">
+                <p class="pt-kicker">GET IN TOUCH</p>
                 <h2>Let's take the first step together.</h2>
-                <p>
-                    Contact Dr. Manjari to discuss a physiotherapy, slimming or wellness
-                    plan that fits you. Consultations available now.
-                </p>
-                <div class="ac-contact-actions">
-                    <a class="ac-btn-primary" href="/book">Book an Appointment →</a>
-                    <a class="ac-btn-ghost"
-                       href="https://wa.me/919028027888"
-                       target="_blank"
-                       rel="noopener noreferrer">💬 WhatsApp Us</a>
+                <p>Contact Dr. Manjari to discuss a physiotherapy, slimming or wellness plan that fits you.</p>
+                <div class="pt-contact-actions">
+                    <a class="pt-btn-primary" href="/book">Book an Appointment →</a>
+                    <a class="pt-btn-ghost" href="https://wa.me/919028027888" target="_blank" rel="noopener noreferrer">💬 WhatsApp Us</a>
                 </div>
             </div>
-
-            <div class="ac-contact-right">
-                <div class="ac-contact-details">
-                    <div class="ac-contact-detail-item">
-                        <span class="ac-detail-icon">📞</span>
+            <div class="pt-contact-right">
+                <div class="pt-contact-details">
+                    <div class="pt-contact-detail-item">
+                        <span class="pt-detail-icon">📞</span>
                         <div>
-                            <a href="tel:9673530031">
-                                <strong>96735 30031</strong>
-                            </a>
-                            <a href="tel:+919028027888" style="margin-top:4px;display:block;">
-                                <strong>+91 90280 27888</strong>
-                            </a>
+                            <a href="tel:9673530031"><strong>96735 30031</strong></a>
+                            <a href="tel:+919028027888" style="display:block;margin-top:4px"><strong>+91 90280 27888</strong></a>
                             <span>Primary &amp; WhatsApp</span>
                         </div>
                     </div>
-                    <div class="ac-contact-detail-item">
-                        <span class="ac-detail-icon">✉️</span>
+                    <div class="pt-contact-detail-item">
+                        <span class="pt-detail-icon">✉️</span>
                         <div>
-                            <a href="mailto:protouch1998@gmail.com">
-                                <strong>protouch1998@gmail.com</strong>
-                            </a>
+                            <a href="mailto:protouch1998@gmail.com"><strong>protouch1998@gmail.com</strong></a>
                             <span>Email Us</span>
                         </div>
                     </div>
-                    <div class="ac-contact-detail-item">
-                        <span class="ac-detail-icon">📍</span>
+                    <div class="pt-contact-detail-item">
+                        <span class="pt-detail-icon">📍</span>
                         <div>
-                            <strong>
-                                Row H. No. 22, Kasliwal Bhagyoday,<br />
-                                Beed By-pass, Chhatrapati Sambhajinagar – 431010
-                            </strong>
+                            <strong>Row H. No. 22, Kasliwal Bhagyoday,<br />Beed By-pass, Chhatrapati Sambhajinagar – 431010</strong>
                             <span>Clinic Address</span>
                         </div>
                     </div>
                 </div>
-                <a class="ac-directions-link"
+                <a class="pt-directions-link"
                    href="https://www.google.com/maps/search/?api=1&query=Kasliwal+Bhagyoday+Beed+By-pass+Chhatrapati+Sambhajinagar"
-                   target="_blank"
-                   rel="noopener noreferrer">
-                    Get Directions →
-                </a>
+                   target="_blank" rel="noopener noreferrer">Get Directions →</a>
             </div>
         </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════
-         13. FOOTER
-         ═══════════════════════════════════════════════════ -->
-    <footer class="ac-footer">
+    <!-- ═══════════════════ FOOTER ════════════════════════════ -->
+    <footer class="pt-footer">
         © @DateTime.Now.Year PROTOUCH Physio - Slimming Clinic
-        <span>•</span>
-        Dr. Manjari
-        <span>•</span>
-        Chhatrapati Sambhajinagar
+        <span>•</span> Dr. Manjari
+        <span>•</span> Chhatrapati Sambhajinagar
     </footer>
 
-    <!-- ═══════════════════════════════════════════════════
-         14. FLOATING CTA — fixed bottom-right
-         ═══════════════════════════════════════════════════ -->
-    <div class="ac-floating-cta" role="complementary" aria-label="Quick actions">
-        <a class="ac-float-btn ac-float-wa"
-           href="https://wa.me/919028027888"
-           target="_blank"
-           rel="noopener noreferrer"
-           aria-label="WhatsApp us">💬</a>
-        <a class="ac-float-btn ac-float-book"
-           href="/book"
-           aria-label="Book appointment">📅</a>
+    <!-- ═══════════════════ FLOATING CTA ═════════════════════ -->
+    <div class="pt-floating-cta" role="complementary" aria-label="Quick actions">
+        <a class="pt-float-btn pt-float-wa" href="https://wa.me/919028027888"
+           target="_blank" rel="noopener noreferrer" aria-label="WhatsApp us">💬</a>
+        <a class="pt-float-btn pt-float-book" href="/book" aria-label="Book appointment">📅</a>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════
-         15. BACK TO TOP BUTTON (Task 5)
-         ═══════════════════════════════════════════════════ -->
-    <button class="ac-back-to-top" id="ac-back-to-top"
-            type="button"
+    <button class="ac-back-to-top" id="ac-back-to-top" type="button"
             aria-label="Back to top"
-            @onclick='async () => await JS.InvokeVoidAsync("scrollToTop")'>
-        ↑
-    </button>
+            @onclick='async () => await JS.InvokeVoidAsync("scrollToTop")'>↑</button>
 
 </div>
 
 @code {
-    // ── Records ──────────────────────────────────────────────
     private record CarouselSlide(string ImagePath, string Caption);
     private record ServiceCard(string Id, string Number, string Icon, string Name, string Summary, string[] Bullets, string AccentColor, string IconBg);
     private record StatCounter(string CountDisplay, double CountTarget, string Label);
     private record Testimonial(string Quote, string RoleLabel);
     private record FaqItem(string Q, string A);
+    private record BodyPartTab(string Id, string Label, string Description);
+    private record HowItWorksStep(string Number, string Title, string Description);
+    private record SupportingPractitioner(string Title);
 
     // ── Hero ─────────────────────────────────────────────────
     private List<string> heroImages = new();
-    private int activeHeroIndex = 0; // kept as aria-current hint only; animation is CSS-driven
+    private int activeHeroIndex = 0;
 
     // ── Testimonial carousel ─────────────────────────────────
     private int activeTestiIndex = 0;
@@ -632,67 +564,65 @@
     // ── FAQ ──────────────────────────────────────────────────
     private int openFaq = -1;
 
+    // ── Body parts ───────────────────────────────────────────
+    private string activeBodyPart = "neck-shoulder";
+    private List<BodyPartTab> bodyPartTabs = new();
+    private List<HowItWorksStep> howItWorksSteps = new();
+    private List<SupportingPractitioner> supportingPractitioners = new();
+    private List<string> doctorCredentials = new();
+
+    // ── Navigation ───────────────────────────────────────────
+    private bool _mobileMenuOpen = false;
+    private void ToggleMobileMenu() => _mobileMenuOpen = !_mobileMenuOpen;
+    private void SetBodyPart(string id) => activeBodyPart = id;
+
     // ── Data lists ───────────────────────────────────────────
     private List<ServiceCard> serviceCards = new();
     private List<StatCounter> socialProofStats = new();
     private List<Testimonial> testimonials = new();
     private List<FaqItem> faqItems = new();
     private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"];
-
-    // ── Kept for backwards compatibility ──────────────────────
     private List<CarouselSlide> carouselSlides = new();
     private int activeSlideIndex = 0;
 
-    // ── Task 5: Navigation ────────────────────────────────────
-    private bool _mobileMenuOpen = false;
-    private void ToggleMobileMenu() => _mobileMenuOpen = !_mobileMenuOpen;
+    // ── BMI Estimator ─────────────────────────────────────────
+    private int _heightCm = 0;
+    private double _weightKg = 0;
+    private string _bmiGoal = "";
+    private double? _bmiValue = null;
+    private string _bmiCategory = "";
+    private string _bmiColor = "";
+    private string _bmiMessage = "";
+    private string _bmiOutcome = "";
+    private string _heightError = "";
+    private string _weightError = "";
+    private string _goalError = "";
 
-    // ── Task 7: SVG Hotspot Map ── REMOVED (Task 3 — performance)
-
-    // ── Task 8: BMI Estimator ─────────────────────────────────
-    private int    _heightCm    = 0;
-    private double _weightKg    = 0;
-    private string _bmiGoal     = "";
-    private double? _bmiValue   = null;
-    private string  _bmiCategory  = "";
-    private string  _bmiColor     = "";
-    private string  _bmiMessage   = "";
-    private string  _bmiOutcome   = "";
-    private string  _heightError  = "";
-    private string  _weightError  = "";
-    private string  _goalError    = "";
-
-    // ── Task 9: Gallery ───────────────────────────────────────
-    private int  _galleryVisible        = 24;
-    private int  _galleryTotal          = 60;
-    private bool _isLightboxOpen        = false;
-    private int  _selectedLightboxIndex = 0;
-    private bool _lightboxInited        = false;
+    // ── Gallery ───────────────────────────────────────────────
+    private int _galleryVisible = 24;
+    private int _galleryTotal = 60;
+    private bool _isLightboxOpen = false;
+    private int _selectedLightboxIndex = 0;
+    private bool _lightboxInited = false;
 
     private List<string> GalleryImages =>
         Enumerable.Range(1, _galleryTotal)
                   .Select(i => $"/images/clinic-gallery/gallery-{i:D2}.jpeg")
                   .ToList();
-
     private bool CanLoadMore => _galleryVisible < _galleryTotal;
 
-    // ── Task 11: Feedback Widget ──────────────────────────────
-    private int    _feedbackRating      = 0;
-    private int    _feedbackHoverRating = 0;
-    private string _feedbackComment     = "";
-    private bool   _feedbackSubmitting  = false;
-    private bool   _feedbackSuccess     = false;
-    private string _feedbackError       = "";
-    private const int FeedbackMaxChars  = 500;
-
+    // ── Feedback Widget ───────────────────────────────────────
+    private int _feedbackRating = 0;
+    private int _feedbackHoverRating = 0;
+    private string _feedbackComment = "";
+    private bool _feedbackSubmitting = false;
+    private bool _feedbackSuccess = false;
+    private string _feedbackError = "";
+    private const int FeedbackMaxChars = 500;
     private int FeedbackCharsRemaining => FeedbackMaxChars - _feedbackComment.Length;
 
-    // ════════════════════════════════════════════════════════
-    // OnInitialized — populate all static data
-    // ════════════════════════════════════════════════════════
     protected override void OnInitialized()
     {
-        // Hero images — exactly 3 for CSS-driven cross-fade (Task 1)
         heroImages = new List<string>
         {
             "/images/clinic-gallery/gallery-37.jpeg",
@@ -700,10 +630,46 @@
             "/images/clinic-gallery/gallery-55.jpeg",
         };
 
-        // Service cards
+        bodyPartTabs = new List<BodyPartTab>
+        {
+            new("neck-shoulder", "Neck & Shoulder", "Physiotherapy for cervical spondylitis, neck pain, frozen shoulder and upper-limb rehabilitation."),
+            new("back-spine",    "Back & Spine",    "Treatment for lumbar spondylitis, sciatica, slipped disc and post-operative spinal care."),
+            new("knee-leg",      "Knee & Leg",      "Knee pain, arthritis, ligament rehabilitation and sports injury recovery."),
+            new("arm-elbow",     "Arm & Elbow",     "Tennis elbow, golfer's elbow, repetitive strain and fracture rehabilitation."),
+            new("abdomen-core",  "Abdomen & Core",  "Core strengthening, diastasis recti, post-natal rehabilitation and inch-loss programmes."),
+            new("full-body",     "Full Body Wellness", "Weight loss, inch loss, yoga therapy, Russian nature cure and overall body contouring."),
+        };
+
+        howItWorksSteps = new List<HowItWorksStep>
+        {
+            new("01", "Book a Consultation",
+                "Choose your preferred service and submit a booking request online or by calling 96735 30031. Our team confirms your appointment within 24 hours."),
+            new("02", "Personalised Assessment",
+                "Dr. Manjari conducts a thorough assessment of your health profile, goals and medical history. A tailored treatment plan is created specifically for you."),
+            new("03", "Start Your Journey",
+                "Begin your programme with expert guidance, track your progress and achieve lasting results — no fasting, no medicine, no surgery."),
+        };
+
+        supportingPractitioners = new List<SupportingPractitioner>
+        {
+            new("Senior Physiotherapist"),
+            new("Yoga Therapist"),
+            new("Diet & Nutrition Consultant"),
+        };
+
+        doctorCredentials = new List<string>
+        {
+            "ISO 9001:2015 Certified Clinic — National & International Accreditation",
+            "Specialised in Weight Loss, Inch Loss & Body Contouring",
+            "Expert in Physiotherapy, Rehabilitation & Sports Medicine",
+            "Certified Yoga Therapist — Holistic & Nature Cure",
+            "Height Increase Programs (up to 23 years of age)",
+            "10+ Years of Dedicated Clinical Practice",
+        };
+
         serviceCards = new List<ServiceCard>
         {
-            new("weight-loss", "01", "⚖️", "Weight Loss & Slimming",
+            new("weight-loss",   "01", "⚖️", "Weight Loss & Slimming",
                 "Weight loss, inch loss, figure correction, body shaping, toning and skin tightening.",
                 new[] { "4–8 kg weight loss per month", "2–5 inches loss per session" },
                 "#008d36", "rgba(0,141,54,0.08)"),
@@ -711,17 +677,16 @@
                 "Back, neck and knee pain, arthritis, spondylitis, sinusitis, paralysis and injury care.",
                 new[] { "Muscle & ligament injury care", "Orthopaedic & neurological" },
                 "#7c1b68", "rgba(124,27,104,0.08)"),
-            new("yoga", "03", "🧘", "Yoga & Russian Nature Cure",
+            new("yoga",          "03", "🧘", "Yoga & Russian Nature Cure",
                 "Personalised yoga for diabetes, blood pressure, thyroid, hormonal health and lifestyle support.",
                 new[] { "Menstrual wellness support", "Pre & post-natal care" },
                 "#f4b41a", "rgba(244,180,26,0.08)"),
-            new("specialised", "04", "⭐", "Specialised Programs For Children",
+            new("specialised",   "04", "⭐", "Specialised Programs For Children",
                 "Height increase, sports rehabilitation and focused clinician-guided health plans.",
                 new[] { "Height increase up to 23 years", "1–3 inches growth possible" },
                 "#e52321", "rgba(229,35,33,0.08)"),
         };
 
-        // Social proof stats
         socialProofStats = new List<StatCounter>
         {
             new("4–8 kg",  8,   "Weight Loss / Month"),
@@ -730,7 +695,6 @@
             new("10+",     10,  "Years of Experience"),
         };
 
-        // Testimonials
         testimonials = new List<Testimonial>
         {
             new("\"Lost 6 kg in the first month without any fasting or medicine — the physiotherapy approach made all the difference.\"",
@@ -745,99 +709,59 @@
                 "Slimming Program Patient"),
         };
 
-        // FAQ items
         faqItems = new List<FaqItem>
         {
             new("Is the weight loss treatment safe?",
-                "Yes, all treatments are physiotherapy-led with no surgery, no medicine, no fasting, and no side effects. The clinic is ISO 9001:2015 certified, ensuring the highest quality and safety standards."),
+                "Yes, all treatments are physiotherapy-led with no surgery, no medicine, no fasting, and no side effects. The clinic is ISO 9001:2015 certified."),
             new("How quickly will I see results?",
-                "Most patients see visible inch loss from the very first session. Weight loss results of 4–8 kg per month are typical with the full treatment plan."),
+                "Most patients see visible inch loss from the very first session. Weight loss of 4–8 kg per month is typical with the full treatment plan."),
             new("Who is eligible for the slimming program?",
-                "Anyone above 16 years of age is eligible. A brief health assessment is conducted before starting. Pregnant women should consult with Dr. Manjari first."),
+                "Anyone above 16 years of age is eligible. A brief health assessment is conducted before starting."),
             new("How many sessions do I need?",
-                "Typically 12–24 sessions depending on your goal. Dr. Manjari will create a personalised plan after your first consultation, with clear milestones throughout."),
+                "Typically 12–24 sessions depending on your goal. Dr. Manjari will create a personalised plan after your first consultation."),
             new("Does the physiotherapy program work for chronic pain?",
-                "Yes. We treat back, neck and knee pain, arthritis, spondylitis, paralysis and many more conditions using electrotherapy and manual therapy — all personalised to your condition."),
+                "Yes. We treat back, neck and knee pain, arthritis, spondylitis, paralysis and many more conditions using electrotherapy and manual therapy."),
             new("Can children join the height increase program?",
-                "Yes, the height increase program is available up to 23 years of age with potential growth of 1–3 inches. Results vary by individual; a consultation with Dr. Manjari will determine suitability."),
+                "Yes, the program is available up to 23 years of age with potential growth of 1–3 inches. A consultation with Dr. Manjari will determine suitability."),
         };
 
-        // Gallery carousel (kept for backwards-compat)
         carouselSlides = new List<CarouselSlide>
         {
             new("/images/clinic-gallery/gallery-03.jpeg", "ProTouch Physio Clinic"),
             new("/images/clinic-gallery/gallery-09.jpeg", "Physiotherapy & Rehabilitation"),
-            new("/images/clinic-gallery/gallery-15.jpeg", "Advanced Slimming Therapy"),
-            new("/images/clinic-gallery/gallery-24.jpeg", "Specialised Equipment"),
         };
     }
 
-    // ════════════════════════════════════════════════════════
-    // OnAfterRenderAsync — start timers and init JS
-    // ════════════════════════════════════════════════════════
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
-        // Hero carousel — CSS-driven (Task 1, _heroTimer removed)
-
-        // Testimonial carousel — JS IntersectionObserver (Task 2, _testiTimer removed)
-
-        // JS initialisations (wrapped in try/catch per spec)
-        // ── Critical: run immediately ──
-        try { await JS.InvokeVoidAsync("initStickyHeader", "#ac-header"); } catch { }
-        // Task 5 additions
+        try { await JS.InvokeVoidAsync("initStickyHeader", "#pt-header"); } catch { }
         try { await JS.InvokeVoidAsync("initActiveNavHighlight"); } catch { }
         try { await JS.InvokeVoidAsync("initBackToTop"); } catch { }
-        // Task 9: Gallery lightbox ESC key handler
         try { await JS.InvokeVoidAsync("initGalleryLightbox", DotNetObjectReference.Create(this)); } catch { }
-        // Task 2: Testimonial observer (replaces _testiTimer)
         try { await JS.InvokeVoidAsync("initTestiObserver", DotNetObjectReference.Create(this)); } catch { }
-        // ── Non-critical: deferred via requestIdleCallback (Task 8) ──
-        // initScrollReveal, initGuaranteeTicker, initBackToTop, initActiveNavHighlight
-        // are now called internally by scheduleDeferredInit_home
         try { await JS.InvokeVoidAsync("scheduleDeferredInit_home"); } catch { }
         _lightboxInited = true;
     }
 
-    // ════════════════════════════════════════════════════════
-    // Service tab methods
-    // ════════════════════════════════════════════════════════
-    private void SetTab(string id)
-    {
-        activeTab = id;
-    }
+    private void SetTab(string id) => activeTab = id;
+    private void ToggleFaq(int index) => openFaq = (openFaq == index) ? -1 : index;
 
-    // ════════════════════════════════════════════════════════
-    // FAQ accordion
-    // ════════════════════════════════════════════════════════
-    private void ToggleFaq(int index)
-    {
-        openFaq = (openFaq == index) ? -1 : index;
-    }
-
-    // ════════════════════════════════════════════════════════
-    // Testimonial carousel navigation
-    // ════════════════════════════════════════════════════════
     private void NextTesti()
     {
         activeTestiIndex = (activeTestiIndex + 1) % testimonials.Count;
         StateHasChanged();
     }
-
     private void PrevTesti()
     {
         activeTestiIndex = (activeTestiIndex - 1 + testimonials.Count) % testimonials.Count;
         StateHasChanged();
     }
-
     private void JumpToTesti(int index)
     {
         activeTestiIndex = index;
         StateHasChanged();
     }
-
-    // ── Task 2: JS-invokable method for IntersectionObserver-driven auto-advance ──
     [Microsoft.JSInterop.JSInvokable]
     public void AdvanceTesti()
     {
@@ -845,131 +769,77 @@
         InvokeAsync(StateHasChanged);
     }
 
-    // ════════════════════════════════════════════════════════
-    // Gallery carousel helper (data only, not rendered)
-    // ════════════════════════════════════════════════════════
-    private void JumpToSlide(int index)
-    {
-        activeSlideIndex = index;
-        StateHasChanged();
-    }
+    private void JumpToSlide(int index) { activeSlideIndex = index; StateHasChanged(); }
 
-    // ════════════════════════════════════════════════════════
-    // Task 9: Gallery Grid methods
-    // ════════════════════════════════════════════════════════
-    private void LoadMoreGallery()
-    {
-        _galleryVisible = Math.Min(_galleryVisible + 12, _galleryTotal);
-    }
-
-    private void OpenLightbox(int index)
-    {
-        _selectedLightboxIndex = index;
-        _isLightboxOpen = true;
-    }
-
+    private void LoadMoreGallery() => _galleryVisible = Math.Min(_galleryVisible + 12, _galleryTotal);
+    private void OpenLightbox(int index) { _selectedLightboxIndex = index; _isLightboxOpen = true; }
     [Microsoft.JSInterop.JSInvokable]
-    public void CloseLightbox()
-    {
-        _isLightboxOpen = false;
-        InvokeAsync(StateHasChanged);
-    }
+    public void CloseLightbox() { _isLightboxOpen = false; InvokeAsync(StateHasChanged); }
+    private void LightboxNext() => _selectedLightboxIndex = (_selectedLightboxIndex + 1) % _galleryVisible;
+    private void LightboxPrev() => _selectedLightboxIndex = (_selectedLightboxIndex - 1 + _galleryVisible) % _galleryVisible;
 
-    private void LightboxNext()
-    {
-        _selectedLightboxIndex = (_selectedLightboxIndex + 1) % _galleryVisible;
-    }
-
-    private void LightboxPrev()
-    {
-        _selectedLightboxIndex = (_selectedLightboxIndex - 1 + _galleryVisible) % _galleryVisible;
-    }
-
-    // ════════════════════════════════════════════════════════
-    // Task 8: BMI Estimator
-    // ════════════════════════════════════════════════════════
     private void ComputeBmi()
     {
         _heightError = _weightError = _goalError = "";
         _bmiValue = null;
-
         bool valid = true;
-        if (_heightCm < 100 || _heightCm > 250)
-        { _heightError = "Height must be between 100 and 250 cm."; valid = false; }
-        if (_weightKg < 20 || _weightKg > 300)
-        { _weightError = "Weight must be between 20 and 300 kg."; valid = false; }
-        if (string.IsNullOrWhiteSpace(_bmiGoal))
-        { _goalError = "Please select a wellness goal."; valid = false; }
+        if (_heightCm < 100 || _heightCm > 250) { _heightError = "Height must be between 100 and 250 cm."; valid = false; }
+        if (_weightKg < 20 || _weightKg > 300)   { _weightError = "Weight must be between 20 and 300 kg.";  valid = false; }
+        if (string.IsNullOrWhiteSpace(_bmiGoal))  { _goalError = "Please select a wellness goal.";           valid = false; }
         if (!valid) return;
-
         double h = _heightCm / 100.0;
         double bmi = Math.Round(_weightKg / (h * h), 1);
         _bmiValue = bmi;
-
-        (_bmiCategory, _bmiColor) = bmi < 18.5
-            ? ("Underweight", "#7c1b68")
-            : bmi < 25.0
-                ? ("Normal", "#008d36")
-                : bmi < 30.0
-                    ? ("Overweight", "#ffeb00")
-                    : ("Obese", "#e52321");
-
-        _bmiMessage = WellnessMessageMap
-            .GetValueOrDefault(_bmiCategory, new())
+        (_bmiCategory, _bmiColor) = bmi < 18.5 ? ("Underweight", "#7c1b68")
+            : bmi < 25.0 ? ("Normal", "#008d36")
+            : bmi < 30.0 ? ("Overweight", "#f4b41a")
+            : ("Obese", "#e52321");
+        _bmiMessage = WellnessMessageMap.GetValueOrDefault(_bmiCategory, new())
             .GetValueOrDefault(_bmiGoal, "Your health journey starts here. Book a consultation today.");
-
-        _bmiOutcome = OutcomeMap.GetValueOrDefault(_bmiGoal,
-            "Based on your profile, Dr. Manjari will design a personalised plan for you.");
+        _bmiOutcome = OutcomeMap.GetValueOrDefault(_bmiGoal, "Based on your profile, Dr. Manjari will design a personalised plan for you.");
     }
 
-    private static readonly System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, string>> WellnessMessageMap = new()
+    private static readonly Dictionary<string, Dictionary<string, string>> WellnessMessageMap = new()
     {
-        ["Underweight"] = new()
-        {
-            ["Weight Loss"]                      = "Your BMI indicates you are underweight. Dr. Manjari recommends a tailored nutrition and strength plan before pursuing weight loss goals.",
-            ["Inch Loss"]                        = "Inch loss at your current BMI requires careful guidance. Dr. Manjari will design a safe programme that builds lean mass.",
-            ["Physiotherapy / Pain Relief"]      = "Even at a lower BMI, physiotherapy can address pain effectively. Let's start with a full assessment.",
-            ["Yoga & Wellness"]                  = "Yoga is an excellent way to build strength and balance at your BMI. Dr. Manjari's nature-cure approach will support your overall wellness.",
-            ["Height Increase"]                  = "A structured growth programme may help. Dr. Manjari specialises in height increase programmes for those up to 23 years of age.",
+        ["Underweight"] = new() {
+            ["Weight Loss"]="Your BMI indicates you are underweight. Dr. Manjari recommends a tailored nutrition and strength plan before pursuing weight loss goals.",
+            ["Inch Loss"]="Inch loss at your current BMI requires careful guidance. Dr. Manjari will design a safe programme that builds lean mass.",
+            ["Physiotherapy / Pain Relief"]="Even at a lower BMI, physiotherapy can address pain effectively. Let's start with a full assessment.",
+            ["Yoga & Wellness"]="Yoga is an excellent way to build strength and balance at your BMI. Dr. Manjari's nature-cure approach will support your overall wellness.",
+            ["Height Increase"]="A structured growth programme may help. Dr. Manjari specialises in height increase programmes for those up to 23 years of age.",
         },
-        ["Normal"] = new()
-        {
-            ["Weight Loss"]                      = "Your BMI is in the healthy range — ideal for a targeted toning and inch-loss programme. Dr. Manjari can help you sculpt and maintain.",
-            ["Inch Loss"]                        = "With a healthy BMI, inch loss is achievable quickly. Dr. Manjari's body-contouring techniques can deliver visible results from session one.",
-            ["Physiotherapy / Pain Relief"]      = "A healthy BMI supports faster recovery. Dr. Manjari's physiotherapy plans are designed to resolve pain and restore full mobility.",
-            ["Yoga & Wellness"]                  = "You are in great shape to benefit from an advanced yoga wellness plan. Dr. Manjari will help you reach peak vitality.",
-            ["Height Increase"]                  = "Excellent baseline health. Dr. Manjari's specialised growth programme can be started immediately.",
+        ["Normal"] = new() {
+            ["Weight Loss"]="Your BMI is in the healthy range — ideal for a targeted toning and inch-loss programme.",
+            ["Inch Loss"]="With a healthy BMI, inch loss is achievable quickly. Visible results from session one.",
+            ["Physiotherapy / Pain Relief"]="A healthy BMI supports faster recovery. Dr. Manjari's physiotherapy plans are designed to resolve pain and restore full mobility.",
+            ["Yoga & Wellness"]="You are in great shape to benefit from an advanced yoga wellness plan.",
+            ["Height Increase"]="Excellent baseline health. Dr. Manjari's specialised growth programme can be started immediately.",
         },
-        ["Overweight"] = new()
-        {
-            ["Weight Loss"]                      = "Your BMI indicates room to shed excess weight safely. Dr. Manjari's 4–8 kg/month programme — no fasting, no medicine — is designed exactly for your profile.",
-            ["Inch Loss"]                        = "Targeted inch loss is very effective at your BMI. Expect visible waist and hip reduction within the first few sessions.",
-            ["Physiotherapy / Pain Relief"]      = "Excess weight often strains joints. Dr. Manjari will combine physiotherapy with a supervised weight-management plan for lasting relief.",
-            ["Yoga & Wellness"]                  = "Yoga combined with Dr. Manjari's dietary guidance is a powerful tool for bringing your BMI back to the healthy range.",
-            ["Height Increase"]                  = "Healthy weight management supports posture and height. Dr. Manjari will assess suitability during your consultation.",
+        ["Overweight"] = new() {
+            ["Weight Loss"]="Your BMI indicates room to shed excess weight safely. Dr. Manjari's 4–8 kg/month programme — no fasting, no medicine — is designed exactly for your profile.",
+            ["Inch Loss"]="Targeted inch loss is very effective at your BMI. Expect visible waist and hip reduction within the first few sessions.",
+            ["Physiotherapy / Pain Relief"]="Excess weight often strains joints. Dr. Manjari will combine physiotherapy with a supervised weight-management plan.",
+            ["Yoga & Wellness"]="Yoga combined with Dr. Manjari's dietary guidance is a powerful tool for bringing your BMI back to the healthy range.",
+            ["Height Increase"]="Healthy weight management supports posture and height. Dr. Manjari will assess suitability during your consultation.",
         },
-        ["Obese"] = new()
-        {
-            ["Weight Loss"]                      = "Significant, safe weight loss is within reach. Dr. Manjari's medically supervised programme combines physiotherapy and slimming for sustainable results.",
-            ["Inch Loss"]                        = "You can start seeing inch loss immediately. Dr. Manjari's targeted body-contouring approach shows results from the very first session.",
-            ["Physiotherapy / Pain Relief"]      = "Pain management and weight reduction go hand in hand. Dr. Manjari will prioritise pain relief while guiding you toward a healthier weight.",
-            ["Yoga & Wellness"]                  = "Dr. Manjari's gentle, adapted yoga programme is designed to be safe and effective at all BMI levels.",
-            ["Height Increase"]                  = "A consultation with Dr. Manjari will determine the best integrated plan for your specific goals.",
+        ["Obese"] = new() {
+            ["Weight Loss"]="Significant, safe weight loss is within reach. Dr. Manjari's medically supervised programme combines physiotherapy and slimming.",
+            ["Inch Loss"]="You can start seeing inch loss immediately. Dr. Manjari's targeted body-contouring approach shows results from the very first session.",
+            ["Physiotherapy / Pain Relief"]="Pain management and weight reduction go hand in hand. Dr. Manjari will prioritise pain relief while guiding you toward a healthier weight.",
+            ["Yoga & Wellness"]="Dr. Manjari's gentle, adapted yoga programme is designed to be safe and effective at all BMI levels.",
+            ["Height Increase"]="A consultation with Dr. Manjari will determine the best integrated plan for your specific goals.",
         },
     };
 
     private static readonly Dictionary<string, string> OutcomeMap = new()
     {
-        ["Weight Loss"]                 = "Based on your profile, you could achieve 4–8 kg weight loss in your first month with Dr. Manjari's programme.",
-        ["Inch Loss"]                   = "Based on your profile, expect 2–5 inches of targeted reduction per session with Dr. Manjari's body-contouring plan.",
-        ["Physiotherapy / Pain Relief"] = "Based on your profile, most patients experience significant pain relief within 2–4 physiotherapy sessions.",
-        ["Yoga & Wellness"]             = "Based on your profile, a personalised 12-session yoga plan with Dr. Manjari will improve energy, flexibility and metabolic balance.",
-        ["Height Increase"]             = "Based on your profile and age, Dr. Manjari's height-increase programme may help you gain 1–3 inches with a dedicated plan.",
+        ["Weight Loss"]="Based on your profile, you could achieve 4–8 kg weight loss in your first month with Dr. Manjari's programme.",
+        ["Inch Loss"]="Based on your profile, expect 2–5 inches of targeted reduction per session with Dr. Manjari's body-contouring plan.",
+        ["Physiotherapy / Pain Relief"]="Based on your profile, most patients experience significant pain relief within 2–4 physiotherapy sessions.",
+        ["Yoga & Wellness"]="Based on your profile, a personalised 12-session yoga plan with Dr. Manjari will improve energy, flexibility and metabolic balance.",
+        ["Height Increase"]="Based on your profile and age, Dr. Manjari's height-increase programme may help you gain 1–3 inches with a dedicated plan.",
     };
 
-    // ════════════════════════════════════════════════════════
-    // Task 11: Feedback Widget
-    // ════════════════════════════════════════════════════════
     private void SetFeedbackStar(int star)   => _feedbackRating = star;
     private void HoverFeedbackStar(int star) => _feedbackHoverRating = star;
     private void UnhoverFeedbackStar()       => _feedbackHoverRating = 0;
@@ -977,34 +847,17 @@
     private async Task SubmitFeedbackAsync()
     {
         _feedbackError = "";
-        if (_feedbackRating == 0)
-        {
-            _feedbackError = "Please select a star rating before submitting.";
-            return;
-        }
+        if (_feedbackRating == 0) { _feedbackError = "Please select a star rating before submitting."; return; }
         _feedbackSubmitting = true;
-        try
-        {
-            await ClinicService.SaveFeedbackAsync(_feedbackRating, _feedbackComment);
-            _feedbackSuccess = true;
-        }
-        catch
-        {
-            _feedbackError = "Unable to save your feedback. Please try again.";
-        }
-        finally
-        {
-            _feedbackSubmitting = false;
-        }
+        try { await ClinicService.SaveFeedbackAsync(_feedbackRating, _feedbackComment); _feedbackSuccess = true; }
+        catch { _feedbackError = "Unable to save your feedback. Please try again."; }
+        finally { _feedbackSubmitting = false; }
     }
 
-    // ════════════════════════════════════════════════════════
-    // DisposeAsync — clean up timers and JS listeners
-    // ════════════════════════════════════════════════════════
     public async ValueTask DisposeAsync()
     {
-        try { await JS.InvokeVoidAsync("destroyAestheticAnimations"); } catch { }
-        try { await JS.InvokeVoidAsync("destroyHomepageAnimations"); } catch { }
-        try { await JS.InvokeVoidAsync("destroyTestiObserver"); } catch { }
+        try { await JS.InvokeVoidAsync("destroyAestheticAnimations"); }  catch { }
+        try { await JS.InvokeVoidAsync("destroyHomepageAnimations"); }   catch { }
+        try { await JS.InvokeVoidAsync("destroyTestiObserver"); }        catch { }
     }
 }
