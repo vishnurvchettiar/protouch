@@ -81,9 +81,15 @@ main {
         z-index: 10;
         box-shadow: 2px 0 12px rgba(0,141,54,0.08);
     }
+    main { margin-left: 260px; }
     .top-row { position: sticky; top: 0; z-index: 1; }
     .top-row, article {
         padding-left: 2.5rem !important;
         padding-right: 2.5rem !important;
     }
+}
+
+@media (max-width: 768px) {
+    .sidebar { width: 64px; }
+    main { margin-left: 64px; }
 }

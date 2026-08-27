@@ -202,7 +202,8 @@ public class ClinicService
     /// </summary>
     public static string NormalisePhone(string? phone)
     {
-        var digits = new string((phone ?? string.Empty).Where(char.IsDigit).ToArray());
+        // Only extract ASCII digits (0-9), not Unicode lookalike digit chars
+        var digits = new string((phone ?? string.Empty).Where(c => c >= '0' && c <= '9').ToArray());
 
         // Strip leading 00
         if (digits.StartsWith("00"))
@@ -261,6 +262,25 @@ public class ClinicService
     // ==========================================
     public async Task UpdateDailyLogAsync(DailyLog log)
     {
+        // Validate UserId is not null or empty
+        if (string.IsNullOrEmpty(log.UserId))
+            throw new ArgumentException("UserId must not be null or empty.", nameof(log));
+
+        // Validate Weight is positive
+        if (log.Weight <= 0)
+            throw new ArgumentException("Weight must be greater than zero.", nameof(log));
+
+        // Validate LogDate is not in the future (beyond today)
+        if (log.LogDate.Date > DateTime.Today)
+            throw new ArgumentException("LogDate cannot be in the future.", nameof(log));
+
+        // Validate individual macro values are non-negative and ≤ 100
+        if (log.CarbsPercentage < 0 || log.ProteinPercentage < 0 || log.FatPercentage < 0 || log.VegPercentage < 0)
+            throw new InvalidOperationException("Macro percentages cannot be negative.");
+
+        if (log.CarbsPercentage > 100 || log.ProteinPercentage > 100 || log.FatPercentage > 100 || log.VegPercentage > 100)
+            throw new InvalidOperationException("Macro percentages cannot exceed 100.");
+
         // Validate macro sum = 100
         var macroSum = log.CarbsPercentage + log.ProteinPercentage + log.FatPercentage + log.VegPercentage;
         if (macroSum != 100)
@@ -589,6 +609,10 @@ public class ClinicService
         // Validate ServiceType non-empty
         if (string.IsNullOrWhiteSpace(request.ServiceType))
             throw new ArgumentException("Service type must be selected.", nameof(request));
+
+        // Validate Notes length (max 1000 chars)
+        if (request.Notes != null && request.Notes.Length > 1000)
+            throw new ArgumentException("Notes must not exceed 1000 characters.", nameof(request));
 
         // Validate PreferredDate: 1 hour to 90 days in the future
         var now = DateTime.UtcNow;
