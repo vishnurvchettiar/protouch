@@ -1,10 +1,44 @@
 @inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
 
-<div class="pt-auth-shell">
-    <div class="pt-auth-card">
-        <div class="pt-auth-brand">
-            <img src="/images/protouch-logo.svg" alt="ProTouch Physio - Slimming Clinic" class="pt-auth-logo" />
+@if (!IsFullBleedPage)
+{
+    <div class="pt-auth-shell @(IsWidePage ? "pt-auth-shell--wide" : "")">
+        <div class="pt-auth-card">
+            <div class="pt-auth-brand">
+                <img src="/images/protouch-logo.svg" alt="ProTouch Physio - Slimming Clinic" class="pt-auth-logo" />
+            </div>
+            @Body
         </div>
-        @Body
     </div>
-</div>
+}
+else
+{
+    @Body
+}
+
+@code {
+    // Login.razor renders its own full-viewport, two-column split-screen design
+    // (.pt-auth-split-page, min-height: 100vh) with its own two logo instances,
+    // per Requirement 4.4's documented secondary-logo exception. Wrapping that
+    // design inside the standard .pt-auth-card (max-width: 460px, padded,
+    // bordered) would visibly crush it into a narrow floating box instead of
+    // filling the viewport, and would also render this layout's own brand logo
+    // a third time above Login's two page-local logos. Every other
+    // Anonymous_Account_Page still receives the standard centered card and
+    // single brand logo.
+    private bool IsFullBleedPage => CurrentRoute is "Account/Login";
+
+    // Register.razor renders a two-column field grid (.pt-auth-grid) intended
+    // for a wider card. Rather than relying on the CSS :has() selector (which
+    // AuthLayout previously used to detect a nested .pt-auth-card--wide child
+    // and widen this shell's card accordingly, and which is unsupported in
+    // Firefox < 121, Safari < 16.4, and Chrome < 105 -- silently failing to
+    // widen the card and leaving the two-column grid cramped into 460px on
+    // those browsers), AuthLayout decides the wide treatment itself from the
+    // route, the same way it decides the full-bleed treatment above.
+    private bool IsWidePage => CurrentRoute is "Account/Register";
+
+    private string CurrentRoute =>
+        NavigationManager.ToBaseRelativePath(NavigationManager.Uri).TrimEnd('/');
+}
