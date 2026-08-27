@@ -1,5 +1,5 @@
 @page "/Account/Register"
-@layout PublicLayout
+@layout AuthLayout
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
@@ -20,72 +20,68 @@
 
 <PageTitle>Register | ProTouch Physio - Slimming Clinic</PageTitle>
 
-<div class="auth-page">
-    <div class="auth-card auth-card-wide">
-        <div class="auth-brand">
-            <img src="/images/protouch-logo.svg" alt="ProTouch Physio - Slimming Clinic" />
-            <p>Create your client account</p>
+<div class="pt-auth-card--wide">
+    <h1 class="pt-auth-heading">Create Your Account</h1>
+    <p class="pt-auth-subheading">Create your client account</p>
+
+    <StatusMessage Message="@Message" />
+
+    <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="pt-auth-field-error" role="alert" />
+
+        <div class="pt-auth-grid">
+            <div class="pt-auth-field">
+                <label for="Input.FullName">Full Name *</label>
+                <InputText @bind-Value="Input.FullName" id="Input.FullName" class="pt-auth-input"
+                           autocomplete="name" aria-required="true" placeholder="Your full name" />
+                <ValidationMessage For="() => Input.FullName" class="pt-auth-field-error" />
+            </div>
+
+            <div class="pt-auth-field">
+                <label for="Input.Email">Email Address *</label>
+                <InputText @bind-Value="Input.Email" id="Input.Email" class="pt-auth-input"
+                           autocomplete="username" aria-required="true"
+                           placeholder="name@example.com" />
+                <ValidationMessage For="() => Input.Email" class="pt-auth-field-error" />
+            </div>
+
+            <div class="pt-auth-field">
+                <label for="Input.PhoneNumber">Mobile Number</label>
+                <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="pt-auth-input"
+                           maxlength="15" placeholder="10-digit mobile number" />
+                <ValidationMessage For="() => Input.PhoneNumber" class="pt-auth-field-error" />
+            </div>
+
+            <div class="pt-auth-field">
+                <!-- spacer -->
+            </div>
+
+            <div class="pt-auth-field">
+                <label for="Input.Password">Password *</label>
+                <InputText type="password" @bind-Value="Input.Password" id="Input.Password"
+                           class="pt-auth-input" autocomplete="new-password"
+                           aria-required="true" placeholder="Minimum 8 characters" />
+                <ValidationMessage For="() => Input.Password" class="pt-auth-field-error" />
+            </div>
+
+            <div class="pt-auth-field">
+                <label for="Input.ConfirmPassword">Confirm Password *</label>
+                <InputText type="password" @bind-Value="Input.ConfirmPassword"
+                           id="Input.ConfirmPassword" class="pt-auth-input"
+                           autocomplete="new-password" aria-required="true"
+                           placeholder="Repeat your password" />
+                <ValidationMessage For="() => Input.ConfirmPassword" class="pt-auth-field-error" />
+            </div>
         </div>
 
-        <StatusMessage Message="@Message" />
+        <button type="submit" class="pt-auth-button">Create Account →</button>
 
-        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="auth-error" role="alert" />
-
-            <div class="auth-grid">
-                <div class="auth-field">
-                    <label for="Input.FullName">Full Name *</label>
-                    <InputText @bind-Value="Input.FullName" id="Input.FullName" class="auth-input"
-                               autocomplete="name" aria-required="true" placeholder="Your full name" />
-                    <ValidationMessage For="() => Input.FullName" class="auth-field-error" />
-                </div>
-
-                <div class="auth-field">
-                    <label for="Input.Email">Email Address *</label>
-                    <InputText @bind-Value="Input.Email" id="Input.Email" class="auth-input"
-                               autocomplete="username" aria-required="true"
-                               placeholder="name@example.com" />
-                    <ValidationMessage For="() => Input.Email" class="auth-field-error" />
-                </div>
-
-                <div class="auth-field">
-                    <label for="Input.PhoneNumber">Mobile Number</label>
-                    <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="auth-input"
-                               maxlength="15" placeholder="10-digit mobile number" />
-                    <ValidationMessage For="() => Input.PhoneNumber" class="auth-field-error" />
-                </div>
-
-                <div class="auth-field">
-                    <!-- spacer -->
-                </div>
-
-                <div class="auth-field">
-                    <label for="Input.Password">Password *</label>
-                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password"
-                               class="auth-input" autocomplete="new-password"
-                               aria-required="true" placeholder="Minimum 8 characters" />
-                    <ValidationMessage For="() => Input.Password" class="auth-field-error" />
-                </div>
-
-                <div class="auth-field">
-                    <label for="Input.ConfirmPassword">Confirm Password *</label>
-                    <InputText type="password" @bind-Value="Input.ConfirmPassword"
-                               id="Input.ConfirmPassword" class="auth-input"
-                               autocomplete="new-password" aria-required="true"
-                               placeholder="Repeat your password" />
-                    <ValidationMessage For="() => Input.ConfirmPassword" class="auth-field-error" />
-                </div>
-            </div>
-
-            <button type="submit" class="auth-submit">Create Account →</button>
-
-            <div class="auth-footer">
-                <span>Already registered?</span>
-                <a href="Account/Login">Sign in</a>
-            </div>
-        </EditForm>
-    </div>
+        <div class="pt-auth-form-footer">
+            <span>Already registered?</span>
+            <a href="Account/Login" class="pt-auth-link">Sign in</a>
+        </div>
+    </EditForm>
 </div>
 
 @code {
