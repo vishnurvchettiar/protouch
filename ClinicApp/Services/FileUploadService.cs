@@ -109,6 +109,9 @@ public class FileUploadService
         if (sizeBytes > MaxFileSizeBytes)
             return (false, $"File size {sizeBytes} bytes exceeds 8 MB limit.");
 
+        if (sizeBytes <= 0)
+            return (false, "File must not be empty (0 bytes).");
+
         return (true, null);
     }
 }
