@@ -1,5 +1,5 @@
 @page "/Account/Login"
-@layout PublicLayout
+@layout AuthLayout
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
@@ -14,115 +14,115 @@
 
 <PageTitle>Login | ProTouch Physio - Slimming Clinic</PageTitle>
 
-<div class="login-split-page">
+<div class="pt-auth-split-page">
 
     <!-- ══════════════════════════════════════════════
          LEFT — Form Panel
          ══════════════════════════════════════════════ -->
-    <div class="login-form-panel">
-        <div class="login-form-inner">
+    <div class="pt-auth-form-panel">
+        <div class="pt-auth-form-inner">
 
             <!-- Logo -->
-            <div class="login-logo">
-                <img src="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg"
+            <div class="pt-auth-form-logo">
+                <img src="/images/protouch-logo.svg"
                      alt="ProTouch Physio - Slimming Clinic" />
             </div>
 
             <!-- Role badge -->
-            <div class="login-role-badge">
-                <span class="login-role-dot"></span>
+            <div class="pt-auth-role-badge">
+                <span class="pt-auth-role-dot"></span>
                 Clinic Management Portal
             </div>
 
-            <h1 class="login-heading">Welcome back</h1>
-            <p class="login-subheading">Sign in to your ProTouch account to continue.</p>
+            <h1 class="pt-auth-heading">Welcome back</h1>
+            <p class="pt-auth-subheading">Sign in to your ProTouch account to continue.</p>
 
             <!-- Error message -->
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="login-error-alert" role="alert">
-                    <span class="login-error-icon">⚠</span>
+                <div class="pt-auth-alert pt-auth-alert--error pt-auth-error-alert" role="alert">
+                    <span>⚠</span>
                     @errorMessage
                 </div>
             }
 
             <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
                 <DataAnnotationsValidator />
-                <ValidationSummary class="login-validation-summary" role="alert" />
+                <ValidationSummary class="pt-auth-validation-summary" role="alert" />
 
                 <!-- Email field -->
-                <div class="login-field">
-                    <label class="login-label" for="Input.Email">Email Address</label>
-                    <div class="login-input-wrap">
-                        <span class="login-input-icon">✉</span>
+                <div class="pt-auth-field">
+                    <label for="Input.Email">Email Address</label>
+                    <div class="pt-auth-input-wrap">
+                        <span class="pt-auth-input-icon">✉</span>
                         <InputText @bind-Value="Input.Email"
                                    id="Input.Email"
-                                   class="login-input"
+                                   class="pt-auth-input"
                                    autocomplete="username"
                                    aria-required="true"
                                    placeholder="name@example.com" />
                     </div>
-                    <ValidationMessage For="() => Input.Email" class="login-field-error" />
+                    <ValidationMessage For="() => Input.Email" class="pt-auth-field-error" />
                 </div>
 
                 <!-- Password field -->
-                <div class="login-field">
-                    <div class="login-label-row">
-                        <label class="login-label" for="Input.Password">Password</label>
-                        <a class="login-forgot" href="/Account/ForgotPassword">Forgot password?</a>
+                <div class="pt-auth-field">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label for="Input.Password">Password</label>
+                        <a class="pt-auth-link" href="/Account/ForgotPassword">Forgot password?</a>
                     </div>
-                    <div class="login-input-wrap">
-                        <span class="login-input-icon">🔒</span>
+                    <div class="pt-auth-input-wrap">
+                        <span class="pt-auth-input-icon">🔒</span>
                         <InputText type="@(_showPassword ? "text" : "password")"
                                    @bind-Value="Input.Password"
                                    id="Input.Password"
-                                   class="login-input"
+                                   class="pt-auth-input"
                                    autocomplete="current-password"
                                    aria-required="true"
                                    placeholder="••••••••" />
                         <button type="button"
-                                class="login-show-pw"
+                                class="pt-auth-show-pw"
                                 @onclick="() => _showPassword = !_showPassword"
                                 aria-label="Toggle password visibility">
                             @(_showPassword ? "🙈" : "👁")
                         </button>
                     </div>
-                    <ValidationMessage For="() => Input.Password" class="login-field-error" />
+                    <ValidationMessage For="() => Input.Password" class="pt-auth-field-error" />
                 </div>
 
                 <!-- Remember me -->
-                <div class="login-remember">
-                    <label class="login-toggle-wrap">
+                <div class="pt-auth-remember">
+                    <label class="pt-auth-toggle-wrap">
                         <InputCheckbox @bind-Value="Input.RememberMe"
                                        id="Input.RememberMe"
-                                       class="login-toggle-input" />
-                        <span class="login-toggle-track">
-                            <span class="login-toggle-thumb"></span>
+                                       class="pt-auth-toggle-input" />
+                        <span class="pt-auth-toggle-track">
+                            <span class="pt-auth-toggle-thumb"></span>
                         </span>
-                        <span class="login-toggle-label">Keep me signed in</span>
+                        <span class="pt-auth-toggle-label">Keep me signed in</span>
                     </label>
                 </div>
 
                 <!-- Submit -->
-                <button type="submit" class="login-submit-btn" disabled="@_submitting">
+                <button type="submit" class="pt-auth-button" disabled="@_submitting">
                     @if (_submitting)
                     {
-                        <span class="login-spinner" aria-hidden="true"></span>
+                        <span class="pt-auth-spinner" aria-hidden="true"></span>
                         <span>Signing in…</span>
                     }
                     else
                     {
                         <span>Sign In</span>
-                        <span class="login-btn-arrow">→</span>
+                        <span class="pt-auth-btn-arrow">→</span>
                     }
                 </button>
 
             </EditForm>
 
             <!-- Footer -->
-            <div class="login-form-footer">
+            <div class="pt-auth-form-footer">
                 <span>Need access?</span>
-                <a href="/">← Back to website</a>
+                <a class="pt-auth-link" href="/">← Back to website</a>
             </div>
 
         </div>
@@ -131,44 +131,44 @@
     <!-- ══════════════════════════════════════════════
          RIGHT — Ambient Visual Panel
          ══════════════════════════════════════════════ -->
-    <div class="login-visual-panel" aria-hidden="true">
+    <div class="pt-auth-visual-panel" aria-hidden="true">
 
         <!-- Floating ambient orbs -->
-        <div class="login-orb login-orb-1"></div>
-        <div class="login-orb login-orb-2"></div>
-        <div class="login-orb login-orb-3"></div>
-        <div class="login-orb login-orb-4"></div>
+        <div class="pt-auth-orb pt-auth-orb-1"></div>
+        <div class="pt-auth-orb pt-auth-orb-2"></div>
+        <div class="pt-auth-orb pt-auth-orb-3"></div>
+        <div class="pt-auth-orb pt-auth-orb-4"></div>
 
         <!-- Centre content -->
-        <div class="login-visual-content">
-            <div class="login-visual-logo-wrap">
-                <img src="/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg"
+        <div class="pt-auth-visual-content">
+            <div class="pt-auth-visual-logo-wrap">
+                <img src="/images/protouch-logo.svg"
                      alt="ProTouch Physio - Slimming Clinic"
-                     class="login-visual-logo" />
+                     class="pt-auth-visual-logo" />
             </div>
-            <h2 class="login-visual-title">ProTouch Physio<br />&amp; Slimming Clinic</h2>
-            <p class="login-visual-tagline">Physiotherapy-led care by Dr. Manjari.<br />Trusted. Proven. Personal.</p>
+            <h2 class="pt-auth-visual-title">ProTouch Physio<br />&amp; Slimming Clinic</h2>
+            <p class="pt-auth-visual-tagline">Physiotherapy-led care by Dr. Manjari.<br />Trusted. Proven. Personal.</p>
 
             <!-- Stats row -->
-            <div class="login-stats">
-                <div class="login-stat">
-                    <span class="login-stat-num">500+</span>
-                    <span class="login-stat-label">Patients Served</span>
+            <div class="pt-auth-stats">
+                <div class="pt-auth-stat">
+                    <span class="pt-auth-stat-num">500+</span>
+                    <span class="pt-auth-stat-label">Patients Served</span>
                 </div>
-                <div class="login-stat-divider"></div>
-                <div class="login-stat">
-                    <span class="login-stat-num">10+</span>
-                    <span class="login-stat-label">Years of Care</span>
+                <div class="pt-auth-stat-divider"></div>
+                <div class="pt-auth-stat">
+                    <span class="pt-auth-stat-num">10+</span>
+                    <span class="pt-auth-stat-label">Years of Care</span>
                 </div>
-                <div class="login-stat-divider"></div>
-                <div class="login-stat">
-                    <span class="login-stat-num">★ 4.9</span>
-                    <span class="login-stat-label">Patient Rating</span>
+                <div class="pt-auth-stat-divider"></div>
+                <div class="pt-auth-stat">
+                    <span class="pt-auth-stat-num">★ 4.9</span>
+                    <span class="pt-auth-stat-label">Patient Rating</span>
                 </div>
             </div>
 
             <!-- Guarantee pills -->
-            <div class="login-pills">
+            <div class="pt-auth-pills">
                 <span>✓ No Surgery</span>
                 <span>✓ No Fasting</span>
                 <span>✓ ISO 9001:2015</span>

@@ -1,4 +1,5 @@
 ﻿@page "/Account/RegisterConfirmation"
+@layout AuthLayout
 
 @using System.Text
 @using Microsoft.AspNetCore.Identity
@@ -12,7 +13,7 @@
 
 <PageTitle>Register confirmation</PageTitle>
 
-<h1>Register confirmation</h1>
+<h1 class="pt-auth-heading">Register confirmation</h1>
 
 <StatusMessage Message="@statusMessage" />
 
@@ -25,7 +26,7 @@
 }
 else
 {
-    <p role="alert">Please check your email to confirm your account.</p>
+    <p class="pt-auth-alert pt-auth-alert--info" role="alert">Please check your email to confirm your account.</p>
 }
 
 @code {

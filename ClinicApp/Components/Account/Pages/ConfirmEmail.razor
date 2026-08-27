@@ -1,4 +1,5 @@
 ﻿@page "/Account/ConfirmEmail"
+@layout AuthLayout
 
 @using System.Text
 @using Microsoft.AspNetCore.Identity
@@ -10,7 +11,7 @@
 
 <PageTitle>Confirm email</PageTitle>
 
-<h1>Confirm email</h1>
+<h1 class="pt-auth-heading">Confirm email</h1>
 <StatusMessage Message="@statusMessage" />
 
 @code {

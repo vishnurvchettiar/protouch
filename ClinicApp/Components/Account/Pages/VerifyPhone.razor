@@ -1,4 +1,5 @@
 @page "/Account/VerifyPhone"
+@layout AuthLayout
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
@@ -13,26 +14,26 @@
 
 <PageTitle>Verify phone</PageTitle>
 
-<h3>Verify your phone number</h3>
-<p class="text-secondary">Enter the OTP we sent to your phone to verify your number.</p>
+<h1 class="pt-auth-heading">Verify your phone number</h1>
+<p class="pt-auth-subheading">Enter the OTP we sent to your phone to verify your number.</p>
 
 <StatusMessage Message="@statusMessage" />
 
 <EditForm Model="Input" OnValidSubmit="VerifyOtp">
     <DataAnnotationsValidator />
-    <ValidationSummary class="text-danger" />
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="Input.Phone" id="Input.Phone" class="form-control" disabled />
+    <ValidationSummary class="pt-auth-field-error" />
+    <div class="pt-auth-field">
         <label for="Input.Phone">Phone</label>
+        <InputText @bind-Value="Input.Phone" id="Input.Phone" class="pt-auth-input" disabled />
     </div>
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="Input.Code" id="Input.Code" class="form-control" placeholder="Enter OTP" />
+    <div class="pt-auth-field">
         <label for="Input.Code">OTP Code</label>
-        <ValidationMessage For="() => Input.Code" class="text-danger" />
+        <InputText @bind-Value="Input.Code" id="Input.Code" class="pt-auth-input" placeholder="Enter OTP" />
+        <ValidationMessage For="() => Input.Code" class="pt-auth-field-error" />
     </div>
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Verify</button>
-        <button type="button" class="btn btn-secondary" @onclick="ResendOtp">Resend OTP</button>
+        <button type="submit" class="pt-auth-button">Verify</button>
+        <button type="button" class="pt-auth-button" @onclick="ResendOtp">Resend OTP</button>
     </div>
 </EditForm>
 

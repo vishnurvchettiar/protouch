@@ -1,0 +1,724 @@
+{
+  "pbtResults": {
+    "9.1 Write Theory-based test for Property 1 (Canonical Layout Declaration)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787848823409
+    }
+  },
+  "executionHistory": {
+    "1.1 Create `ClinicApp/Components/Layout/AuthLayout.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685859
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846693788
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787847184073
+      }
+    ],
+    "1.2 Add the `CANONICAL AUTH UI LIBRARY (pt-auth-*)` CSS section to `ClinicApp/wwwroot/app.css` and remove the legacy sections": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685870
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846694827
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787847185357
+      }
+    ],
+    "2.1 Migrate `ClinicApp/Components/Account/Pages/Login.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685890
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787847239529
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848157888
+      }
+    ],
+    "2.2 Migrate `ClinicApp/Components/Account/Pages/Register.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685898
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787847240339
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848158653
+      }
+    ],
+    "3.1 Migrate `ClinicApp/Components/Account/Pages/ConfirmEmail.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685902
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848163732
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848240390
+      }
+    ],
+    "3.2 Migrate `ClinicApp/Components/Account/Pages/ConfirmEmailChange.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685906
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848164832
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848239693
+      }
+    ],
+    "3.3 Migrate `ClinicApp/Components/Account/Pages/RegisterConfirmation.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685910
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848165592
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848242255
+      }
+    ],
+    "3.4 Migrate `ClinicApp/Components/Account/Pages/ForgotPasswordConfirmation.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685914
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848166636
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848238585
+      }
+    ],
+    "3.5 Migrate `ClinicApp/Components/Account/Pages/ResetPasswordConfirmation.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685918
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848167508
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848241489
+      }
+    ],
+    "3.6 Migrate `ClinicApp/Components/Account/Pages/InvalidPasswordReset.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685922
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848246753
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848321234
+      }
+    ],
+    "3.7 Migrate `ClinicApp/Components/Account/Pages/InvalidUser.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685925
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848247456
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848322332
+      }
+    ],
+    "3.8 Migrate `ClinicApp/Components/Account/Pages/Lockout.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685929
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848248551
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848323967
+      }
+    ],
+    "3.9 Migrate `ClinicApp/Components/Account/Pages/AccessDenied.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685933
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848249353
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848323136
+      }
+    ],
+    "4. Checkpoint - ensure all tests pass": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685937
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848352888
+      }
+    ],
+    "5.1 Migrate `ClinicApp/Components/Account/Pages/ForgotPassword.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685943
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848356722
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848483055
+      }
+    ],
+    "5.2 Migrate `ClinicApp/Components/Account/Pages/ResetPassword.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685947
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848357814
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848483812
+      }
+    ],
+    "5.3 Migrate `ClinicApp/Components/Account/Pages/ResendEmailConfirmation.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685950
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848360036
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848485516
+      }
+    ],
+    "6.1 Migrate `ClinicApp/Components/Account/Pages/LoginWith2fa.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685954
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848490482
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848623691
+      }
+    ],
+    "6.2 Migrate `ClinicApp/Components/Account/Pages/LoginWithRecoveryCode.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685958
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848491198
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848624791
+      }
+    ],
+    "6.3 Migrate `ClinicApp/Components/Account/Pages/VerifyPhone.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685962
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848492282
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848625884
+      }
+    ],
+    "6.4 Migrate `ClinicApp/Components/Account/Pages/ExternalLogin.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685967
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848493107
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848626568
+      }
+    ],
+    "7.1 Migrate `ClinicApp/Components/Account/Shared/StatusMessage.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685971
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848631045
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848703975
+      }
+    ],
+    "7.2 Migrate `ClinicApp/Components/Account/Shared/ExternalLoginPicker.razor`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685975
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848631829
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848704699
+      }
+    ],
+    "8. Checkpoint - ensure all tests pass": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685979
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848724031
+      }
+    ],
+    "10.2 Run `git diff --stat` against the pre-feature base and confirm only in-scope files changed": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685983
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853516230
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853528768
+      }
+    ],
+    "10.3 Run `dotnet build` across the solution": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685987
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853532174
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853550507
+      }
+    ],
+    "10.4 Run `dotnet test` across `ClinicApp.Tests`": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685993
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853555076
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853572358
+      }
+    ],
+    "11. Final checkpoint - ensure all tests pass": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787846685997
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853576255
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853595399
+      }
+    ],
+    "1. Create AuthLayout and the canonical CSS foundation": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787847185361
+      }
+    ],
+    "2. Migrate `Login.razor` and `Register.razor` to the canonical shell (Group A — the two deliberately-designed pages)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848158659
+      }
+    ],
+    "3. Migrate the 9 previously-bare confirmation/error pages (Group B)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848323972
+      }
+    ],
+    "5. Migrate password-reset and email-confirmation flow pages (Group C)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848485521
+      }
+    ],
+    "6. Migrate 2FA, recovery-code, phone-OTP, and external-login pages (Group D)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848626572
+      }
+    ],
+    "7. Migrate the shared `StatusMessage` and `ExternalLoginPicker` components": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848704704
+      }
+    ],
+    "9.1 Write Theory-based test for Property 1 (Canonical Layout Declaration)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848748073
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853076442
+      }
+    ],
+    "9.2 Write Theory-based test for Property 2 (Legacy Class Family Elimination)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848749176
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853077540
+      }
+    ],
+    "9.3 Write Theory-based test for Property 3 (Canonical Card Container Presence)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848749880
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853078243
+      }
+    ],
+    "9.6 Write Theory-based test for Property 7 (Single H1 Per Page)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848750968
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853079341
+      }
+    ],
+    "9.7 Write Theory-based test for Property 8 (Canonical Logo Asset Reference)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787848751747
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853080348
+      }
+    ],
+    "9. Write comprehensive structural correctness-property tests across the full 18-page `Anonymous_Account_Page` set": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853076450
+      }
+    ],
+    "1.3 Write unit test verifying the AuthLayout/CSS foundation": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853096106
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853235839
+      }
+    ],
+    "2.3 Write unit tests for `Login.razor`/`Register.razor` migration": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853097198
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853235132
+      }
+    ],
+    "3.10 Write unit tests for the 9 bare-page migrations' Identity-behavior preservation": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853097955
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853236932
+      }
+    ],
+    "5.4 Write unit tests for the password-reset/email-confirmation flow migrations": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853099047
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853233983
+      }
+    ],
+    "6.5 Write unit tests for the 2FA/recovery/OTP/external-login migrations": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853100115
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853237716
+      }
+    ],
+    "7.3 Write FsCheck property test for Property 4 (Status Alert Variant Correctness)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853243002
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853397234
+      }
+    ],
+    "7.4 Write unit test for `ExternalLoginPicker.razor` migration": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853244058
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853393936
+      }
+    ],
+    "9.4 Write Theory-based test for Property 5 (Inline Alert Canonical Styling)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853245145
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853397832
+      }
+    ],
+    "9.5 Write Theory-based test for Property 6 (Canonical Field-Error Styling)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853245900
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853512008
+      }
+    ],
+    "9.8 Write Theory-based test for Property 9 (Bounded Logo Cardinality)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853247000
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853396131
+      }
+    ],
+    "10.1 Write unit test for Property 10 (Out-of-Scope File Isolation)": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853247829
+      },
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853395035
+      }
+    ],
+    "10. Verify out-of-scope file isolation and run full-solution verification": [
+      {
+        "executionId": "4dd2894e-5c35-419e-b997-7aa648fbb385",
+        "chatSessionId": "71c5ccb7-930d-4582-91cd-6b314124bb5e",
+        "timestamp": 1787853572366
+      }
+    ]
+  }
+}
