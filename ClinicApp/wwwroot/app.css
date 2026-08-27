@@ -1772,19 +1772,26 @@ a:hover {
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
-.pt-auth-card:not(.pt-auth-card--wide) .pt-auth-grid {
+.pt-auth-card:not(.pt-auth-shell--wide .pt-auth-card) .pt-auth-grid {
     grid-template-columns: 1fr;
 }
-/* Register.razor's Body content applies `.pt-auth-card--wide` as a nested
-   wide-mode modifier (AuthLayout already renders the single outer
+/* Register.razor's Body content applies `.pt-auth-card--wide` as its own
+   top-level wrapper class (AuthLayout already renders the single outer
    `.pt-auth-card`, so Body must not render a second, visibly-bordered card).
-   Widen the outer shell card and restore the two-column grid when Body
-   opts into the wide modifier, so the `:not(.pt-auth-card--wide)` rule
-   above doesn't collapse Register's grid to one column. */
-.pt-auth-card:has(> .pt-auth-card--wide) {
+   AuthLayout.razor detects the Register route directly (see its `IsWidePage`
+   check) and adds a sibling `.pt-auth-shell--wide` class to its own outer
+   `.pt-auth-shell` element, so the outer card can widen and the two-column
+   grid can restore WITHOUT depending on the CSS `:has()` selector --
+   unsupported in Firefox < 121, Safari < 16.4, and Chrome < 105. An earlier
+   version of this rule used `.pt-auth-card:has(> .pt-auth-card--wide)`,
+   which silently failed to match in those browsers, leaving the outer card
+   at its narrow 460px max-width while the two-column grid below still
+   forced two columns, producing a visibly cramped/misaligned Register
+   form. */
+.pt-auth-shell--wide .pt-auth-card {
     max-width: 680px;
 }
-.pt-auth-card .pt-auth-card--wide .pt-auth-grid {
+.pt-auth-card--wide .pt-auth-grid {
     grid-template-columns: 1fr 1fr;
 }
 
