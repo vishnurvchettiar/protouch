@@ -1,8 +1,26 @@
+## Visual Studio & VS Code
 .vs/
+.vscode/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+## Build outputs
 **/bin/
 **/obj/
-ClinicApp/Data/app.db
-ClinicApp/wwwroot/uploads/
-*.user
+[Dd]ebug/
+[Rr]elease/
+
+## Local Database & Dynamic Uploads
+ClinicApp/Data/app.db*
+ClinicApp/wwwroot/uploads/*
+!ClinicApp/wwwroot/uploads/.gitkeep
+
+## Temporary & Scratch files
+*.log
+*.tmp
 /protouch/
 /vishnurvchettiar/
+/SIH1/
+.kiro/

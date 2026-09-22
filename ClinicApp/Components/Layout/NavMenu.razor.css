@@ -1,107 +1,210 @@
-/* NavMenu — Light Green Dashboard Theme */
+/* NavMenu — Modern Dark Glassmorphic Sidebar */
 
-.navbar-toggler {
-    appearance: none;
-    cursor: pointer;
-    width: 3.5rem;
-    height: 2.5rem;
-    color: #1a2e22;
-    position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    border: 1px solid #c8e6d0;
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%280%2C141%2C54%2C0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem #fff;
-    border-radius: 8px;
-}
-.navbar-toggler:checked { background-color: rgba(0,141,54,0.08); }
-
-.top-row {
-    min-height: 3.5rem;
-    background-color: #ffffff;
-    border-bottom: 1px solid #d4e8dc;
+.nav-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
 }
 
-/* Clinic brand — green gradient */
-.navbar-brand {
+/* Sidebar Brand Header */
+.sidebar-header {
+    min-height: 3.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-brand {
+    text-decoration: none !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.brand-icon-wrap {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    box-shadow: 0 0 16px rgba(0, 242, 254, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-glyph {
+    color: #0b0f19;
+    font-weight: 900;
     font-size: 1.15rem;
+    line-height: 1;
+}
+
+.brand-text-block {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+}
+
+.brand-title {
+    font-size: 1.05rem;
     font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #008d36 0%, #00b851 100%);
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
+    line-height: 1.2;
 }
 
+.brand-tagline {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--accent-teal, #00f2fe);
+    line-height: 1;
+}
+
+/* Mobile Close Button */
+.btn-close-mobile {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary, #94a3b8);
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-close-mobile:hover {
+    color: #fff;
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Scrollable Nav Area */
+.nav-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Nav Section Header */
+.nav-section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-muted, #64748b);
+    padding: 0.75rem 1rem 0.35rem 1rem;
+    text-transform: uppercase;
+}
+
+/* Nav Items & Links */
 .nav-item {
-    font-size: 0.92rem;
-    padding: 0.2rem 0.6rem;
+    margin-bottom: 3px;
 }
-.nav-item:first-of-type { padding-top: 0.75rem; }
-.nav-item:last-of-type  { padding-bottom: 1rem; }
 
-/* Default nav link — dark text on white sidebar */
 .nav-item ::deep .nav-link {
-    color: #2a4a35;
+    color: var(--text-secondary, #94a3b8);
     background: transparent;
     border: 1px solid transparent;
     border-radius: 10px;
-    height: 2.6rem;
+    height: 2.65rem;
     display: flex;
     align-items: center;
+    gap: 12px;
     padding: 0 0.85rem;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
+    font-size: 0.88rem;
     font-weight: 500;
+    white-space: nowrap;
 }
-.nav-item ::deep .nav-link svg,
-.nav-item ::deep .nav-link .bi {
-    color: #3d6b4f;
-    margin-right: 10px;
+
+.nav-item ::deep .nav-icon {
+    min-width: 18px;
+    color: var(--text-secondary, #94a3b8);
+    transition: color 0.2s ease, transform 0.2s ease;
 }
+
 .nav-item ::deep .nav-link:hover {
-    color: #008d36;
-    background: rgba(0,141,54,0.08);
-    border-color: rgba(0,141,54,0.15);
+    color: var(--text-primary, #f8fafc);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
 }
-.nav-item ::deep .nav-link:hover svg,
-.nav-item ::deep .nav-link:hover .bi {
-    color: #008d36;
+.nav-item ::deep .nav-link:hover .nav-icon {
+    color: var(--accent-teal, #00f2fe);
+    transform: scale(1.1);
 }
 
-/* Active nav link — green pill */
+/* Active Nav Link */
 .nav-item ::deep a.active {
-    background: rgba(0,141,54,0.1);
-    border: 1px solid rgba(0,141,54,0.25);
-    color: #008d36 !important;
+    background: rgba(0, 242, 254, 0.12) !important;
+    border: 1px solid rgba(0, 242, 254, 0.25) !important;
+    color: #ffffff !important;
     font-weight: 700;
+    box-shadow: 0 0 16px rgba(0, 242, 254, 0.15);
 }
-.nav-item ::deep a.active svg,
-.nav-item ::deep a.active .bi {
-    color: #008d36 !important;
-}
-
-/* Logout button styled as nav link */
-.nav-item ::deep button.nav-link {
-    font-size: 0.92rem;
-    text-align: left;
-    color: #2a4a35;
-    font-weight: 500;
-}
-.nav-item ::deep button.nav-link:hover {
-    color: #008d36;
-    background: rgba(0,141,54,0.08);
+.nav-item ::deep a.active .nav-icon {
+    color: var(--accent-teal, #00f2fe) !important;
 }
 
-.nav-scrollable { display: none; }
-.navbar-toggler:checked ~ .nav-scrollable { display: block; }
+/* Logout button */
+.nav-item ::deep .logout-btn {
+    color: #fca5a5;
+    transition: all 0.2s ease;
+}
+.nav-item ::deep .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.12) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    color: #ef4444 !important;
+}
 
-.bi { margin-right: 10px; font-size: 1rem; color: inherit; }
+/* Collapsed Mode Styling */
+.nav-wrapper.collapsed .sidebar-header {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.nav-wrapper.collapsed .sidebar-brand {
+    justify-content: center;
+}
+.nav-wrapper.collapsed .nav-item ::deep .nav-link {
+    justify-content: center;
+    padding: 0;
+}
+.nav-wrapper.collapsed .nav-item ::deep .nav-icon {
+    margin: 0;
+}
 
-@media (min-width: 641px) {
-    .navbar-toggler { display: none; }
-    .nav-scrollable {
-        display: block;
-        height: calc(100vh - 3.5rem);
-        overflow-y: auto;
-    }
+/* Footer Collapse Toggle */
+.sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.btn-collapse-toggle {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary, #94a3b8);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-collapse-toggle:hover {
+    background: rgba(0, 242, 254, 0.1);
+    border-color: rgba(0, 242, 254, 0.25);
+    color: var(--accent-teal, #00f2fe);
+}
+.collapse-icon {
+    transition: transform 0.3s ease;
+}
+.collapse-icon.rotate-180 {
+    transform: rotate(180deg);
 }

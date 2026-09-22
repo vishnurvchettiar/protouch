@@ -341,15 +341,14 @@ else
 
             @if (portalView == "history")
             {
-                <!-- Task 12.7: Meal photo timeline -->
-                @if (!dailyLogs.Where(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)).Any())
+                @if (dailyLogs == null || !dailyLogs.Any(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)))
                 {
                     <div class="empty-state">No meal photos uploaded yet.</div>
                 }
                 else
                 {
                     <div class="meal-timeline">
-                        @foreach (var log in dailyLogs.Where(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)).Take(20))
+                        @foreach (var log in (dailyLogs ?? new()).Where(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)).Take(20))
                         {
                             <div class="meal-timeline-item">
                                 <img src="@log.MealPhotoUrl" alt="Meal photo" />

@@ -1,17 +1,27 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @layout ClinicApp.Components.Layout.MainLayout
 
-<h1>Manage your account</h1>
+<div class="container-fluid py-2">
+    <div class="glass-panel p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="eyebrow">ACCOUNT SETTINGS</span>
+                <h1 class="gradient-text mb-1">Manage Account</h1>
+                <p class="text-secondary mb-0">Update your personal profile, credentials and security settings.</p>
+            </div>
+        </div>
+    </div>
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
+    <div class="row g-4">
         <div class="col-lg-3">
-            <ManageNavMenu />
+            <div class="glass-panel p-3">
+                <ManageNavMenu />
+            </div>
         </div>
         <div class="col-lg-9">
-            @Body
+            <div class="glass-panel p-4">
+                @Body
+            </div>
         </div>
     </div>
 </div>
