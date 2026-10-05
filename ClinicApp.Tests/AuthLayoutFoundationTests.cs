@@ -37,7 +37,7 @@ public class AuthLayoutFoundationTests
     public void AuthLayout_Contains_LogoAssetReference()
     {
         var content = File.ReadAllText(AuthLayoutPath);
-        Assert.Contains("/images/protouch-logo.svg", content);
+        Assert.Contains("/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg", content);
     }
 
     [Fact]

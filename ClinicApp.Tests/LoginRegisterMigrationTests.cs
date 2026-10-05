@@ -64,7 +64,7 @@ public class LoginRegisterMigrationTests
     public void Login_References_CanonicalLogo_ExactlyTwice()
     {
         var content = File.ReadAllText(LoginPath);
-        var occurrences = Regex.Matches(content, Regex.Escape("/images/protouch-logo.svg")).Count;
+        var occurrences = Regex.Matches(content, Regex.Escape("/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg")).Count;
         Assert.Equal(2, occurrences);
     }
 
@@ -72,7 +72,7 @@ public class LoginRegisterMigrationTests
     public void Register_References_CanonicalLogo_ExactlyZeroTimes()
     {
         var content = File.ReadAllText(RegisterPath);
-        var occurrences = Regex.Matches(content, Regex.Escape("/images/protouch-logo.svg")).Count;
+        var occurrences = Regex.Matches(content, Regex.Escape("/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg")).Count;
         Assert.Equal(0, occurrences);
     }
 

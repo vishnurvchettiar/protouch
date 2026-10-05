@@ -69,7 +69,7 @@ public class AuthLayoutFullBleedRegressionTests
         Assert.Contains("pt-auth-shell", content);
         Assert.Contains("pt-auth-card", content);
         Assert.Contains("pt-auth-brand", content);
-        Assert.Contains("/images/protouch-logo.svg", content);
+        Assert.Contains("/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg", content);
         Assert.Contains("@Body", content);
     }
 

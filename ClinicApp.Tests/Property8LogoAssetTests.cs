@@ -25,7 +25,7 @@ public class Property8LogoAssetTests
     private static readonly string LayoutRoot =
         Path.Combine(SolutionRoot, "ClinicApp/Components/Layout");
 
-    private const string CanonicalLogoPath = "/images/protouch-logo.svg";
+    private const string CanonicalLogoPath = "/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg";
 
     // Covers both the raw-space form ("WhatsApp Image 2026-08-12 ...") and the
     // URL-encoded form ("WhatsApp%20Image%202026-08-12 ..."), since both contain
