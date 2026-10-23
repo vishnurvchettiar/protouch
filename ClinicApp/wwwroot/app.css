@@ -6516,6 +6516,11 @@ input::selection, textarea::selection {
     border: 1px solid transparent;
     border-radius: 12px;
     margin: 3px 0;
+    color: #e7f0e9 !important;
+}
+
+.dashboard-theme .pt-nav-link .pt-nav-label {
+    color: inherit !important;
 }
 
 .dashboard-theme .pt-nav-link:hover {
@@ -6528,7 +6533,7 @@ input::selection, textarea::selection {
     border-color: rgba(76, 208, 126, 0.17) !important;
     border-left: 3px solid #32b86a !important;
     background: linear-gradient(90deg, rgba(50, 184, 106, 0.2), rgba(50, 184, 106, 0.07)) !important;
-    color: #b8f2cd !important;
+    color: #ffffff !important;
 }
 
 .dashboard-theme .pt-nav-link--active .pt-nav-icon,
