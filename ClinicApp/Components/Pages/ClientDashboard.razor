@@ -76,13 +76,13 @@ else
                                 transform="rotate(-90 50 50)" />
                         <!-- Centre label -->
                         <text x="50" y="45" text-anchor="middle"
-                              fill="#f8fafc"
+                              fill="var(--text-primary)"
                               font-size="12" font-weight="900"
                               font-family="Outfit, sans-serif">
                             @($"{kgLost:F1} kg")
                         </text>
                         <text x="50" y="60" text-anchor="middle"
-                              fill="#94a3b8"
+                              fill="var(--text-secondary)"
                               font-size="8"
                               font-family="Outfit, sans-serif">
                             @ringLabel
@@ -94,6 +94,22 @@ else
                 <div class="flex-grow-1">
                     <h2 class="gradient-text mb-1">@heroGreet, @(userProfile.User?.FullName ?? currentUser?.FullName ?? "Patient") 👋</h2>
                     <p class="text-secondary mb-3">Keep going — every session counts.</p>
+
+                    <div class="pt-client-profile-row">
+                        <div class="profile-photo-wrap">
+                            @if (!string.IsNullOrWhiteSpace(userProfile.ProfilePhotoUrl))
+                            { <img src="@userProfile.ProfilePhotoUrl" class="profile-photo" alt="Profile photo" /> }
+                            else { <div class="profile-photo placeholder">@(currentUser?.FullName?.FirstOrDefault() ?? 'P')</div> }
+                        </div>
+                        <div>
+                            <span class="soft-pill">Joined @userProfile.JoiningDate.ToString("MMM yyyy")</span>
+                            <div class="mt-2"><label class="upload-mini">📷 Change photo <InputFile OnChange="HandleProfilePhotoUpload" accept="image/*" /></label></div>
+                            @if (!string.IsNullOrWhiteSpace(photoUploadError))
+                            {
+                                <div class="clinic-alert clinic-alert-danger mt-2 small">@photoUploadError</div>
+                            }
+                        </div>
+                    </div>
 
                     <!-- Stat Pills -->
                     <div class="pt-stat-pills">
@@ -166,25 +182,6 @@ else
             </div>
         </section>
         <!-- ── end pt-client-hero ────────────────────────────────────────── -->
-
-        <!-- Dashboard Header -->
-        <div class="glass-panel p-4 mb-4 client-hero">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="profile-photo-wrap">
-                        @if (!string.IsNullOrWhiteSpace(userProfile.ProfilePhotoUrl))
-                        { <img src="@userProfile.ProfilePhotoUrl" class="profile-photo" alt="Profile photo" /> }
-                        else { <div class="profile-photo placeholder">@(currentUser?.FullName?.FirstOrDefault() ?? 'P')</div> }
-                    </div>
-                    <div><span class="eyebrow">CLIENT PORTAL</span><h1 class="gradient-text mb-1">Hello, @(currentUser?.FullName ?? "Patient")</h1><p class="text-secondary mb-0">Your progress, appointments, diet check-ins and clinic communication.</p></div>
-                </div>
-                <div class="text-md-end"><span class="soft-pill">🟢 Joined @userProfile.JoiningDate.ToString("MMM yyyy")</span><div class="mt-2"><label class="upload-mini">📷 Change photo <InputFile OnChange="HandleProfilePhotoUpload" accept="image/*" /></label></div>
-                @if (!string.IsNullOrWhiteSpace(photoUploadError))
-                {
-                    <div class="clinic-alert clinic-alert-danger mt-1 small">@photoUploadError</div>
-                }</div>
-            </div>
-        </div>
 
         <!-- Reminders / Alerts -->
         @if (activePaymentAlerts != null && activePaymentAlerts.Any())

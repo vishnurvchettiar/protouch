@@ -52,30 +52,30 @@ public class SidebarCssTests
     private static readonly string MainLayoutCssPath =
         Path.Combine(SolutionRoot, "ClinicApp/Components/Layout/MainLayout.razor.css");
 
-    // Req 3.4 — .sidebar must have width: 240px (or 260px as actually used)
+    // The layout reserves one sidebar column; the nested fixed sidebar must not
+    // also push main content with a second margin.
     [Fact]
     public void MainLayoutCss_Sidebar_HasWidthRule()
     {
         var content = File.ReadAllText(MainLayoutCssPath);
-        // The CSS uses 260px for sidebar width (matching the existing .pt-sidebar-width var)
-        Assert.Contains("width: 260px", content);
+        Assert.Contains("flex-basis: 240px", content);
     }
 
-    // Req 3.5 — main must have margin-left to prevent overlap
+    // The sidebar wrapper owns the layout width, so main must not add a duplicate offset.
     [Fact]
     public void MainLayoutCss_Main_HasMarginLeft()
     {
         var content = File.ReadAllText(MainLayoutCssPath);
-        Assert.Contains("margin-left: 260px", content);
+        Assert.Contains("main { margin-left: 0; }", content);
     }
 
-    // Req 3.6 — mobile breakpoint must collapse sidebar to 64px and main to margin-left: 64px
+    // Req 3.6 — mobile breakpoint collapses the sidebar wrapper to 64px without a duplicate main offset.
     [Fact]
     public void MainLayoutCss_MobileBreakpoint_CollapsesSidebarTo64px()
     {
         var content = File.ReadAllText(MainLayoutCssPath);
         Assert.Contains("max-width: 768px", content);
         Assert.Contains("width: 64px", content);
-        Assert.Contains("margin-left: 64px", content);
+        Assert.Contains("main { margin-left: 0; }", content);
     }
 }

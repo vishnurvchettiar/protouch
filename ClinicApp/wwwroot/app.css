@@ -1952,6 +1952,12 @@ a:hover {
 .pt-auth-form-logo {
     margin-bottom: 20px;
 }
+.pt-auth-form-logo img {
+    display: block;
+    width: min(100%, 320px);
+    height: auto;
+    border-radius: 8px;
+}
 .pt-auth-role-badge {
     display: inline-flex;
     align-items: center;
@@ -2170,9 +2176,9 @@ a:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 100px;
-    height: 100px;
-    border-radius: 28px;
+    width: min(100%, 340px);
+    padding: 10px;
+    border-radius: 16px;
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.15);
     backdrop-filter: blur(10px);
@@ -2185,9 +2191,10 @@ a:hover {
     to   { box-shadow: 0 0 60px rgba(0,141,54,0.5), 0 0 120px rgba(0,141,54,0.2); }
 }
 .pt-auth-visual-logo {
-    width: 72px;
-    height: 72px;
-    object-fit: contain;
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
     filter: brightness(1.15) drop-shadow(0 2px 8px rgba(0,0,0,0.3));
 }
 .pt-auth-visual-title {
@@ -3809,12 +3816,16 @@ a:hover {
 .pt-stat-card .stat-trend.down { background: rgba(239,68,68,0.15); color: #ef4444; }
 .pt-stat-card .stat-trend.neutral { background: rgba(148,163,184,0.15); color: #94a3b8; }
 
+.dashboard-theme .pt-stat-card .stat-number { color: #1a2e22; }
+.dashboard-theme .pt-stat-card .stat-trend.neutral { color: #3d6b4f; }
+.dashboard-theme .pt-quick-btn,
+.dashboard-theme .pt-quick-btn:hover { color: #006d2a; }
+
 /* ── 1.6 Client hero and sub-component styles ────────────────────────────── */
 .pt-client-hero {
-    background: linear-gradient(135deg,
-        rgba(0,141,54,0.08) 0%,
-        rgba(13,17,23,0) 60%);
-    border: 1px solid rgba(0,141,54,0.15);
+    background: linear-gradient(135deg, #ffffff 0%, #f2faf4 100%);
+    border: 1px solid #c8e6d0;
+    box-shadow: 0 4px 20px rgba(0,141,54,0.08);
     border-radius: 20px;
     padding: 32px;
     margin-bottom: 28px;
@@ -3829,6 +3840,16 @@ a:hover {
     align-items: flex-start;
     gap: 28px;
     flex: 1 1 auto;
+}
+.pt-client-profile-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.dashboard-theme .pt-client-profile-row .profile-photo,
+.dashboard-theme .pt-client-profile-row .profile-photo.placeholder {
+    border-color: #b6d9c0;
 }
 .pt-client-hero-right {
     display: flex;
@@ -3888,14 +3909,14 @@ a:hover {
     font-weight: 600;
 }
 .pt-checkin-prompt.needs-log {
-    background: rgba(255, 235, 0, 0.08);
-    border: 1px solid rgba(255,235,0,0.25);
-    color: #fde047;
+    background: #fff8db;
+    border: 1px solid #f0d875;
+    color: #6d5200;
 }
 .pt-checkin-prompt.logged {
-    background: rgba(0, 141, 54, 0.08);
-    border: 1px solid rgba(0,141,54,0.25);
-    color: #4ade80;
+    background: #eaf7ed;
+    border: 1px solid #b6d9c0;
+    color: #176333;
 }
 
 .pt-diet-preview {
@@ -3913,8 +3934,8 @@ a:hover {
 }
 
 .pt-next-appt-card {
-    background: rgba(0,141,54,0.06);
-    border: 1px solid rgba(0,141,54,0.2);
+    background: #f5fbf6;
+    border: 1px solid #c8e6d0;
     border-radius: 14px;
     padding: 14px 18px;
     font-size: 0.875rem;
@@ -3943,7 +3964,7 @@ a:hover {
     background: rgba(0,141,54,0.12);
     border: 1px solid rgba(0,141,54,0.3);
     border-radius: 10px;
-    color: #4ade80;
+    color: #006d2a;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-size: 0.875rem;
     font-weight: 600;
@@ -3953,7 +3974,7 @@ a:hover {
 .pt-quick-btn:hover {
     background: rgba(0,141,54,0.22);
     transform: translateY(-1px);
-    color: #4ade80;
+    color: #006d2a;
     text-decoration: none;
 }
 

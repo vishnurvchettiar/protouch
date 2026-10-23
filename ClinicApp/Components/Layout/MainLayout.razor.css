@@ -3,13 +3,14 @@
 .page {
     position: relative;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     background-color: #f0f7f2;
     min-height: 100vh;
 }
 
 main {
     flex: 1;
+    min-width: 0;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -20,6 +21,8 @@ main {
 .sidebar {
     background: #ffffff;
     border-right: 1px solid #d4e8dc;
+    flex: 0 0 240px;
+    width: 240px;
 }
 
 /* Top row — white with green bottom border */
@@ -74,14 +77,15 @@ main {
 @media (min-width: 641px) {
     .page { flex-direction: row; }
     .sidebar {
-        width: 260px;
+        width: 240px;
+        flex-basis: 240px;
         height: 100vh;
         position: sticky;
         top: 0;
         z-index: 10;
         box-shadow: 2px 0 12px rgba(0,141,54,0.08);
     }
-    main { margin-left: 260px; }
+    main { margin-left: 0; }
     .top-row { position: sticky; top: 0; z-index: 1; }
     .top-row, article {
         padding-left: 2.5rem !important;
@@ -90,6 +94,6 @@ main {
 }
 
 @media (max-width: 768px) {
-    .sidebar { width: 64px; }
-    main { margin-left: 64px; }
+    .sidebar { width: 64px; flex-basis: 64px; }
+    main { margin-left: 0; }
 }
