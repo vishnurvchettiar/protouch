@@ -2730,6 +2730,9 @@ a:hover {
 /* Mobile responsiveness */
 @media (max-width: 640px) {
     .dashboard-theme .dashboard-grid { grid-template-columns: 1fr 1fr; }
+    .dashboard-theme .admin-shell .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    }
     .dashboard-theme .stat-card h2 { font-size: 1.5rem; }
 }
 /* =================================================================== */
@@ -3788,7 +3791,13 @@ a:hover {
 /* ── 1.5 Stat card upgrade ───────────────────────────────────────────────── */
 .pt-stat-card {
     position: relative;
-    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    width: 100%;
+    padding: clamp(16px, 2vw, 24px);
     border-left: 4px solid var(--accent-colour, var(--pt-brand-green));
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
@@ -3797,6 +3806,7 @@ a:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
 }
+.pt-stat-card > div:first-child { min-width: 0; }
 .pt-stat-card .stat-number {
     font-size: var(--pt-card-stat-size);
     font-weight: var(--pt-card-stat-weight);
@@ -3818,6 +3828,8 @@ a:hover {
 
 .dashboard-theme .pt-stat-card .stat-number { color: #1a2e22; }
 .dashboard-theme .pt-stat-card .stat-trend.neutral { color: #3d6b4f; }
+.dashboard-theme .pt-stat-card .stat-number { font-size: clamp(1.6rem, 4vw, var(--pt-card-stat-size)); }
+.dashboard-theme .pt-stat-card:hover { box-shadow: 0 8px 24px rgba(0,141,54,0.14); }
 .dashboard-theme .pt-quick-btn,
 .dashboard-theme .pt-quick-btn:hover { color: #006d2a; }
 
