@@ -27,12 +27,12 @@ public class LogoReferenceTests
         Assert.DoesNotContain("logo-mark.png", content);
     }
 
-    // Req 3.2 — NavMenu MUST reference the correct URL-encoded JPEG
+    // Req 3.2 — NavMenu MUST reference the single canonical SVG logo
     [Fact]
     public void NavMenu_Contains_CorrectLogoPath()
     {
         var content = File.ReadAllText(NavMenuPath);
-        Assert.Contains("/favicon.svg", content);
+        Assert.Contains("/images/protouch-logo.svg", content);
     }
 
     // Req 3.3 — MainLayout topbar must NOT reference the old broken path

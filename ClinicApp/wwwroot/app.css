@@ -6147,12 +6147,10 @@ input::selection, textarea::selection {
 }
 
 .pt-sidebar-logo-img {
-    /* Show the real photo logo in sidebar — natural colours, properly sized */
-    width: 44px !important;
-    height: 44px !important;
-    object-fit: cover !important;
-    border-radius: 10px !important;
-    /* No inversion — keep original colours */
+    width: min(100%, 190px) !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 4px !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     display: block;
     flex-shrink: 0;
@@ -6161,8 +6159,8 @@ input::selection, textarea::selection {
 /* On mobile (collapsed sidebar), keep the logo square */
 @media (max-width: 768px) {
     .pt-sidebar-logo-img {
-        width: 36px !important;
-        height: 36px !important;
+        width: min(100%, 40px) !important;
+        height: auto !important;
     }
 }
 
@@ -6345,10 +6343,11 @@ input::selection, textarea::selection {
 
 /* ── 18. TOPBAR LOGO (Dashboard header bar) ──────────────────────────────── */
 .pt-topbar-logo {
-    width: 36px;
+    width: auto;
+    max-width: 180px;
     height: 36px;
-    object-fit: cover;
-    border-radius: 8px;
+    object-fit: contain;
+    border-radius: 4px;
     border: 1px solid rgba(255,255,255,0.12);
     box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     flex-shrink: 0;

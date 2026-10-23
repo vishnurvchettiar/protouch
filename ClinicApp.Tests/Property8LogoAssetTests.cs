@@ -8,8 +8,8 @@ namespace ClinicApp.Tests;
 /// <summary>
 /// Structural correctness-property test verifying that every logo &lt;img&gt;
 /// reference across AuthLayout.razor and the 18 in-scope Anonymous_Account_Page
-/// files points at the Canonical_Logo_Asset, and that none of these files
-/// reference the logo URL with unescaped spaces.
+/// files points at the single canonical SVG logo and that none reference the
+/// removed JPEG logo asset.
 ///
 /// Feature: account-status-pages-consistency, Property 8: Canonical Logo Asset Reference
 /// Validates: Requirements 4.3, 4.5
@@ -25,8 +25,8 @@ public class Property8LogoAssetTests
     private static readonly string LayoutRoot =
         Path.Combine(SolutionRoot, "ClinicApp/Components/Layout");
 
-    private const string CanonicalLogoPath = "/images/WhatsApp%20Image%202026-08-12%20at%2012.25.21%20AM.jpeg";
-    private const string DeprecatedLogoPath = "/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg";
+    private const string CanonicalLogoPath = "/images/protouch-logo.svg";
+    private const string DeprecatedLogoPath = "/images/WhatsApp%20Image%202026-08-12%20at%2012.25.21%20AM.jpeg";
 
     // Matches any /images/... asset reference inside a src="..." attribute.
     private static readonly Regex ImageSrcRegex = new(
