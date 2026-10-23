@@ -6,7 +6,7 @@ namespace ClinicApp.Tests;
 
 /// <summary>
 /// Structural correctness-property test verifying that the Canonical_Logo_Asset
-/// (/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg) is referenced at the page-content level a bounded,
+/// (/images/WhatsApp%20Image%202026-08-12%20at%2012.25.21%20AM.jpeg) is referenced at the page-content level a bounded,
 /// exact number of times for every in-scope Anonymous_Account_Page: zero times for
 /// the 17 pages whose only logo rendering comes from the AuthLayout shell, and
 /// exactly twice for Login.razor, which additionally renders the logo in its own
@@ -24,7 +24,7 @@ public class Property9LogoCardinalityTests
     private static readonly string PagesRoot =
         Path.Combine(SolutionRoot, "ClinicApp/Components/Account/Pages");
 
-    private const string CanonicalLogoPath = "/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg";
+    private const string CanonicalLogoPath = "/images/WhatsApp%20Image%202026-08-12%20at%2012.25.21%20AM.jpeg";
 
     public static TheoryData<string, int> InScopePagesWithExpectedLogoCount => new()
     {

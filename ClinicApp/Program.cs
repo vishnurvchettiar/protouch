@@ -140,8 +140,29 @@ else
 var app = builder.Build();
 
 app.UseForwardedHeaders();
-app.UseResponseCompression(); // must be first — compresses everything after it
+
+// ── Security Headers ─────────────────────────────────────────────────
+app.Use(async (context, next) =>
+{
+    var resp = context.Response.Headers;
+    // Prevent clickjacking
+    resp["X-Frame-Options"] = "DENY";
+    // Prevent MIME type sniffing
+    resp["X-Content-Type-Options"] = "nosniff";
+    // Legacy XSS protection for older browsers
+    resp["X-XSS-Protection"] = "1; mode=block";
+    // Control referrer info
+    resp["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    // Remove server fingerprint
+    resp["X-Powered-By"] = "";
+    resp.Remove("Server");
+    await next();
+});
+
+app.UseResponseCompression(); // must be placed after security headers
+
 app.UseRateLimiter();
+
 app.UseWebSockets(new WebSocketOptions
 {
     KeepAliveInterval = TimeSpan.FromSeconds(30)

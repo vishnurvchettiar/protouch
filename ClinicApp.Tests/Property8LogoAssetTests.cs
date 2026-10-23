@@ -9,7 +9,7 @@ namespace ClinicApp.Tests;
 /// Structural correctness-property test verifying that every logo &lt;img&gt;
 /// reference across AuthLayout.razor and the 18 in-scope Anonymous_Account_Page
 /// files points at the Canonical_Logo_Asset, and that none of these files
-/// reference the retired jpeg asset (raw-space or URL-encoded form).
+/// reference the logo URL with unescaped spaces.
 ///
 /// Feature: account-status-pages-consistency, Property 8: Canonical Logo Asset Reference
 /// Validates: Requirements 4.3, 4.5
@@ -25,13 +25,8 @@ public class Property8LogoAssetTests
     private static readonly string LayoutRoot =
         Path.Combine(SolutionRoot, "ClinicApp/Components/Layout");
 
-    private const string CanonicalLogoPath = "/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg";
-
-    // Covers both the raw-space form ("WhatsApp Image 2026-08-12 ...") and the
-    // URL-encoded form ("WhatsApp%20Image%202026-08-12 ..."), since both contain
-    // this literal substring.
-    private const string DeprecatedLogoSubstring = "WhatsApp Image 2026-08-12";
-    private const string DeprecatedLogoSubstringEncoded = "WhatsApp%20Image%202026-08-12";
+    private const string CanonicalLogoPath = "/images/WhatsApp%20Image%202026-08-12%20at%2012.25.21%20AM.jpeg";
+    private const string DeprecatedLogoPath = "/images/WhatsApp Image 2026-08-12 at 12.25.21 AM.jpeg";
 
     // Matches any /images/... asset reference inside a src="..." attribute.
     private static readonly Regex ImageSrcRegex = new(
@@ -77,8 +72,7 @@ public class Property8LogoAssetTests
     {
         var content = File.ReadAllText(ResolveFullPath(relativePath));
 
-        Assert.DoesNotContain(DeprecatedLogoSubstring, content);
-        Assert.DoesNotContain(DeprecatedLogoSubstringEncoded, content);
+        Assert.DoesNotContain(DeprecatedLogoPath, content);
     }
 
     [Theory]

@@ -6050,3 +6050,342 @@ a:hover {
 .ac-page .ac-lightbox ~ .ac-floating-cta {
     display: none !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROTOUCH ENHANCEMENT LAYER — v2.0
+   Appended to end of app.css so these rules take precedence.
+   Covers: Font upgrade, Logo fixes, Dashboard layout, Code protection,
+           Login page polish, Sidebar improvements, Topbar refinements.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. GLOBAL FONT UPGRADE → Inter ─────────────────────────────────────── */
+html, body,
+.pt-auth-split-page,
+.pt-auth-form-panel,
+.pt-auth-form-inner,
+.pt-sidebar,
+.pt-topbar,
+.dashboard-theme,
+button, input, select, textarea {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.pt-auth-visual-title,
+.pt-topbar-title {
+    font-family: 'Playfair Display', Georgia, 'Times New Roman', serif !important;
+}
+
+/* ── 2. CODE PROTECTION — Disable text selection globally ───────────────── */
+body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Allow selection inside form inputs and content-editable elements */
+input, textarea, [contenteditable],
+input::selection, textarea::selection {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+}
+
+/* ── 3. LOGIN PAGE LOGO ALIGNMENT FIX ───────────────────────────────────── */
+.pt-auth-form-logo {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.pt-auth-form-logo-img {
+    /* Fill the form panel width with the proper SVG logo */
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    /* Slight drop shadow for depth */
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
+
+/* Visual panel logo — full-colour photo logo on dark bg */
+.pt-auth-visual-logo-wrap .pt-auth-visual-logo {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    border-radius: 8px !important;
+    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.4)) !important;
+}
+
+/* ── 4. AUTH LOGO in AuthLayout shell (non-login pages) ─────────────────── */
+.pt-auth-brand {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.pt-auth-logo {
+    width: 200px !important;
+    height: auto !important;
+    max-height: 80px !important;
+    object-fit: contain !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* ── 5. DASHBOARD SIDEBAR LOGO FIX ──────────────────────────────────────── */
+.pt-sidebar-logo {
+    padding: 16px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 64px;
+}
+
+.pt-sidebar-logo-img {
+    /* Show the real photo logo in sidebar — natural colours, properly sized */
+    width: 44px !important;
+    height: 44px !important;
+    object-fit: cover !important;
+    border-radius: 10px !important;
+    /* No inversion — keep original colours */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    display: block;
+    flex-shrink: 0;
+}
+
+/* On mobile (collapsed sidebar), keep the logo square */
+@media (max-width: 768px) {
+    .pt-sidebar-logo-img {
+        width: 36px !important;
+        height: 36px !important;
+    }
+}
+
+/* ── 6. DASHBOARD LAYOUT — Sidebar slot reserves its width in the flex row ── */
+.dashboard-theme main {
+    margin-left: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f0f7f2;
+    width: auto;
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .dashboard-theme main {
+        margin-left: 0 !important;
+        width: auto !important;
+    }
+}
+
+/* ── 7. TOPBAR ENHANCEMENTS ──────────────────────────────────────────────── */
+.pt-topbar {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0d1117 100%) !important;
+    border-bottom: 1px solid rgba(0, 141, 54, 0.2) !important;
+    box-shadow: 0 1px 20px rgba(0,0,0,0.3) !important;
+}
+
+/* ── 8. NAV LINK HOVER IMPROVEMENTS ─────────────────────────────────────── */
+.pt-nav-link {
+    position: relative;
+    overflow: hidden;
+}
+
+.pt-nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 70%;
+    background: #008d36;
+    border-radius: 0 3px 3px 0;
+    transition: transform 0.2s ease;
+}
+
+.pt-nav-link:hover::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
+.pt-nav-link--active::before,
+.pt-nav-link.active::before {
+    transform: translateY(-50%) scaleY(1) !important;
+}
+
+/* ── 9. DASHBOARD CONTENT AREA POLISHING ────────────────────────────────── */
+.dashboard-theme article.content {
+    background: #f4f9f6;
+    min-height: calc(100vh - 60px);
+    padding: 28px 32px !important;
+}
+
+@media (max-width: 768px) {
+    .dashboard-theme article.content {
+        padding: 16px !important;
+    }
+}
+
+/* ── 10. SIDEBAR ACTIVE STATE — Green accent bar ────────────────────────── */
+.pt-nav-link--active,
+.pt-nav-link.active {
+    background: linear-gradient(90deg, rgba(0,141,54,0.15) 0%, rgba(0,141,54,0.05) 100%) !important;
+    color: #008d36 !important;
+    border-left: 3px solid #008d36 !important;
+    padding-left: 13px !important;
+    font-weight: 700 !important;
+}
+
+/* ── 11. ROLE CHIPS STYLING ──────────────────────────────────────────────── */
+.pt-role-chip {
+    font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    padding: 3px 10px !important;
+    border-radius: 99px !important;
+}
+
+.pt-role-chip.admin {
+    background: linear-gradient(135deg, #008d36, #00b347) !important;
+    color: #fff !important;
+    box-shadow: 0 0 12px rgba(0,141,54,0.4) !important;
+}
+
+.pt-role-chip.client {
+    background: linear-gradient(135deg, #7c1b68, #a0239e) !important;
+    color: #fff !important;
+    box-shadow: 0 0 12px rgba(124,27,104,0.4) !important;
+}
+
+/* ── 12. HOME PAGE PUBLIC LOGO FIX ──────────────────────────────────────── */
+.pt-logo img {
+    object-fit: contain !important;
+    max-height: 56px !important;
+    width: auto !important;
+}
+
+/* ── 13. GLASS CARD IMPROVEMENTS (Dashboard cards) ──────────────────────── */
+.glass-panel,
+.dashboard-theme .stat-card {
+    border-radius: 16px !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06) !important;
+    transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+
+.glass-panel:hover,
+.dashboard-theme .stat-card:hover {
+    box-shadow: 0 8px 32px rgba(0,141,54,0.12), 0 2px 8px rgba(0,0,0,0.08) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* ── 14. BUTTON PRIMARY — Brand Green ───────────────────────────────────── */
+.btn-clinic-primary,
+.pt-btn-primary {
+    background: linear-gradient(135deg, #008d36 0%, #00b347 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0,141,54,0.35) !important;
+    color: #fff !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    border-radius: 12px !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.btn-clinic-primary:hover,
+.pt-btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(0,141,54,0.5) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* ── 15. LOGIN SPLIT VISUAL PANEL — richer gradient ─────────────────────── */
+.pt-auth-visual-panel {
+    background: linear-gradient(
+        145deg,
+        #071a0e 0%,
+        #0a2d1a 20%,
+        #1a4d2e 50%,
+        #2d1a4a 80%,
+        #1a0a2e 100%
+    ) !important;
+}
+
+/* ── 16. SCROLLBAR POLISHING ─────────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0,141,54,0.3) !important;
+    border-radius: 3px !important;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,141,54,0.6) !important;
+}
+
+/* ── 17. PAGE TRANSITIONS — subtle fade-in ───────────────────────────────── */
+.pt-page,
+.pt-auth-split-page,
+.dashboard-theme article {
+    animation: ptPageFadeIn 0.4s ease forwards;
+}
+
+@keyframes ptPageFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── END PROTOUCH ENHANCEMENT LAYER ─────────────────────────────────────── */
+
+/* ── 18. TOPBAR LOGO (Dashboard header bar) ──────────────────────────────── */
+.pt-topbar-logo {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    flex-shrink: 0;
+}
+
+/* ── 19. HOME PAGE HEADER LOGO ───────────────────────────────────────────── */
+.pt-header-logo {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    /* Keep original colours */
+}
+
+/* ── 20. LOGIN FORM LOGO — full-width banner style ───────────────────────── */
+.pt-auth-form-logo-img {
+    width: 100%;
+    max-width: 260px;
+    height: auto;
+    max-height: 80px;
+    object-fit: contain;
+    border-radius: 10px;
+    display: block;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+/* ── 21. SIDEBAR WORDMARK — visible on dark bg ───────────────────────────── */
+.pt-sidebar-wordmark {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #ffffff;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+/* Hide wordmark on collapsed mobile sidebar */
+@media (max-width: 768px) {
+    .pt-sidebar-wordmark { display: none !important; }
+}

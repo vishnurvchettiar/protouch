@@ -6,17 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
 
-    <!-- Non-blocking Google Fonts: Manrope + Instrument Sans (BeMedic4 typography) -->
+    <!-- Premium Google Fonts: Inter (body) + Playfair Display (headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Instrument+Sans:wght@400;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap"
           media="print"
           onload="this.media='all'" />
     <noscript>
         <link rel="stylesheet"
-              href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Instrument+Sans:wght@400;600;700&display=swap" />
+              href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" />
     </noscript>
+    <!-- Security: prevent clickjacking and MIME sniffing -->
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
@@ -29,6 +33,7 @@
     <link rel="apple-touch-icon" href="favicon.png" />
     <meta name="theme-color" content="#008d36" />
     <meta http-equiv="Permissions-Policy" content="unload=()" />
+    <meta name="robots" content="noindex, nofollow" />
     <HeadOutlet />
 </head>
 
@@ -36,6 +41,45 @@
     <Routes />
     <script src="_framework/blazor.web.js"></script>
     <script src="site.js" defer></script>
+    <!-- Code Protection: Disable right-click and DevTools shortcuts -->
+    <script>
+        (function () {
+            // Disable right-click context menu
+            document.addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+                return false;
+            });
+            // Disable text selection via CSS
+            document.addEventListener('selectstart', function (e) {
+                if (!e.target.matches('input, textarea, [contenteditable]')) {
+                    e.preventDefault();
+                }
+            });
+            // Disable common DevTools keyboard shortcuts
+            document.addEventListener('keydown', function (e) {
+                // F12
+                if (e.key === 'F12') { e.preventDefault(); return false; }
+                // Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C / Ctrl+U
+                if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) {
+                    e.preventDefault(); return false;
+                }
+                // Ctrl+U (View Source)
+                if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+                    e.preventDefault(); return false;
+                }
+                // Ctrl+S (Save Page)
+                if (e.ctrlKey && e.key.toLowerCase() === 's') {
+                    e.preventDefault(); return false;
+                }
+                // Ctrl+A (Select All) — only on non-inputs
+                if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+                    if (!e.target.matches('input, textarea, [contenteditable]')) {
+                        e.preventDefault(); return false;
+                    }
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>

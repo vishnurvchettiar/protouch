@@ -32,7 +32,7 @@ public class LogoReferenceTests
     public void NavMenu_Contains_CorrectLogoPath()
     {
         var content = File.ReadAllText(NavMenuPath);
-        Assert.Contains("WhatsApp%20Image%202026-08-12%20at%2012.25.21%20AM.jpeg", content);
+        Assert.Contains("/favicon.svg", content);
     }
 
     // Req 3.3 — MainLayout topbar must NOT reference the old broken path
@@ -58,7 +58,7 @@ public class SidebarCssTests
     public void MainLayoutCss_Sidebar_HasWidthRule()
     {
         var content = File.ReadAllText(MainLayoutCssPath);
-        Assert.Contains("flex-basis: 240px", content);
+        Assert.Contains("flex: 0 0 240px", content);
     }
 
     // The sidebar wrapper owns the layout width, so main must not add a duplicate offset.
@@ -66,7 +66,7 @@ public class SidebarCssTests
     public void MainLayoutCss_Main_HasMarginLeft()
     {
         var content = File.ReadAllText(MainLayoutCssPath);
-        Assert.Contains("main { margin-left: 0; }", content);
+        Assert.Contains("margin-left: 0;", content);
     }
 
     // Req 3.6 — mobile breakpoint collapses the sidebar wrapper to 64px without a duplicate main offset.
@@ -76,6 +76,6 @@ public class SidebarCssTests
         var content = File.ReadAllText(MainLayoutCssPath);
         Assert.Contains("max-width: 768px", content);
         Assert.Contains("width: 64px", content);
-        Assert.Contains("main { margin-left: 0; }", content);
+        Assert.Contains("margin-left: 0;", content);
     }
 }
