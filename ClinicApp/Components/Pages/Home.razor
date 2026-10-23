@@ -83,7 +83,7 @@
                 var idx = i;
                 var slideClass = idx == 0 ? "pt-hero-slide--1" : idx == 1 ? "pt-hero-slide--2" : "pt-hero-slide--3";
                 <div class="pt-hero-slide @slideClass">
-<img src="@heroImages[idx]" alt="ProTouch Clinic"
+<img src="@heroImages[idx].ImagePath" alt="@heroImages[idx].Caption"
                              loading="@(idx == 0 ? "eager" : "lazy")"
                              fetchpriority="@(idx == 0 ? "high" : "auto")"
                              onerror="this.style.display='none'" />
@@ -531,7 +531,7 @@
     private record SupportingPractitioner(string Title);
 
     // ── Hero ─────────────────────────────────────────────────
-    private List<string> heroImages = new();
+    private List<CarouselSlide> heroImages = new();
     private int activeHeroIndex = 0;
 
     // ── Testimonial carousel ─────────────────────────────────
@@ -602,11 +602,11 @@
 
     protected override void OnInitialized()
     {
-        heroImages = new List<string>
+        heroImages = new List<CarouselSlide>
         {
-            "/images/clinic-gallery/gallery-37.jpeg",
-            "/images/clinic-gallery/gallery-42.jpeg",
-            "/images/clinic-gallery/gallery-55.jpeg",
+            new("/images/homepage/physiotherapy-session.webp", "Physiotherapist supporting a client during shoulder rehabilitation."),
+            new("/images/homepage/weight-loss.webp", "Nutritionist discussing a healthy meal plan with a client."),
+            new("/images/homepage/yoga.webp", "Clients following a gentle group yoga session."),
         };
 
         bodyPartTabs = new List<BodyPartTab>
