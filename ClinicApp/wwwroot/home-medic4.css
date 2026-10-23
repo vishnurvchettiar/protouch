@@ -624,7 +624,7 @@
   .pt-dark-cta-inner { grid-template-columns: 1fr; gap: 2.5rem; }
   .pt-contact-inner { grid-template-columns: 1fr; gap: 3rem; }
   .pt-bp-panel { grid-template-columns: 1fr; gap: 2rem; }
-  .pt-bp-panel-right { display: none; }
+  .pt-bp-panel-right img { height: 320px; }
 }
 @media (max-width: 768px) {
   .pt-header { padding: 1rem 1.25rem; }
@@ -632,6 +632,7 @@
   .pt-hamburger { display: flex; }
   .pt-mobile-nav { display: flex; }
   .pt-hero { grid-template-columns: 1fr; min-height: 85vh; padding-top: 70px; }
+  .pt-bp-panel-right img { height: 240px; }
   .pt-hero-left { padding: 2.5rem 1.5rem; order: 1; }
   .pt-hero-right { max-height: 40vh; order: 2; }
   .pt-hero-h1 { font-size: clamp(2rem, 6vw, 3rem); }

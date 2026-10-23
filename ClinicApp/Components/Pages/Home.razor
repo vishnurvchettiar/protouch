@@ -120,7 +120,7 @@
             @{
                 var activeBpTab = bodyPartTabs.FirstOrDefault(t => t.Id == activeBodyPart) ?? bodyPartTabs[0];
                 var bpIdx = bodyPartTabs.IndexOf(activeBpTab);
-                var bpImg = $"/images/clinic-gallery/gallery-{(bpIdx * 9 + 27):D2}.jpeg";
+                var bpImg = activeBpTab.ImagePath ?? $"/images/clinic-gallery/gallery-{(bpIdx * 9 + 27):D2}.jpeg";
             }
             <div class="pt-bp-panel" id="panel-@activeBpTab.Id" role="tabpanel" aria-labelledby="tab-@activeBpTab.Id">
                 <div class="pt-bp-panel-left">
@@ -128,8 +128,8 @@
                     <p>@activeBpTab.Description</p>
                     <a class="pt-btn-primary" href="/book">Book Treatment →</a>
                 </div>
-                <div class="pt-bp-panel-right" aria-hidden="true">
-<img src="@bpImg" alt="@activeBpTab.Label" loading="lazy"
+                <div class="pt-bp-panel-right">
+                    <img src="@bpImg" alt="@(string.IsNullOrWhiteSpace(activeBpTab.ImageAlt) ? activeBpTab.Label : activeBpTab.ImageAlt)" loading="lazy" decoding="async"
                              onerror="this.style.display='none'" />
                 </div>
             </div>
@@ -152,12 +152,13 @@
             {
                 var svcIdx = serviceCards.IndexOf(svc);
                 var svcImgNum = svcIdx * 9 + 1;
-                var svcImg = $"/images/clinic-gallery/gallery-{svcImgNum:D2}.jpeg";
+                var svcImg = svc.ImagePath ?? $"/images/clinic-gallery/gallery-{svcImgNum:D2}.jpeg";
                 <div class="pt-svc-card" style="--svc-accent: @svc.AccentColor">
                     <div class="pt-svc-card-img">
-<img src="@svcImg" alt="@svc.Name"
+                        <img src="@svcImg" alt="@(string.IsNullOrWhiteSpace(svc.ImageAlt) ? svc.Name : svc.ImageAlt)"
                                  loading="@(isSvcFirst ? "eager" : "lazy")"
                                  fetchpriority="@(isSvcFirst ? "high" : "auto")"
+                                 decoding="async"
                                  onerror="this.style.display='none'" />
                     </div>
                     <div class="pt-svc-card-body">
@@ -521,11 +522,11 @@
 
 @code {
     private record CarouselSlide(string ImagePath, string Caption);
-    private record ServiceCard(string Id, string Number, string Icon, string Name, string Summary, string[] Bullets, string AccentColor, string IconBg);
+    private record ServiceCard(string Id, string Number, string Icon, string Name, string Summary, string[] Bullets, string AccentColor, string IconBg, string? ImagePath = null, string ImageAlt = "");
     private record StatCounter(string CountDisplay, double CountTarget, string Label);
     private record Testimonial(string Quote, string RoleLabel);
     private record FaqItem(string Q, string A);
-    private record BodyPartTab(string Id, string Label, string Description);
+    private record BodyPartTab(string Id, string Label, string Description, string? ImagePath = null, string ImageAlt = "");
     private record HowItWorksStep(string Number, string Title, string Description);
     private record SupportingPractitioner(string Title);
 
@@ -610,7 +611,7 @@
 
         bodyPartTabs = new List<BodyPartTab>
         {
-            new("neck-shoulder", "Neck & Shoulder", "Physiotherapy for cervical spondylitis, neck pain, frozen shoulder and upper-limb rehabilitation."),
+            new("neck-shoulder", "Neck & Shoulder", "Physiotherapy for cervical spondylitis, neck pain, frozen shoulder and upper-limb rehabilitation.", "/images/homepage/physiotherapy-session.webp", "Physiotherapist guiding a patient through a shoulder mobility exercise."),
             new("back-spine",    "Back & Spine",    "Treatment for lumbar spondylitis, sciatica, slipped disc and post-operative spinal care."),
             new("knee-leg",      "Knee & Leg",      "Knee pain, arthritis, ligament rehabilitation and sports injury recovery."),
             new("arm-elbow",     "Arm & Elbow",     "Tennis elbow, golfer's elbow, repetitive strain and fracture rehabilitation."),
@@ -654,7 +655,7 @@
             new("physiotherapy", "02", "🦴", "Physiotherapy & Rehabilitation",
                 "Back, neck and knee pain, arthritis, spondylitis, sinusitis, paralysis and injury care.",
                 new[] { "Muscle & ligament injury care", "Orthopaedic & neurological" },
-                "#7c1b68", "rgba(124,27,104,0.08)"),
+                "#7c1b68", "rgba(124,27,104,0.08)", "/images/homepage/physiotherapy-session.webp", "Physiotherapist supporting a patient during a mobility exercise."),
             new("yoga",          "03", "🧘", "Yoga & Russian Nature Cure",
                 "Personalised yoga for diabetes, blood pressure, thyroid, hormonal health and lifestyle support.",
                 new[] { "Menstrual wellness support", "Pre & post-natal care" },
