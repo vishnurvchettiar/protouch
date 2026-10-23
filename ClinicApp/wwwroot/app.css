@@ -1929,8 +1929,10 @@ a:hover {
 /* ── Page shell ─────────────────────────────────────────────── */
 .pt-auth-split-page {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -2023,6 +2025,21 @@ a:hover {
     position: relative;
     display: flex;
     align-items: center;
+}
+.pt-auth-split-page .pt-auth-input {
+    padding-left: 44px;
+    padding-right: 44px;
+}
+.pt-auth-password-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+.pt-auth-password-heading .pt-auth-link {
+    flex: 0 1 auto;
+    text-align: right;
 }
 .pt-auth-input-icon {
     position: absolute;
@@ -2274,6 +2291,12 @@ a:hover {
     .pt-auth-split-page { grid-template-columns: 1fr; }
     .pt-auth-visual-panel { display: none; }
     .pt-auth-form-panel { padding: 36px 20px; min-height: 100vh; background: #fff; }
+}
+@media (max-width: 900px) and (min-width: 769px) {
+    .pt-auth-split-page { grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); }
+    .pt-auth-form-panel { padding: 36px 24px; }
+    .pt-auth-visual-content { padding: 36px 24px; }
+    .pt-auth-stats { gap: 10px; padding: 14px 12px; }
 }
 @media (max-width: 400px) {
     .pt-auth-form-inner { max-width: 100%; }

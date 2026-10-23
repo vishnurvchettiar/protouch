@@ -39,6 +39,13 @@ else
     // route, the same way it decides the full-bleed treatment above.
     private bool IsWidePage => CurrentRoute is "Account/Register";
 
-    private string CurrentRoute =>
-        NavigationManager.ToBaseRelativePath(NavigationManager.Uri).TrimEnd('/');
+    private string CurrentRoute
+    {
+        get
+        {
+            var relativeUri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+            var queryIndex = relativeUri.IndexOfAny(['?', '#']);
+            return (queryIndex >= 0 ? relativeUri[..queryIndex] : relativeUri).TrimEnd('/');
+        }
+    }
 }
