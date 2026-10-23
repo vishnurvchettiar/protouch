@@ -314,6 +314,37 @@ namespace ClinicApp.Migrations
                     b.ToTable("DailyLogs");
                 });
 
+            modelBuilder.Entity("ClinicApp.Data.DietPlanDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ClientUserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UploadedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientUserId")
+                        .IsUnique();
+
+                    b.ToTable("DietPlanDocuments");
+                });
+
             modelBuilder.Entity("ClinicApp.Data.PaymentNotification", b =>
                 {
                     b.Property<int>("Id")
@@ -621,6 +652,15 @@ namespace ClinicApp.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ClinicApp.Data.DietPlanDocument", b =>
+                {
+                    b.HasOne("ClinicApp.Data.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ClientUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ClinicApp.Data.PaymentNotification", b =>

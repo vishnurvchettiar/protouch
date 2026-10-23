@@ -6,6 +6,7 @@ namespace ClinicApp.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<ClientProfile> ClientProfiles { get; set; }
+    public DbSet<DietPlanDocument> DietPlanDocuments { get; set; }
     public DbSet<DailyLog> DailyLogs { get; set; }
     public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<Appointment> Appointments { get; set; }
@@ -23,5 +24,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     // Patient feedback from the homepage feedback widget
     public DbSet<SiteFeedback> SiteFeedbacks { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.Entity<DietPlanDocument>()
+            .HasIndex(document => document.ClientUserId)
+            .IsUnique();
+
+        builder.Entity<DietPlanDocument>()
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(document => document.ClientUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
 }
 

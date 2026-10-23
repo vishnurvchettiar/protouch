@@ -16,13 +16,12 @@
                     @foreach (var item in adminNavItems)
                     {
                         <li class="pt-nav-item">
-                            <NavLink class="pt-nav-link"
-                                     href="@item.Href"
-                                     ActiveClass="pt-nav-link--active"
-                                     title="@item.Label">
+                            <a class="pt-nav-link @(IsNavItemActive(item) ? "pt-nav-link--active" : "")"
+                               href="@item.Href"
+                               title="@item.Label">
                                 <span class="pt-nav-icon" aria-hidden="true">@item.Icon</span>
                                 <span class="pt-nav-label">@item.Label</span>
-                            </NavLink>
+                            </a>
                         </li>
                     }
                 </ul>
@@ -32,13 +31,12 @@
                     @foreach (var item in clientNavItems)
                     {
                         <li class="pt-nav-item">
-                            <NavLink class="pt-nav-link"
-                                     href="@item.Href"
-                                     ActiveClass="pt-nav-link--active"
-                                     title="@item.Label">
+                            <a class="pt-nav-link @(IsNavItemActive(item) ? "pt-nav-link--active" : "")"
+                               href="@item.Href"
+                               title="@item.Label">
                                 <span class="pt-nav-icon" aria-hidden="true">@item.Icon</span>
                                 <span class="pt-nav-label">@item.Label</span>
-                            </NavLink>
+                            </a>
                         </li>
                     }
                 </ul>
@@ -104,6 +102,22 @@
         new("/client-dashboard#diet",       "🥗", "Diet Plan"),
         new("/client-dashboard#history",    "📈", "My History"),
     };
+
+    private bool IsNavItemActive(NavItem item)
+    {
+        var current = currentUrl?.TrimStart('/') ?? string.Empty;
+        var target = item.Href.TrimStart('/');
+
+        if (target.Contains('?') || target.Contains('#'))
+            return string.Equals(current, target, StringComparison.OrdinalIgnoreCase);
+
+        if (!string.Equals(current.Split('?', '#')[0], target, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        // The overview item is active only when no dashboard section is selected.
+        return !current.Contains('#')
+            && (!current.Contains('?') || current.Contains("?tab=overview", StringComparison.OrdinalIgnoreCase));
+    }
 
     protected override void OnInitialized()
     {

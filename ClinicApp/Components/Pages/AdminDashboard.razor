@@ -6,6 +6,7 @@
 @attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
 @inject ClinicService ClinicService
+@inject DietPlanDocumentService DietPlanDocuments
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavManager
@@ -744,6 +745,43 @@
                                               placeholder="Enter the personalised diet plan..."></textarea>
                                     <div class="text-end text-muted small mt-1">@dietPlanText.Length / 2000</div>
                                 </div>
+                                <div class="diet-document-upload mb-3">
+                                    <div>
+                                        <label class="clinic-label" for="diet-plan-document">Attach a diet plan document</label>
+                                        <InputFile id="diet-plan-document"
+                                                   OnChange="SelectDietPlanDocument"
+                                                   accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                                        <small class="text-secondary d-block mt-1">PDF, DOC, or DOCX · up to 15 MB · shared securely in the client's portal</small>
+                                    </div>
+                                    @if (selectedDietPlanDocument != null)
+                                    {
+                                        <span class="soft-pill">@selectedDietPlanDocument.Name</span>
+                                    }
+                                    @if (currentDietPlanDocument != null)
+                                    {
+                                        <a class="btn-clinic-secondary btn-sm"
+                                           href="/diet-plan-documents/@currentDietPlanDocument.Id/download">
+                                            Download current document
+                                        </a>
+                                    }
+                                    <label class="d-flex align-items-center gap-2">
+                                        <input type="checkbox"
+                                               @bind="sendDocumentViaWhatsApp"
+                                               disabled="@(string.IsNullOrWhiteSpace(selectedClientPhone) || selectedDietPlanDocument == null)" />
+                                        Send download link via WhatsApp
+                                    </label>
+                                    <button class="btn-clinic"
+                                            @onclick="UploadDietPlanDocumentAsync"
+                                            disabled="@(selectedDietPlanDocument == null || uploadingDietPlanDocument)">
+                                        @(uploadingDietPlanDocument ? "Uploading..." : "Upload & Share with Client")
+                                    </button>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(dietPlanDocumentStatus))
+                                {
+                                    <div class="clinic-alert @(dietPlanDocumentSuccess ? "clinic-alert-info" : "clinic-alert-danger") mb-3" role="status">
+                                        @dietPlanDocumentStatus
+                                    </div>
+                                }
                                 <div class="mb-3 d-flex gap-3 flex-wrap">
                                     <label class="d-flex align-items-center gap-2">
                                         <input type="checkbox"
@@ -843,6 +881,10 @@
     private bool showDietPanel = false;
     private string dietPlanStatus = string.Empty;
     private bool dietPlanSuccess;
+    private IBrowserFile? selectedDietPlanDocument;
+    private DietPlanDocument? currentDietPlanDocument;
+    private string dietPlanDocumentStatus = string.Empty;
+    private bool dietPlanDocumentSuccess, sendDocumentViaWhatsApp, uploadingDietPlanDocument;
     private string selectedClientName => selectedClient?.User?.FullName ?? string.Empty;
     private string selectedClientPhone => selectedClient?.User?.PhoneNumber ?? string.Empty;
 
@@ -994,6 +1036,10 @@
     private async Task InspectClient(ClientProfile client)
     {
         selectedClient = client;
+        selectedDietPlanDocument = null;
+        currentDietPlanDocument = await DietPlanDocuments.GetCurrentAsync(client.UserId);
+        dietPlanDocumentStatus = string.Empty;
+        sendDocumentViaWhatsApp = false;
         selectedClientLogs = await ClinicService.GetClientDailyLogsAsync(client.UserId);
         selectedClientVisits = await ClinicService.GetClientAttendanceAsync(client.UserId);
         selectedClientAppts = await ClinicService.GetClientAppointmentsAsync(client.UserId);
@@ -1311,12 +1357,69 @@
         dietPlanStatus = string.Empty;
         sendViaWA = false;
         saveToProfile = false;
+        selectedDietPlanDocument = null;
+        dietPlanDocumentStatus = string.Empty;
+        sendDocumentViaWhatsApp = false;
     }
 
     private void CloseDietPanel()
     {
         showDietPanel = false;
         dietPlanStatus = string.Empty;
+        dietPlanDocumentStatus = string.Empty;
+    }
+
+    private void SelectDietPlanDocument(InputFileChangeEventArgs args)
+    {
+        selectedDietPlanDocument = args.File;
+        dietPlanDocumentStatus = string.Empty;
+        sendDocumentViaWhatsApp = false;
+    }
+
+    private async Task UploadDietPlanDocumentAsync()
+    {
+        if (selectedClient == null || selectedDietPlanDocument == null || uploadingDietPlanDocument)
+            return;
+
+        uploadingDietPlanDocument = true;
+        dietPlanDocumentStatus = string.Empty;
+        try
+        {
+            var (document, error) = await DietPlanDocuments.SaveAsync(selectedClient.UserId, selectedDietPlanDocument);
+            if (document == null)
+            {
+                dietPlanDocumentStatus = error ?? "The document could not be uploaded.";
+                dietPlanDocumentSuccess = false;
+                return;
+            }
+
+            currentDietPlanDocument = document;
+            selectedDietPlanDocument = null;
+            dietPlanDocumentSuccess = true;
+            dietPlanDocumentStatus = $"{document.OriginalFileName} is available in {selectedClientName}'s client portal.";
+
+            if (sendDocumentViaWhatsApp && !string.IsNullOrWhiteSpace(selectedClientPhone))
+            {
+                try
+                {
+                    var downloadUrl = new Uri(new Uri(NavManager.BaseUri), $"diet-plan-documents/{document.Id}/download");
+                    await ClinicService.SendWhatsAppMessageAsync(
+                        selectedClientPhone,
+                        $"Hello {selectedClientName}, your diet plan document is ready. Sign in to your ProTouch client portal to download it: {downloadUrl}");
+                    dietPlanDocumentStatus += " A secure download link was sent via WhatsApp.";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Diet plan document link WhatsApp send failed for client {ClientUserId}", selectedClient.UserId);
+                    dietPlanDocumentStatus += " Upload succeeded, but WhatsApp delivery failed.";
+                    dietPlanDocumentSuccess = false;
+                }
+            }
+        }
+        finally
+        {
+            uploadingDietPlanDocument = false;
+        }
     }
 
     // ── Overview helper methods (tasks 4.3, 4.4, 4.6) ────────────────────

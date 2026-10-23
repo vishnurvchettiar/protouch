@@ -8,6 +8,7 @@
 
 @inject ClinicService ClinicService
 @inject FileUploadService FileUploadService
+@inject DietPlanDocumentService DietPlanDocuments
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager NavManager
@@ -328,7 +329,7 @@ else
                 </div>
 
                 <!-- Daily Checking Form -->
-        <div class="glass-panel p-4 mb-4">
+        <div id="checkin" class="glass-panel p-4 mb-4 dashboard-anchor-target">
             <div class="section-heading"><div><span class="eyebrow">DAILY CHECK-IN</span><h3>Weight & Meal Update</h3></div>
                 <div class="d-flex gap-2">
                     <button class="btn-clinic-secondary @(portalView == "log" ? "active" : "")" @onclick='() => portalView = "log"'>Log Entry</button>
@@ -447,7 +448,7 @@ else
             }
         </div>
 
-        <div class="row g-4 mb-4">
+        <div id="appointments" class="row g-4 mb-4 dashboard-anchor-target">
             <div class="col-lg-7">
                 <div class="glass-panel p-4 h-100">
                     <div class="section-heading"><div><span class="eyebrow">APPOINTMENTS</span><h3>Book a Clinic Visit</h3></div><span class="soft-pill">Quick booking</span></div>
@@ -481,14 +482,26 @@ else
         </div>
 
         <!-- My Diet Plan Section — Requirements 12.1, 12.2, 12.3, 12.4 -->
-        <div class="glass-panel p-4 mb-4">
+        <div id="diet" class="glass-panel p-4 mb-4 dashboard-anchor-target">
             <span class="eyebrow">NUTRITION GUIDANCE</span>
             <h3 class="mb-3">My Diet Plan</h3>
             @if (!string.IsNullOrWhiteSpace(userProfile?.DietPlan))
             {
                 <pre class="diet-plan-text">@userProfile.DietPlan</pre>
             }
-            else
+            @if (dietPlanDocument != null)
+            {
+                <div class="diet-plan-download mt-3">
+                    <div>
+                        <strong>📄 @dietPlanDocument.OriginalFileName</strong>
+                        <span class="text-secondary small d-block">Uploaded @dietPlanDocument.UploadedAtUtc.ToLocalTime().ToString("dd MMM yyyy")</span>
+                    </div>
+                    <a class="btn-clinic" href="/diet-plan-documents/@dietPlanDocument.Id/download" download>
+                        Download diet plan
+                    </a>
+                </div>
+            }
+            @if (string.IsNullOrWhiteSpace(userProfile?.DietPlan) && dietPlanDocument == null)
             {
                 <div class="empty-state">
                     No diet plan has been assigned yet. Please contact your clinic.
@@ -497,7 +510,7 @@ else
         </div>
 
         <!-- Clinic Visits & Treatments History -->
-                <div class="glass-panel p-4">
+                <div id="history" class="glass-panel p-4 dashboard-anchor-target">
                     <h3 class="mb-3">Clinic Attendance & Treatments</h3>
                     <p class="text-secondary small mb-3">Record of physical check-in logs and treatments received at the center.</p>
 
@@ -548,6 +561,7 @@ else
 @code {
     private bool loading = true;
     private ApplicationUser? currentUser;
+    private DietPlanDocument? dietPlanDocument;
     private ClientProfile? userProfile;
     private List<DailyLog> dailyLogs = new();
     private List<AttendanceRecord> attendanceRecords = new();
@@ -610,6 +624,7 @@ else
 
                 if (userProfile != null)
                 {
+                    dietPlanDocument = await DietPlanDocuments.GetCurrentAsync(currentUser.Id);
                     await LoadProfileDataAsync();
                 }
             }

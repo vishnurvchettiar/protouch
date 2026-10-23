@@ -6439,6 +6439,10 @@ input::selection, textarea::selection {
     scrollbar-gutter: stable;
 }
 
+.dashboard-theme .dashboard-anchor-target {
+    scroll-margin-top: 20px;
+}
+
 .dashboard-theme .pt-topbar {
     min-width: 0;
     gap: 16px;
@@ -6490,6 +6494,9 @@ input::selection, textarea::selection {
 .dashboard-theme .pt-sidebar {
     background: linear-gradient(180deg, #101b15 0%, #0d1511 100%);
     border-right-color: rgba(255, 255, 255, 0.09);
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
 }
 
 .dashboard-theme .pt-sidebar-logo {
@@ -6499,6 +6506,9 @@ input::selection, textarea::selection {
 
 .dashboard-theme .pt-nav-list {
     padding: 14px 8px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overscroll-behavior: contain;
 }
 
 .dashboard-theme .pt-nav-link {
@@ -6562,6 +6572,20 @@ input::selection, textarea::selection {
     border-radius: 16px;
 }
 
+@media (min-width: 1200px) {
+    .dashboard-theme .admin-shell .sticky-xl-top {
+        position: sticky !important;
+        top: 16px !important;
+        align-self: start;
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+    }
+    .dashboard-theme .admin-shell .client-list {
+        max-height: calc(100dvh - 245px);
+        overflow-y: auto;
+    }
+}
+
 .dashboard-theme .pt-quick-btn {
     min-height: 44px;
     background: #fff;
@@ -6602,6 +6626,54 @@ input::selection, textarea::selection {
 .dashboard-theme .pt-next-appt-card,
 .dashboard-theme .pt-checkin-prompt {
     border-radius: 16px;
+}
+
+.dashboard-theme .pt-sidebar-footer {
+    flex: 0 0 auto;
+    margin-top: auto !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    background: #0d1511;
+}
+
+.dashboard-theme .pt-sidebar-footer form {
+    margin: 0;
+}
+
+.dashboard-theme .pt-sidebar-footer .pt-nav-link {
+    min-height: 48px;
+}
+
+.dashboard-theme .diet-document-upload {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 14px;
+    padding: 18px;
+    border: 1px dashed #b9d9c3;
+    border-radius: 14px;
+    background: #f6fbf7;
+}
+
+.dashboard-theme .diet-document-upload > div {
+    min-width: 0;
+}
+
+.dashboard-theme .diet-document-upload input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+}
+
+.dashboard-theme .diet-document-download,
+.dashboard-theme .diet-plan-download {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid #d7eadd;
+    border-radius: 14px;
+    background: #f6fbf7;
 }
 
 .ac-page .pt-header {
@@ -6662,6 +6734,7 @@ input::selection, textarea::selection {
     .dashboard-theme .client-dashboard-shell { padding-inline: 0; }
     .dashboard-theme .pt-quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dashboard-theme .pt-quick-btn { justify-content: center; padding-inline: 10px; }
+    .dashboard-theme .diet-document-upload { grid-template-columns: minmax(0, 1fr); }
     .ac-page .pt-header { padding-inline: 16px; }
     .ac-page .pt-header-logo { max-width: 190px; }
     .wellness-page .glass-panel.p-5 { padding: 1.25rem !important; }

@@ -33,6 +33,25 @@ public class ClientProfile
     public DateTime JoiningDate { get; set; } = DateTime.UtcNow;
 }
 
+public class DietPlanDocument
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    public string ClientUserId { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(100)]
+    public string StoredFileName { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(180)]
+    public string OriginalFileName { get; set; } = string.Empty;
+
+    public DateTime UploadedAtUtc { get; set; } = DateTime.UtcNow;
+}
+
 public class DailyLog
 {
     [Key]

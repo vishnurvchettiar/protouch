@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
+using System.Security.Claims;
 using ClinicApp.Components;
 using ClinicApp.Components.Account;
 using ClinicApp.Data;
@@ -53,6 +54,7 @@ builder.Services.AddSignalR(options =>
 });
 
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddAuthorization();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
@@ -90,6 +92,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<ClinicApp.Services.ClinicService>();
 builder.Services.AddScoped<ClinicApp.Services.FileUploadService>();
+builder.Services.AddScoped<ClinicApp.Services.DietPlanDocumentService>();
 builder.Services.AddHostedService<ClinicApp.Services.AppointmentReminderService>();
 
 // Task 14.3: Rate limiter for /book - 5 requests per IP per 60-minute window
@@ -212,6 +215,30 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+// Diet plan documents are stored outside wwwroot and only served to the assigned client or an admin.
+app.MapGet("/diet-plan-documents/{id:guid}/download", async (
+    Guid id,
+    ClaimsPrincipal user,
+    ApplicationDbContext db,
+    ClinicApp.Services.DietPlanDocumentService documents) =>
+{
+    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrWhiteSpace(userId) || !(user.IsInRole("Admin") || user.IsInRole("Client")))
+        return Results.Forbid();
+
+    var document = await db.DietPlanDocuments.AsNoTracking()
+        .FirstOrDefaultAsync(item => item.Id == id);
+    if (document == null || (!user.IsInRole("Admin") && document.ClientUserId != userId))
+        return Results.NotFound();
+
+    var path = documents.GetDownloadPath(document);
+    if (path == null)
+        return Results.NotFound();
+
+    return Results.File(path, "application/octet-stream", document.OriginalFileName);
+})
+    .RequireAuthorization();
 
 // Health endpoint — lets Render know the app is alive (avoids cold-start sleep)
 app.MapGet("/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }));
