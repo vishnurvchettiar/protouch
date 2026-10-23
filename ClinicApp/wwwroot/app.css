@@ -6411,3 +6411,270 @@ input::selection, textarea::selection {
 @media (max-width: 768px) {
     .pt-sidebar-wordmark { display: none !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHARED EXPERIENCE POLISH — public pages + every role dashboard
+   Keep all portal changes within .dashboard-theme and all marketing changes
+   within their page scopes so the two visual systems remain predictable.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid rgba(0, 141, 54, 0.62);
+    outline-offset: 3px;
+}
+
+.dashboard-theme {
+    --pt-sidebar-width: 248px;
+    --pt-topbar-height: 68px;
+    background:
+        radial-gradient(ellipse at 88% 0%, rgba(0, 141, 54, 0.06), transparent 36%),
+        #f3f8f4;
+}
+
+.dashboard-theme .dashboard-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: auto;
+    padding: clamp(16px, 2.2vw, 32px) !important;
+    scrollbar-gutter: stable;
+}
+
+.dashboard-theme .pt-topbar {
+    min-width: 0;
+    gap: 16px;
+    padding-inline: clamp(14px, 2vw, 28px);
+}
+
+.dashboard-theme .pt-topbar > div {
+    min-width: 0;
+}
+
+.dashboard-theme .pt-topbar > div:first-child {
+    overflow: hidden;
+}
+
+.dashboard-theme .pt-topbar-logo {
+    width: 132px;
+    max-width: min(132px, 24vw);
+    height: auto;
+    max-height: 42px;
+    border: 0;
+    box-shadow: none;
+}
+
+.dashboard-theme .pt-topbar-title {
+    overflow: hidden;
+    color: #dce9df;
+    font-size: 0.82rem;
+    font-family: inherit !important;
+    letter-spacing: 0.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-theme .user-badge {
+    max-width: min(240px, 28vw);
+    padding: 8px 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-theme .user-badge > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-theme .pt-sidebar {
+    background: linear-gradient(180deg, #101b15 0%, #0d1511 100%);
+    border-right-color: rgba(255, 255, 255, 0.09);
+}
+
+.dashboard-theme .pt-sidebar-logo {
+    min-height: 76px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.dashboard-theme .pt-nav-list {
+    padding: 14px 8px;
+}
+
+.dashboard-theme .pt-nav-link {
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    margin: 3px 0;
+}
+
+.dashboard-theme .pt-nav-link:hover {
+    background: rgba(255, 255, 255, 0.075);
+    color: #fff;
+}
+
+.dashboard-theme .pt-nav-link--active,
+.dashboard-theme .pt-nav-link.active {
+    border-color: rgba(76, 208, 126, 0.17) !important;
+    border-left: 3px solid #32b86a !important;
+    background: linear-gradient(90deg, rgba(50, 184, 106, 0.2), rgba(50, 184, 106, 0.07)) !important;
+    color: #b8f2cd !important;
+}
+
+.dashboard-theme .pt-nav-link--active .pt-nav-icon,
+.dashboard-theme .pt-nav-link.active .pt-nav-icon {
+    color: #73dfa0 !important;
+}
+
+.dashboard-theme .glass-panel {
+    border-radius: 18px;
+    box-shadow: 0 5px 22px rgba(24, 62, 39, 0.055);
+}
+
+.dashboard-theme .section-heading {
+    align-items: flex-start;
+}
+
+.dashboard-theme .section-heading h3,
+.dashboard-theme .section-heading h4 {
+    line-height: 1.3;
+}
+
+.dashboard-theme .clinic-input,
+.dashboard-theme input:not([type="checkbox"]):not([type="radio"]),
+.dashboard-theme select,
+.dashboard-theme textarea {
+    min-height: 44px;
+    border-radius: 10px;
+}
+
+.dashboard-theme .clinic-table {
+    min-width: 620px;
+}
+
+.dashboard-theme .clinic-table th {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.dashboard-theme .admin-shell > .glass-panel:first-child {
+    border-radius: 16px;
+}
+
+.dashboard-theme .pt-quick-btn {
+    min-height: 44px;
+    background: #fff;
+    border-color: #d6e9dc;
+    box-shadow: 0 2px 8px rgba(24, 62, 39, 0.04);
+}
+
+.dashboard-theme .pt-stat-card {
+    min-height: 124px;
+    border: 1px solid #d9e9de !important;
+    border-left: 4px solid var(--accent-colour, #008d36) !important;
+    background: linear-gradient(145deg, #fff, #f8fcf9);
+    border-radius: 18px;
+}
+
+.dashboard-theme .pt-stat-card .stat-number {
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+}
+
+.dashboard-theme .client-dashboard-shell {
+    max-width: 1560px;
+    padding-inline: clamp(0px, 1.2vw, 18px);
+}
+
+.dashboard-theme .pt-client-hero {
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(0, 141, 54, 0.1), transparent 34%),
+        linear-gradient(135deg, #fff 0%, #f5fbf6 100%);
+}
+
+.dashboard-theme .pt-stat-pills > *,
+.dashboard-theme .pt-stat-pill {
+    border-radius: 14px;
+}
+
+.dashboard-theme .pt-next-appt-card,
+.dashboard-theme .pt-checkin-prompt {
+    border-radius: 16px;
+}
+
+.ac-page .pt-header {
+    box-shadow: 0 8px 28px rgba(15, 10, 20, 0.12);
+}
+
+.ac-page .pt-header-logo {
+    max-width: min(250px, 24vw);
+}
+
+.ac-page .pt-btn-primary,
+.ac-page .ac-login-btn {
+    min-height: 44px;
+}
+
+.wellness-page .wellness-header {
+    box-shadow: 0 8px 24px rgba(15, 10, 20, 0.12);
+}
+
+.wellness-page .glass-panel {
+    border-radius: 22px;
+    box-shadow: 0 18px 50px rgba(25, 44, 31, 0.1);
+}
+
+.wellness-page .clinic-input {
+    min-height: 46px;
+    border: 1px solid #d6e4da;
+    border-radius: 11px;
+    background: #fff;
+    color: #1b2a20;
+    padding: 11px 14px;
+}
+
+.wellness-page .clinic-input:focus {
+    border-color: #008d36;
+    box-shadow: 0 0 0 4px rgba(0, 141, 54, 0.1);
+    outline: none;
+}
+
+.wellness-page .service-card {
+    height: 100%;
+    border-radius: 16px;
+}
+
+@media (max-width: 900px) {
+    .dashboard-theme .pt-topbar-title { display: none; }
+    .dashboard-theme .pt-topbar-logo { width: 116px; }
+    .dashboard-theme .pt-topbar { padding-inline: 12px; gap: 8px; }
+    .dashboard-theme .pt-topbar > div:last-child { gap: 6px !important; }
+    .dashboard-theme .user-badge { max-width: 34vw; padding: 7px 9px; }
+}
+
+@media (max-width: 640px) {
+    .dashboard-theme .dashboard-content { padding: 14px 12px !important; }
+    .dashboard-theme .pt-topbar-logo { width: 94px; max-width: 94px; }
+    .dashboard-theme .pt-role-chip { padding: 3px 7px !important; font-size: 0.62rem !important; }
+    .dashboard-theme .pt-client-hero { padding: 18px 14px; }
+    .dashboard-theme .client-dashboard-shell { padding-inline: 0; }
+    .dashboard-theme .pt-quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-theme .pt-quick-btn { justify-content: center; padding-inline: 10px; }
+    .ac-page .pt-header { padding-inline: 16px; }
+    .ac-page .pt-header-logo { max-width: 190px; }
+    .wellness-page .glass-panel.p-5 { padding: 1.25rem !important; }
+    .wellness-page .d-flex.justify-content-between.align-items-center.mt-4 { align-items: stretch !important; flex-direction: column; gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-theme *,
+    .ac-page *,
+    .wellness-page * {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
