@@ -141,7 +141,11 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
 }
+.stat-info { min-width: 0; }
+.stat-info p { font-size: clamp(1.35rem, 6vw, 1.8rem); overflow-wrap: anywhere; }
 .stat-icon {
     width: 54px;
     height: 54px;
@@ -152,6 +156,7 @@ a:hover {
     background: rgba(0, 242, 254, 0.1);
     color: var(--accent-teal);
     font-size: 1.5rem;
+    flex: 0 0 54px;
 }
 .stat-info h4 {
     font-size: 0.85rem;
@@ -2729,11 +2734,26 @@ a:hover {
 
 /* Mobile responsiveness */
 @media (max-width: 640px) {
-    .dashboard-theme .dashboard-grid { grid-template-columns: 1fr 1fr; }
-    .dashboard-theme .admin-shell .dashboard-grid {
+    .dashboard-theme .dashboard-grid {
         grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
     }
     .dashboard-theme .stat-card h2 { font-size: 1.5rem; }
+    .dashboard-theme .admin-shell .pt-stat-card { padding: 16px; }
+    .dashboard-theme .admin-shell .pt-stat-card .stat-icon {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+    }
+    .dashboard-theme .pt-client-hero {
+        padding: 20px;
+        gap: 20px;
+    }
+    .dashboard-theme .pt-client-hero-left,
+    .dashboard-theme .pt-client-hero-right {
+        min-width: 0;
+        width: 100%;
+        flex-basis: 100%;
+    }
 }
 /* =================================================================== */
 
