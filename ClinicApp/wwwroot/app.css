@@ -7734,3 +7734,190 @@ textarea.pt-input { resize: vertical; line-height: 1.45; }
 
 .pt-doc-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 12px; }
 .pt-split--single { grid-template-columns: minmax(0, 560px) !important; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGIN — readable form on the light panel, plus interaction
+   The form panel is light, but the colour tokens it inherited are the dark
+   theme's near-white text, so typed text, the heading and labels were nearly
+   invisible. The panel now defines its own dark text tokens.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pt-auth-split-page .pt-auth-form-panel {
+    --text-primary: #14281d;
+    --text-secondary: #4a6657;
+    --accent-teal: #007a2f;
+    color: #14281d;
+}
+.pt-auth-split-page .pt-auth-heading { color: #14281d; }
+.pt-auth-split-page .pt-auth-subheading { color: #4a6657; }
+.pt-auth-split-page .pt-auth-field label { color: #3d5a49; }
+
+.pt-auth-split-page .pt-auth-input {
+    min-height: 52px;
+    background: #ffffff;
+    border: 1.5px solid #cfe3d6;
+    color: #14281d !important;
+    -webkit-text-fill-color: #14281d;
+    caret-color: #008d36;
+    font-size: 1rem;
+    box-shadow: 0 1px 2px rgba(20, 40, 30, 0.05);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.pt-auth-split-page .pt-auth-input::placeholder { color: #8aa194; opacity: 1; -webkit-text-fill-color: #8aa194; }
+.pt-auth-split-page .pt-auth-input:hover { border-color: #a9cdb7; }
+.pt-auth-split-page .pt-auth-input:focus {
+    background: #ffffff;
+    border-color: #008d36;
+    box-shadow: 0 0 0 4px rgba(0, 141, 54, 0.14);
+}
+.pt-auth-split-page .pt-auth-input.invalid { border-color: #d6343b; }
+.pt-auth-split-page .pt-auth-input.invalid:focus { box-shadow: 0 0 0 4px rgba(214, 52, 59, 0.14); }
+/* Browser autofill paints its own background; keep the text readable there too */
+.pt-auth-split-page .pt-auth-input:-webkit-autofill,
+.pt-auth-split-page .pt-auth-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #14281d;
+    box-shadow: 0 0 0 100px #ffffff inset, 0 0 0 4px rgba(0, 141, 54, 0.14);
+    caret-color: #008d36;
+}
+
+.pt-auth-split-page .pt-auth-input-icon {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: #8aa194;
+    left: 15px;
+}
+.pt-auth-split-page .pt-auth-input-wrap:focus-within .pt-auth-input-icon { color: #008d36; }
+
+/* Green tick once the email looks valid */
+.pt-auth-valid {
+    position: absolute;
+    right: 14px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #008d36;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+}
+.pt-auth-valid svg { width: 13px; height: 13px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.pt-auth-input-wrap[data-valid="true"] .pt-auth-valid { opacity: 1; transform: scale(1); }
+
+/* Show / hide password */
+.pt-auth-split-page .pt-auth-show-pw {
+    right: 8px;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    color: #5f7a6c;
+    opacity: 1;
+    padding: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.pt-auth-split-page .pt-auth-show-pw:hover { background: #eaf4ee; color: #14281d; }
+.pt-auth-split-page .pt-auth-show-pw:focus-visible { outline: 2px solid #008d36; outline-offset: 1px; }
+.pt-auth-show-pw svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.pt-auth-show-pw .pt-eye-off { display: none; }
+.pt-auth-show-pw[aria-pressed="true"] .pt-eye { display: none; }
+.pt-auth-show-pw[aria-pressed="true"] .pt-eye-off { display: block; }
+
+/* Caps Lock hint */
+.pt-auth-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #7a5b00;
+    background: #fff4d1;
+    border: 1px solid #f1dc8f;
+    border-radius: 8px;
+    padding: 4px 10px;
+    animation: ptAuthHintIn 0.2s ease;
+}
+.pt-auth-hint[hidden] { display: none; }
+@keyframes ptAuthHintIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+
+.pt-auth-split-page .pt-auth-link { color: #007a2f; }
+.pt-auth-split-page .pt-auth-link:hover { color: #005f24; }
+.pt-auth-split-page .pt-auth-form-footer { color: #5f7a6c; }
+.pt-auth-split-page .pt-auth-toggle-label { color: #2d4a3a; }
+.pt-auth-split-page .pt-auth-field-error { color: #b42323; font-size: 0.8rem; }
+.pt-auth-split-page .pt-auth-alert--error { background: #fdecec; border-color: #f3c4c4; color: #a31f1f; animation: ptAuthShake 0.4s ease; }
+@keyframes ptAuthShake { 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+
+/* Sign in button */
+.pt-auth-split-page .pt-auth-button {
+    min-height: 52px;
+    background: linear-gradient(135deg, #008d36 0%, #00a842 100%);
+    color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 141, 54, 0.28);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.pt-auth-split-page .pt-auth-button:hover:not(:disabled) { opacity: 1; filter: brightness(1.05); transform: translateY(-2px); box-shadow: 0 12px 26px rgba(0, 141, 54, 0.34); }
+.pt-auth-split-page .pt-auth-button:active:not(:disabled) { transform: translateY(0); box-shadow: 0 4px 12px rgba(0, 141, 54, 0.28); }
+.pt-auth-split-page .pt-auth-button:focus-visible { outline: 3px solid rgba(0, 141, 54, 0.4); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-auth-split-page .pt-auth-alert--error, .pt-auth-hint { animation: none; }
+    .pt-auth-valid { transition: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGIN — design A refinements
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pt-auth-split-page .pt-auth-form-inner { max-width: 410px; }
+.pt-auth-split-page .pt-auth-form-logo { margin-bottom: 22px; }
+.pt-auth-split-page .pt-auth-heading { font-size: 2.1rem; letter-spacing: -0.015em; line-height: 1.1; }
+.pt-auth-split-page .pt-auth-subheading { margin-bottom: 26px; font-size: 0.95rem; }
+
+/* Fields arrive one after another */
+.pt-auth-split-page .pt-auth-field,
+.pt-auth-split-page .pt-auth-remember,
+.pt-auth-split-page .pt-auth-button {
+    animation: ptAuthRise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pt-auth-split-page .pt-auth-field:nth-of-type(1) { animation-delay: 0.08s; }
+.pt-auth-split-page .pt-auth-field:nth-of-type(2) { animation-delay: 0.14s; }
+.pt-auth-split-page .pt-auth-remember { animation-delay: 0.2s; }
+.pt-auth-split-page .pt-auth-button { animation-delay: 0.26s; }
+@keyframes ptAuthRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.pt-auth-split-page .pt-auth-remember { flex-wrap: wrap; row-gap: 2px; margin-bottom: 1.35rem; }
+.pt-auth-remember-hint { flex-basis: 100%; margin-left: 50px; font-size: 0.76rem; color: #6a8576; }
+.pt-auth-split-page .pt-auth-form-footer { flex-wrap: wrap; row-gap: 4px; gap: 8px; }
+.pt-auth-footer-sep { color: #b4c5bb; }
+.pt-auth-split-page .pt-auth-link--quiet { font-weight: 600; color: #5f7a6c; }
+.pt-auth-split-page .pt-auth-link--quiet:hover { color: #14281d; }
+.pt-auth-split-page .pt-auth-input[readonly] { cursor: text; }
+
+/* Brand panel: a little more depth and a clearer hierarchy */
+.pt-auth-split-page .pt-auth-visual-panel::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #008d36, #2fd072 40%, #7c1b68);
+    z-index: 2;
+}
+.pt-auth-split-page .pt-auth-visual-title { letter-spacing: -0.01em; }
+.pt-auth-split-page .pt-auth-stat-num { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-auth-split-page .pt-auth-field,
+    .pt-auth-split-page .pt-auth-remember,
+    .pt-auth-split-page .pt-auth-button { animation: none; }
+}

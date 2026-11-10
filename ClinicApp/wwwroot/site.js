@@ -677,3 +677,116 @@ window.scheduleDeferredInit_home = function () {
     if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', fill);
     fill();
 })();
+
+
+// ── Login form interactions ─────────────────────────────────
+// Works on the server-rendered login page (no Blazor events needed) and across enhanced navigation.
+(function () {
+    function capsHint(input, e) {
+        var wrap = input.closest('.pt-auth-field');
+        var hint = wrap && wrap.querySelector('[data-pt-caps]');
+        if (!hint) return;
+        var on = e && e.getModifierState && e.getModifierState('CapsLock');
+        hint.hidden = !on;
+    }
+
+    // Show / hide password
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('[data-pt-toggle-password]');
+        if (!btn) return;
+        var input = btn.closest('.pt-auth-input-wrap').querySelector('input');
+        if (!input) return;
+        var show = input.type === 'password';
+        var start = input.selectionStart, end = input.selectionEnd;
+        input.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        input.focus();
+        try { input.setSelectionRange(start, end); } catch (err) { }
+    });
+
+    // Caps Lock warning on the password field
+    ['keydown', 'keyup'].forEach(function (type) {
+        document.addEventListener(type, function (e) {
+            var t = e.target;
+            if (t && t.matches && t.matches('[data-pt-field="password"] input')) capsHint(t, e);
+        });
+    });
+    document.addEventListener('focusout', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('[data-pt-field="password"] input')) {
+            var hint = t.closest('.pt-auth-field').querySelector('[data-pt-caps]');
+            if (hint) hint.hidden = true;
+        }
+    });
+
+    // Green tick when the email looks valid
+    function checkEmail(input) {
+        var wrap = input.closest('[data-pt-field="email"]');
+        if (!wrap) return;
+        var ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.value.trim());
+        wrap.setAttribute('data-valid', ok ? 'true' : 'false');
+    }
+    document.addEventListener('input', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('[data-pt-field="email"] input')) checkEmail(t);
+    });
+    // The login form starts empty every time. Browsers restore typed values on reload and Back,
+    // and password managers fill saved logins; both are cleared here. Staying signed in is what
+    // "Keep me signed in" is for. The fields are read-only until touched so autofill skips them.
+    function unlock(input) { input.removeAttribute('readonly'); }
+    function navType() {
+        try { var n = performance.getEntriesByType('navigation')[0]; return n ? n.type : 'navigate'; } catch (err) { return 'navigate'; }
+    }
+    function clearLogin(force) {
+        var inputs = document.querySelectorAll('input[data-pt-clear]');
+        if (!inputs.length) return;
+        var restored = force || navType() === 'reload' || navType() === 'back_forward';
+        inputs.forEach(function (input) {
+            if (restored) input.value = '';
+            if (document.activeElement === input) { unlock(input); return; }
+            if (!input.value) input.setAttribute('readonly', 'readonly');
+            if (!input.dataset.ptUnlock) {
+                input.dataset.ptUnlock = '1';
+                ['focus', 'pointerdown', 'keydown', 'touchstart'].forEach(function (t) {
+                    input.addEventListener(t, function () { unlock(input); }, { once: true });
+                });
+            }
+        });
+        // Autofill can arrive just after load; clear anything that was filled without the person typing.
+        [150, 600].forEach(function (ms) {
+            setTimeout(function () {
+                inputs.forEach(function (input) {
+                    if (input.value && !input.dataset.ptTyped && document.activeElement !== input && !document.querySelector('.pt-auth-error-alert')) input.value = '';
+                    var wrap = input.closest('[data-pt-field="email"]');
+                    if (wrap) checkEmail(input);
+                });
+            }, ms);
+        });
+    }
+    document.addEventListener('input', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('input[data-pt-clear]') && e.isTrusted && e.inputType) t.dataset.ptTyped = '1';
+    });
+    window.addEventListener('pageshow', function (e) { if (e.persisted) clearLogin(true); });
+
+    function initLogin() {
+        clearLogin(false);
+        var email = document.querySelector('[data-pt-field="email"] input');
+        if (email) checkEmail(email);
+    }
+    document.addEventListener('DOMContentLoaded', initLogin);
+    document.addEventListener('enhancedload', initLogin);
+    if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', initLogin);
+
+    // Immediate feedback on submit: spinner and a disabled button while the server signs in
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        var btn = form && form.querySelector && form.querySelector('[data-pt-submit]');
+        if (!btn || (form.checkValidity && !form.checkValidity())) return;
+        setTimeout(function () {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="pt-auth-spinner" aria-hidden="true"></span><span>Signing in…</span>';
+        }, 0);
+    });
+})();
