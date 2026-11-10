@@ -677,3 +677,76 @@ window.scheduleDeferredInit_home = function () {
     if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', fill);
     fill();
 })();
+
+
+// ── Login form interactions ─────────────────────────────────
+// Works on the server-rendered login page (no Blazor events needed) and across enhanced navigation.
+(function () {
+    function capsHint(input, e) {
+        var wrap = input.closest('.pt-auth-field');
+        var hint = wrap && wrap.querySelector('[data-pt-caps]');
+        if (!hint) return;
+        var on = e && e.getModifierState && e.getModifierState('CapsLock');
+        hint.hidden = !on;
+    }
+
+    // Show / hide password
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('[data-pt-toggle-password]');
+        if (!btn) return;
+        var input = btn.closest('.pt-auth-input-wrap').querySelector('input');
+        if (!input) return;
+        var show = input.type === 'password';
+        var start = input.selectionStart, end = input.selectionEnd;
+        input.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        input.focus();
+        try { input.setSelectionRange(start, end); } catch (err) { }
+    });
+
+    // Caps Lock warning on the password field
+    ['keydown', 'keyup'].forEach(function (type) {
+        document.addEventListener(type, function (e) {
+            var t = e.target;
+            if (t && t.matches && t.matches('[data-pt-field="password"] input')) capsHint(t, e);
+        });
+    });
+    document.addEventListener('focusout', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('[data-pt-field="password"] input')) {
+            var hint = t.closest('.pt-auth-field').querySelector('[data-pt-caps]');
+            if (hint) hint.hidden = true;
+        }
+    });
+
+    // Green tick when the email looks valid
+    function checkEmail(input) {
+        var wrap = input.closest('[data-pt-field="email"]');
+        if (!wrap) return;
+        var ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.value.trim());
+        wrap.setAttribute('data-valid', ok ? 'true' : 'false');
+    }
+    document.addEventListener('input', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('[data-pt-field="email"] input')) checkEmail(t);
+    });
+    function initLogin() {
+        var email = document.querySelector('[data-pt-field="email"] input');
+        if (email) checkEmail(email);
+    }
+    document.addEventListener('DOMContentLoaded', initLogin);
+    document.addEventListener('enhancedload', initLogin);
+    if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', initLogin);
+
+    // Immediate feedback on submit: spinner and a disabled button while the server signs in
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        var btn = form && form.querySelector && form.querySelector('[data-pt-submit]');
+        if (!btn || (form.checkValidity && !form.checkValidity())) return;
+        setTimeout(function () {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="pt-auth-spinner" aria-hidden="true"></span><span>Signing in…</span>';
+        }, 0);
+    });
+})();
