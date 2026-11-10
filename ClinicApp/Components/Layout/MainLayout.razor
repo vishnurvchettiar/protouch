@@ -7,18 +7,19 @@
 
     <main>
         <header class="pt-topbar">
-            <!-- Left slot: brand logo -->
-            <div class="d-flex align-items-center gap-2">
-                <img src="/images/protouch-logo.svg" alt="ProTouch Physio" class="pt-topbar-logo" />
-                <span class="pt-topbar-title">PROTOUCH Physio · Management Portal</span>
-            </div>
+            <AuthorizeView>
+                <Authorized Context="authCtx">
+                    <!-- Left: greeting and date (filled in the browser so it uses the visitor's local time) -->
+                    <div class="pt-topbar-hi">
+                        <strong data-pt-greeting data-pt-name="@DisplayName(authCtx.User.Identity?.Name)">Welcome back, @DisplayName(authCtx.User.Identity?.Name)</strong>
+                        <small data-pt-date>Management Portal</small>
+                    </div>
 
-            <!-- Right slot: actions + role chip + username -->
-            <div class="d-flex align-items-center gap-2">
-                <AuthorizeView>
-                    <Authorized Context="authCtx">
-                        <a href="/" class="btn-clinic-secondary btn-sm" title="Go to public website">
-                            🏠 <span class="d-none d-sm-inline">Visit Website</span>
+                    <!-- Right: website link, role chip, avatar -->
+                    <div class="pt-topbar-actions">
+                        <a href="/" class="pt-topbar-site" title="Go to public website">
+                            <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-globe"></use></svg>
+                            <span class="pt-topbar-site-label">Visit website</span>
                         </a>
                         <AuthorizeView Roles="Admin" Context="adminTopCtx">
                             <span class="pt-role-chip admin">ADMIN</span>
@@ -26,17 +27,14 @@
                         <AuthorizeView Roles="Client" Context="clientTopCtx">
                             <span class="pt-role-chip client">CLIENT</span>
                         </AuthorizeView>
-                        <span class="user-badge">
-                            <span style="color: var(--text-primary); font-size: 0.85rem; font-weight: 500;">
-                                @authCtx.User.Identity?.Name
-                            </span>
-                        </span>
-                    </Authorized>
-                    <NotAuthorized>
-                        <span class="text-secondary small">Not signed in</span>
-                    </NotAuthorized>
-                </AuthorizeView>
-            </div>
+                        <span class="pt-topbar-avatar" title="@authCtx.User.Identity?.Name" aria-label="Signed in as @authCtx.User.Identity?.Name">@DisplayName(authCtx.User.Identity?.Name).Substring(0, 1).ToUpperInvariant()</span>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="pt-topbar-hi"><strong>ProTouch Physio</strong><small>Management Portal</small></div>
+                    <div class="pt-topbar-actions"><span class="text-secondary small">Not signed in</span></div>
+                </NotAuthorized>
+            </AuthorizeView>
         </header>
 
         <article class="content dashboard-content">
@@ -50,3 +48,13 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    // The sign-in name is an email address; show the part before the @, capitalised.
+    private static string DisplayName(string? identityName)
+    {
+        var name = (identityName ?? "").Split('@')[0].Trim();
+        if (string.IsNullOrEmpty(name)) return "Account";
+        return char.ToUpperInvariant(name[0]) + name.Substring(1);
+    }
+}

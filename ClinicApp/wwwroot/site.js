@@ -653,3 +653,27 @@ window.scheduleDeferredInit_home = function () {
     }
     sync();
 })();
+
+
+// ── Dashboard top bar greeting ──────────────────────────────
+// Uses the visitor's own clock, so the greeting and date are never off by the server's time zone.
+(function () {
+    function fill() {
+        var g = document.querySelector('[data-pt-greeting]');
+        var d = document.querySelector('[data-pt-date]');
+        if (!g) return;
+        var now = new Date();
+        var h = now.getHours();
+        var part = h < 12 ? 'Good morning' : (h < 17 ? 'Good afternoon' : 'Good evening');
+        g.textContent = part + ', ' + (g.getAttribute('data-pt-name') || '');
+        if (d) {
+            try {
+                d.textContent = now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+            } catch (e) { }
+        }
+    }
+    document.addEventListener('DOMContentLoaded', fill);
+    document.addEventListener('enhancedload', fill);
+    if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', fill);
+    fill();
+})();
