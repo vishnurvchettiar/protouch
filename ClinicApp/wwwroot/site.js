@@ -757,7 +757,7 @@ window.scheduleDeferredInit_home = function () {
         [150, 600].forEach(function (ms) {
             setTimeout(function () {
                 inputs.forEach(function (input) {
-                    if (input.value && !input.dataset.ptTyped && document.activeElement !== input && !document.querySelector('.pt-auth-error-alert')) input.value = '';
+                    if (input.value && !input.dataset.ptTyped && !input.hasAttribute('data-pt-keep') && document.activeElement !== input && !document.querySelector('.pt-auth-error-alert')) input.value = '';
                     var wrap = input.closest('[data-pt-field="email"]');
                     if (wrap) checkEmail(input);
                 });
@@ -786,7 +786,115 @@ window.scheduleDeferredInit_home = function () {
         if (!btn || (form.checkValidity && !form.checkValidity())) return;
         setTimeout(function () {
             btn.disabled = true;
-            btn.innerHTML = '<span class="pt-auth-spinner" aria-hidden="true"></span><span>Signing in…</span>';
+            btn.innerHTML = '<span class="pt-auth-spinner" aria-hidden="true"></span><span>' + (btn.getAttribute('data-pt-loading') || 'Signing in…') + '</span>';
         }, 0);
     });
+})();
+
+
+// ── Sign up and password help interactions ──────────────────
+(function () {
+    // Password strength and rules
+    function score(v) {
+        var rules = { len: v.length >= 8, upper: /[A-Z]/.test(v), lower: /[a-z]/.test(v), digit: /\d/.test(v) };
+        var n = Object.keys(rules).filter(function (k) { return rules[k]; }).length;
+        if (v.length >= 12 && n === 4 && /[^A-Za-z0-9]/.test(v)) n = 4;
+        return { rules: rules, level: v.length === 0 ? 0 : Math.max(1, n) };
+    }
+    var labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+    function updateStrength(input) {
+        var field = input.closest('.pt-auth-field');
+        if (!field) return;
+        var s = score(input.value);
+        var meter = field.querySelector('[data-pt-meter]');
+        if (meter) {
+            meter.hidden = s.level === 0;
+            meter.setAttribute('data-level', String(s.level));
+            var lab = meter.querySelector('[data-pt-meter-label]');
+            if (lab) lab.textContent = labels[s.level];
+        }
+        field.querySelectorAll('[data-rule]').forEach(function (li) { li.classList.toggle('is-ok', !!s.rules[li.getAttribute('data-rule')]); });
+        matchCheck(input.closest('form'));
+    }
+    function matchCheck(form) {
+        if (!form) return;
+        var a = form.querySelector('[data-pt-field="newpass"] input');
+        var b = form.querySelector('[data-pt-field="confirm"] input');
+        var wrap = form.querySelector('[data-pt-field="confirm"]');
+        if (!a || !b || !wrap) return;
+        wrap.setAttribute('data-valid', b.value.length > 0 && a.value === b.value ? 'true' : 'false');
+    }
+
+    // Mobile number: digits only, grouped 5 + 5, tick when it is a valid Indian mobile number
+    function phoneDigits(v) {
+        var d = v.replace(/\D/g, '');
+        if (d.length > 10 && d.indexOf('91') === 0) d = d.slice(2);
+        if (d.length === 11 && d.charAt(0) === '0') d = d.slice(1);
+        return d.slice(0, 10);
+    }
+    function formatPhone(input) {
+        var d = phoneDigits(input.value);
+        input.value = d.length > 5 ? d.slice(0, 5) + ' ' + d.slice(5) : d;
+        var wrap = input.closest('[data-pt-field="phone"]');
+        if (wrap) wrap.setAttribute('data-valid', /^[6-9]\d{9}$/.test(d) ? 'true' : 'false');
+    }
+
+    // Email or mobile (forgot password): tick when either looks right
+    function identifierCheck(input) {
+        var wrap = input.closest('[data-pt-field="identifier"]');
+        if (!wrap) return;
+        var v = input.value.trim();
+        var ok = v.indexOf('@') >= 0 ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) : /^[6-9]\d{9}$/.test(phoneDigits(v));
+        wrap.setAttribute('data-valid', ok ? 'true' : 'false');
+    }
+
+    document.addEventListener('input', function (e) {
+        var t = e.target;
+        if (!t || !t.matches) return;
+        if (t.matches('[data-pt-field="newpass"] input')) updateStrength(t);
+        else if (t.matches('[data-pt-field="confirm"] input')) matchCheck(t.closest('form'));
+        else if (t.matches('[data-pt-field="phone"] input')) formatPhone(t);
+        else if (t.matches('[data-pt-field="identifier"] input')) identifierCheck(t);
+        else if (t.matches('input[data-pt-otp]')) {
+            t.value = t.value.replace(/\D/g, '').slice(0, 6);
+            // Sending the form as soon as the sixth digit arrives
+            if (t.value.length === 6 && !t.hasAttribute('data-pt-otp-nosubmit') && t.form && t.form.requestSubmit) t.form.requestSubmit();
+        }
+    });
+    document.addEventListener('paste', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('input[data-pt-otp]')) {
+            var text = (e.clipboardData || window.clipboardData).getData('text');
+            e.preventDefault();
+            t.value = (text || '').replace(/\D/g, '').slice(0, 6);
+            t.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+
+    // Resend countdown
+    function startCountdowns() {
+        document.querySelectorAll('[data-pt-countdown]').forEach(function (btn) {
+            var left = parseInt(btn.getAttribute('data-pt-countdown'), 10) || 0;
+            var label = btn.getAttribute('data-pt-countdown-label') || btn.textContent;
+            if (btn.dataset.ptRunning) return;
+            btn.dataset.ptRunning = '1';
+            function tick() {
+                if (left > 0) { btn.disabled = true; btn.textContent = label + ' in ' + left + 's'; left--; setTimeout(tick, 1000); }
+                else { btn.disabled = false; btn.textContent = label; }
+            }
+            tick();
+        });
+    }
+
+    function initAuthExtras() {
+        document.querySelectorAll('[data-pt-field="newpass"] input').forEach(updateStrength);
+        document.querySelectorAll('[data-pt-field="phone"] input').forEach(function (i) { if (i.value) formatPhone(i); });
+        document.querySelectorAll('[data-pt-field="identifier"] input').forEach(function (i) { if (i.value) identifierCheck(i); });
+        startCountdowns();
+        var otp = document.querySelector('input[data-pt-otp]');
+        if (otp) { otp.removeAttribute('readonly'); }
+    }
+    document.addEventListener('DOMContentLoaded', initAuthExtras);
+    document.addEventListener('enhancedload', initAuthExtras);
+    if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', initAuthExtras);
 })();

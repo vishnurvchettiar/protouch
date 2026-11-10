@@ -1,0 +1,64 @@
+@* Two-column sign in shell shared by Register and Forgot password: the form on a light panel, the clinic on a brand panel. *@
+<div class="pt-auth-split-page">
+
+    <div class="pt-auth-form-panel">
+        <div class="pt-auth-form-inner">
+            <div class="pt-auth-form-logo">
+                <img src="/images/protouch-logo.svg"
+                     alt="ProTouch Physio - Slimming Clinic"
+                     class="pt-auth-form-logo-img" />
+            </div>
+
+            @ChildContent
+        </div>
+    </div>
+
+    <div class="pt-auth-visual-panel" aria-hidden="true">
+        <div class="pt-auth-orb pt-auth-orb-1"></div>
+        <div class="pt-auth-orb pt-auth-orb-2"></div>
+        <div class="pt-auth-orb pt-auth-orb-3"></div>
+        <div class="pt-auth-orb pt-auth-orb-4"></div>
+
+        <div class="pt-auth-visual-content">
+            <div class="pt-auth-visual-logo-wrap">
+                <img src="/images/protouch-logo.svg"
+                     alt="ProTouch Physio - Slimming Clinic"
+                     class="pt-auth-visual-logo" />
+            </div>
+            <h2 class="pt-auth-visual-title">@BrandTitle</h2>
+            <p class="pt-auth-visual-tagline">@BrandTagline</p>
+
+            <ul class="pt-auth-benefits">
+                @foreach (var item in Benefits)
+                {
+                    <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>@item</li>
+                }
+            </ul>
+
+            <div class="pt-auth-stats">
+                <div class="pt-auth-stat">
+                    <span class="pt-auth-stat-num">500+</span>
+                    <span class="pt-auth-stat-label">Patients Served</span>
+                </div>
+                <div class="pt-auth-stat-divider"></div>
+                <div class="pt-auth-stat">
+                    <span class="pt-auth-stat-num">10+</span>
+                    <span class="pt-auth-stat-label">Years of Care</span>
+                </div>
+                <div class="pt-auth-stat-divider"></div>
+                <div class="pt-auth-stat">
+                    <span class="pt-auth-stat-num">★ 4.9</span>
+                    <span class="pt-auth-stat-label">Patient Rating</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string BrandTitle { get; set; } = "Care that fits your life";
+    [Parameter] public string BrandTagline { get; set; } = "Physiotherapy-led care by Dr. Manjari. Trusted. Proven. Personal.";
+    [Parameter] public string[] Benefits { get; set; } = Array.Empty<string>();
+}
