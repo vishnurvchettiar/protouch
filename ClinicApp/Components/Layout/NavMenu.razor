@@ -2,57 +2,102 @@
 
 @inject NavigationManager NavigationManager
 
-<nav class="pt-sidebar">
-    <!-- Logo -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="pt-ico-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+        <symbol id="pt-ico-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+        <symbol id="pt-ico-pulse" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+        <symbol id="pt-ico-clip" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 13l2 2 4-4"/></symbol>
+        <symbol id="pt-ico-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol>
+        <symbol id="pt-ico-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+        <symbol id="pt-ico-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+        <symbol id="pt-ico-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+        <symbol id="pt-ico-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+        <symbol id="pt-ico-trend" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+        <symbol id="pt-ico-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+        <symbol id="pt-ico-login" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></symbol>
+        <symbol id="pt-ico-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></symbol>
+        <symbol id="pt-ico-chevrons" viewBox="0 0 24 24"><path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/></symbol>
+    </defs>
+</svg>
+
+<nav class="pt-sidebar" aria-label="Main">
+    <!-- Logo + hide/show button (top right corner) -->
     <div class="pt-sidebar-logo">
         <img src="/images/protouch-logo.svg" alt="ProTouch Physio" class="pt-sidebar-logo-img" />
+        <span class="pt-sidebar-mark" aria-hidden="true">PT</span>
+        <button type="button"
+                class="pt-sidebar-toggle"
+                data-pt-sidebar-toggle
+                aria-label="Hide sidebar"
+                aria-expanded="true"
+                title="Hide sidebar">
+            <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-chevrons"></use></svg>
+        </button>
     </div>
 
     <!-- Nav items -->
     <AuthorizeView>
-        <Authorized>
+        <Authorized Context="authCtx">
             <AuthorizeView Roles="Admin" Context="adminCtx">
                 <ul class="pt-nav-list">
-                    @foreach (var item in adminNavItems)
+                    @foreach (var group in adminNavGroups)
                     {
-                        <li class="pt-nav-item">
-                            <a class="pt-nav-link @(IsNavItemActive(item) ? "pt-nav-link--active" : "")"
-                               href="@item.Href"
-                               title="@item.Label">
-                                <span class="pt-nav-icon" aria-hidden="true">@item.Icon</span>
-                                <span class="pt-nav-label">@item.Label</span>
-                            </a>
-                        </li>
+                        if (!string.IsNullOrEmpty(group.Label))
+                        {
+                            <li class="pt-nav-group" aria-hidden="true"><span>@group.Label</span></li>
+                        }
+                        foreach (var item in group.Items)
+                        {
+                            <li class="pt-nav-item">
+                                <a class="pt-nav-link @(IsNavItemActive(item) ? "pt-nav-link--active" : "")"
+                                   href="@item.Href"
+                                   title="@item.Label"
+                                   aria-current="@(IsNavItemActive(item) ? "page" : null)">
+                                    <svg class="pt-i pt-nav-icon" aria-hidden="true"><use href="#pt-ico-@item.Icon"></use></svg>
+                                    <span class="pt-nav-label">@item.Label</span>
+                                </a>
+                            </li>
+                        }
                     }
                 </ul>
             </AuthorizeView>
             <AuthorizeView Roles="Client" Context="clientCtx">
                 <ul class="pt-nav-list">
-                    @foreach (var item in clientNavItems)
+                    @foreach (var group in clientNavGroups)
                     {
-                        <li class="pt-nav-item">
-                            <a class="pt-nav-link @(IsNavItemActive(item) ? "pt-nav-link--active" : "")"
-                               href="@item.Href"
-                               title="@item.Label">
-                                <span class="pt-nav-icon" aria-hidden="true">@item.Icon</span>
-                                <span class="pt-nav-label">@item.Label</span>
-                            </a>
-                        </li>
+                        if (!string.IsNullOrEmpty(group.Label))
+                        {
+                            <li class="pt-nav-group" aria-hidden="true"><span>@group.Label</span></li>
+                        }
+                        foreach (var item in group.Items)
+                        {
+                            <li class="pt-nav-item">
+                                <a class="pt-nav-link @(IsNavItemActive(item) ? "pt-nav-link--active" : "")"
+                                   href="@item.Href"
+                                   title="@item.Label"
+                                   aria-current="@(IsNavItemActive(item) ? "page" : null)">
+                                    <svg class="pt-i pt-nav-icon" aria-hidden="true"><use href="#pt-ico-@item.Icon"></use></svg>
+                                    <span class="pt-nav-label">@item.Label</span>
+                                </a>
+                            </li>
+                        }
                     }
                 </ul>
             </AuthorizeView>
 
-            <!-- Logout -->
+            <!-- Signed-in user + Logout -->
             <div class="pt-sidebar-footer mt-auto">
-                <hr style="border-color: var(--pt-sidebar-border); margin: 0 12px 8px;" />
-                <form action="Account/Logout" method="post">
+                <form action="Account/Logout" method="post" class="pt-user-card">
                     <AntiforgeryToken />
                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                    <button type="submit" class="pt-nav-link w-100 border-0"
-                            title="Logout"
-                            style="background: transparent;">
-                        <span class="pt-nav-icon" aria-hidden="true">🚪</span>
-                        <span class="pt-nav-label pt-logout-label">Logout</span>
+                    <span class="pt-user-avatar" aria-hidden="true">@UserInitial(authCtx.User.Identity?.Name)</span>
+                    <span class="pt-user-name">
+                        @(authCtx.User.Identity?.Name ?? "Account")
+                        <small>@(authCtx.User.IsInRole("Admin") ? "Admin" : "Client")</small>
+                    </span>
+                    <button type="submit" class="pt-logout-btn" title="Logout" aria-label="Logout">
+                        <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-out"></use></svg>
                     </button>
                 </form>
             </div>
@@ -62,13 +107,13 @@
             <ul class="pt-nav-list">
                 <li class="pt-nav-item">
                     <NavLink class="pt-nav-link" href="Account/Register" ActiveClass="pt-nav-link--active" title="Register">
-                        <span class="pt-nav-icon" aria-hidden="true">📝</span>
+                        <svg class="pt-i pt-nav-icon" aria-hidden="true"><use href="#pt-ico-user-plus"></use></svg>
                         <span class="pt-nav-label">Register</span>
                     </NavLink>
                 </li>
                 <li class="pt-nav-item">
                     <NavLink class="pt-nav-link" href="Account/Login" ActiveClass="pt-nav-link--active" title="Login">
-                        <span class="pt-nav-icon" aria-hidden="true">🔑</span>
+                        <svg class="pt-i pt-nav-icon" aria-hidden="true"><use href="#pt-ico-login"></use></svg>
                         <span class="pt-nav-label">Login</span>
                     </NavLink>
                 </li>
@@ -81,27 +126,43 @@
     private string? currentUrl;
 
     private record NavItem(string Href, string Icon, string Label);
+    private record NavGroup(string? Label, NavItem[] Items);
 
-    private readonly NavItem[] adminNavItems =
+    private readonly NavGroup[] adminNavGroups =
     {
-        new("/admin-dashboard",                      "⊞",  "Overview"),
-        new("/admin-dashboard?tab=clients",          "👥", "Clients"),
-        new("/admin-dashboard?tab=visits",           "🏥", "Visits"),
-        new("/admin-dashboard?tab=appointments",     "📋", "Appointments"),
-        new("/admin-dashboard?tab=mealreview",       "🥗", "Meal Review"),
-        new("/admin-dashboard?tab=bookings",         "📅", "Bookings"),
-        new("/admin-dashboard?tab=whatsapp",         "💬", "WhatsApp"),
-        new("/admin-dashboard?tab=settings",         "⚙️", "Settings"),
+        new("Clinic", new NavItem[]
+        {
+            new("/admin-dashboard",                  "grid",   "Overview"),
+            new("/admin-dashboard?tab=clients",      "users",  "Clients"),
+            new("/admin-dashboard?tab=visits",       "pulse",  "Visits"),
+            new("/admin-dashboard?tab=appointments", "clip",   "Appointments"),
+        }),
+        new("Care", new NavItem[]
+        {
+            new("/admin-dashboard?tab=mealreview",   "leaf",   "Meal Review"),
+            new("/admin-dashboard?tab=bookings",     "cal",    "Bookings"),
+            new("/admin-dashboard?tab=whatsapp",     "chat",   "WhatsApp"),
+        }),
+        new("System", new NavItem[]
+        {
+            new("/admin-dashboard?tab=settings",     "sliders","Settings"),
+        }),
     };
 
-    private readonly NavItem[] clientNavItems =
+    private readonly NavGroup[] clientNavGroups =
     {
-        new("/client-dashboard",            "⊞",  "Overview"),
-        new("/client-dashboard#checkin",    "✅", "Check-In"),
-        new("/client-dashboard#appointments","📋", "Appointments"),
-        new("/client-dashboard#diet",       "🥗", "Diet Plan"),
-        new("/client-dashboard#history",    "📈", "My History"),
+        new(null, new NavItem[]
+        {
+            new("/client-dashboard",                  "grid",  "Overview"),
+            new("/client-dashboard#checkin",          "check", "Check-In"),
+            new("/client-dashboard#appointments",     "clip",  "Appointments"),
+            new("/client-dashboard#diet",             "leaf",  "Diet Plan"),
+            new("/client-dashboard#history",          "trend", "My History"),
+        }),
     };
+
+    private static string UserInitial(string? name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[0].ToString().ToUpperInvariant();
 
     private bool IsNavItemActive(NavItem item)
     {
