@@ -758,7 +758,7 @@
                 <span class="pt-ov-sub">@clients.Count(c => c.IsActive) active · @clients.Count(c => !c.IsActive) inactive</span>
             </div>
             <div class="pt-ov-actions">
-                <button type="button" class="pt-ov-act pt-ov-act--primary" @onclick='() => { activeTab = "add"; editingUserId = null; }'>
+                <button type="button" class="pt-ov-act pt-ov-act--primary" @onclick='() => { editingUserId = null; NavigateToTab("add"); }'>
                     <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-user-plus"></use></svg>Add client
                 </button>
             </div>
@@ -1273,7 +1273,7 @@
         newPhone = client.User?.PhoneNumber ?? "";
         newNotes = client.DoctorNotes ?? "";
         newRole = "Client";
-        activeTab = "add";
+        NavigateToTab("add");
     }
 
     private void CancelEditUser() { editingUserId = null; newName = newEmail = newPhone = newNotes = ""; newRole = "Client"; }
@@ -1810,7 +1810,11 @@
             case "mealreview": await SwitchToMealReview(); break;
             case "bookings": await SwitchToBookings(); break;
             case "feedback": await SwitchToFeedback(); break;
-            default: activeTab = wanted; break;
+            default:
+                // Arriving at "Add user" from another tab starts a fresh form, not a half-finished edit.
+                if (wanted == "add") CancelEditUser();
+                activeTab = wanted;
+                break;
         }
     }
 
