@@ -472,7 +472,8 @@
                         <button class="btn-clinic-secondary" @onclick="PreviewCsvCampaign" disabled="@(!csvRecipients.Any() || sendingCampaign)">Preview</button>
                         <button class="btn-clinic-secondary" @onclick="UseDietTemplate">Diet template</button>
                     </div>
-                    @if (!string.IsNullOrWhiteSpace(campaignSuccessMsg)) { <div class="clinic-alert clinic-alert-info mt-3">@campaignSuccessMsg</div> }
+                    @if (!string.IsNullOrWhiteSpace(campaignSuccessMsg)) { <div class="clinic-alert clinic-alert-info mt-3" role="status">@campaignSuccessMsg</div> }
+                    @if (!string.IsNullOrWhiteSpace(campaignErrorMsg)) { <div class="clinic-alert clinic-alert-danger mt-3" role="alert">@campaignErrorMsg</div> }
                 </div>
             </div>
             <div class="col-xl-7">
@@ -483,7 +484,7 @@
                         <div class="section-heading"><div><span class="eyebrow">MESSAGE PREVIEW</span><h3>@campaignPreviews.Count personalised messages</h3></div></div>
                         @foreach (var preview in campaignPreviews.Take(500))
                         {
-                            <div class="message-row"><div><strong>@preview.RecipientName</strong><div class="text-secondary small">@preview.RecipientPhone</div><div class="text-muted small" style="white-space: pre-wrap; font-size: 0.8rem;">@preview.PersonalisedMessage</div></div></div>
+                            <div class="message-row"><div><strong>@preview.RecipientName</strong><div class="text-secondary small">@preview.RecipientPhone</div><div class="text-muted small" style="white-space: pre-wrap; font-size: 0.8rem;">@preview.PersonalisedMessage</div></div>@if (preview.Warning != null) { <span class="badge-clinic" style="font-size: 0.65rem; background: #fff4d1; color: #7a5b00;">@preview.Warning</span> }</div>
                         }
                     </div>
                 }
@@ -923,6 +924,7 @@
     private List<CsvRecipient> csvRecipients = new();
     private List<CsvPreviewRow> campaignPreviews = new();
     private bool sendingCampaign;
+    private string? campaignErrorMsg;
     private int campaignSent, campaignFailed, campaignTotal;
 
     // Visit management
@@ -1384,32 +1386,72 @@
     // WhatsApp
     private async Task ReadCsvRecipients(InputFileChangeEventArgs e)
     {
-        using var reader = new StreamReader(e.File.OpenReadStream(2 * 1024 * 1024));
-        var lines = (await reader.ReadToEndAsync()).Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        csvRecipients = lines.Skip(1).Select(line => line.Split(',')).Where(parts => parts.Length >= 2)
-            .Select(parts => new CsvRecipient(parts[0].Trim().Trim('"'), parts[1].Trim().Trim('"')))
-            .Where(x => !string.IsNullOrWhiteSpace(x.Phone)).ToList();
-        campaignSuccessMsg = csvRecipients.Any() ? $"Loaded {csvRecipients.Count} CSV recipients." : "No valid recipients found. Use Name,Phone headings.";
+        campaignErrorMsg = null;
+        try
+        {
+            using var reader = new StreamReader(e.File.OpenReadStream(2 * 1024 * 1024));
+            csvRecipients = CsvRecipientParser.Parse(await reader.ReadToEndAsync());
+            var invalid = csvRecipients.Count(r => string.IsNullOrEmpty(ClinicService.NormalisePhone(r.Phone)));
+            campaignSuccessMsg = csvRecipients.Any()
+                ? $"Loaded {csvRecipients.Count} recipients." + (invalid > 0 ? $" {invalid} have an invalid phone number and will be skipped." : "")
+                : "No valid recipients found. The file needs a Name column and a Phone column.";
+        }
+        catch (Exception ex)
+        {
+            csvRecipients = new();
+            campaignSuccessMsg = null;
+            campaignErrorMsg = ex is IOException
+                ? "That file is too large. Keep CSV files under 2 MB."
+                : "Could not read that file. Check that it is a CSV.";
+            _logger.LogWarning(ex, "CSV recipient upload failed");
+        }
         campaignPreviews = new();
     }
 
     private async Task PreviewCsvCampaign()
     {
         if (!csvRecipients.Any()) return;
+        campaignErrorMsg = null;
         campaignPreviews = await ClinicService.PreviewCsvCampaignAsync(campaignText, csvRecipients);
         StateHasChanged();
     }
 
     private async Task SendCsvCampaign()
     {
+        if (sendingCampaign || !csvRecipients.Any()) return;
+        if (string.IsNullOrWhiteSpace(campaignText))
+        {
+            campaignErrorMsg = "Write a message first.";
+            return;
+        }
+
+        campaignErrorMsg = null; campaignSuccessMsg = null;
         sendingCampaign = true; campaignSent = 0; campaignFailed = 0; campaignTotal = csvRecipients.Count;
-        try {
+        try
+        {
             var progress = new Progress<(int sent, int failed, int total)>(r => { campaignSent = r.sent; campaignFailed = r.failed; campaignTotal = r.total; InvokeAsync(StateHasChanged); });
-            await ClinicService.SendCsvWhatsAppCampaignAsync("CSV broadcast", campaignText, csvRecipients, progress);
-            campaignSuccessMsg = $"✓ Bulk campaign dispatched to {csvRecipients.Count} recipients.";
-            csvRecipients = new(); campaignPreviews = new();
+            var result = await ClinicService.SendCsvWhatsAppCampaignAsync("CSV broadcast", campaignText, csvRecipients, progress);
+
+            if (result.Mode != "Twilio")
+                campaignSuccessMsg = $"Test run only: {result.Simulated} messages were simulated and nothing was sent. Switch WhatsApp mode to Twilio in Settings to send for real.";
+            else if (result.Failed == 0)
+                campaignSuccessMsg = $"Sent to {result.Sent} recipients." + (result.Skipped > 0 ? $" {result.Skipped} duplicates skipped." : "");
+            else
+                campaignErrorMsg = $"Sent to {result.Sent}, {result.Failed} failed" + (result.Skipped > 0 ? $", {result.Skipped} duplicates skipped" : "") + ". See Recent activity for the reason.";
+
+            // Keep the list when nothing went out so it can be retried after fixing the problem.
+            if (result.Sent + result.Simulated > 0)
+            {
+                csvRecipients = new(); campaignPreviews = new();
+            }
             await LoadAdminDataAsync();
-        } finally { sendingCampaign = false; }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bulk WhatsApp campaign failed");
+            campaignErrorMsg = "The campaign stopped unexpectedly. Check Recent activity to see who was messaged before retrying.";
+        }
+        finally { sendingCampaign = false; }
     }
 
     private void UseDietTemplate() => campaignText = "Hello {{Name}}, this is your ProTouch Physio - Slimming Clinic diet reminder. Please follow your prescribed diet plan and update today's morning weight.";
