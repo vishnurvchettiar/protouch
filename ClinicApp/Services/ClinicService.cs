@@ -19,6 +19,12 @@ public record CsvPreviewRow(string RecipientName, string RecipientPhone, string 
 /// <summary>Outcome of a bulk WhatsApp campaign.</summary>
 public record CampaignResult(int Sent, int Simulated, int Failed, int Skipped, string Mode);
 
+/// <summary>Outcome of asking for a one-time code. TestCode is only set when WhatsApp is not in live (Twilio) mode.</summary>
+public record OtpSendResult(bool Sent, string? Error, int RetryAfterSeconds, string? TestCode);
+
+/// <summary>Outcome of checking a one-time code.</summary>
+public record OtpVerifyResult(bool Ok, string? Error, int AttemptsLeft);
+
 public class ClinicService
 {
     private readonly ApplicationDbContext _db;
@@ -1054,6 +1060,164 @@ public class ClinicService
         otp.IsUsed = true;
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    // ==========================================
+    // One-time codes for sign up and password reset
+    // ==========================================
+    private const int OtpDigits = 6;
+    private static readonly TimeSpan OtpLifetime = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan OtpResendCooldown = TimeSpan.FromSeconds(30);
+    private const int OtpMaxPerHour = 5;
+    private const int OtpMaxWrongTries = 5;
+    private static readonly TimeSpan OtpLockout = TimeSpan.FromMinutes(15);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (int Wrong, DateTime Since)> OtpWrongTries = new();
+
+    /// <summary>The one form of a phone number used to compare and key numbers: "91" plus 10 digits, or null if invalid.</summary>
+    public static string? CanonicalPhone(string? raw)
+    {
+        var n = NormalisePhone(raw);
+        return string.IsNullOrEmpty(n) ? null : n;
+    }
+
+    /// <summary>"+91 •••• ••210" style mask for showing where a code was sent.</summary>
+    public static string MaskPhone(string? raw)
+    {
+        var c = CanonicalPhone(raw);
+        return c == null ? "your mobile number" : $"+91 ••••• ••{c[^3..]}";
+    }
+
+    private static string HashOtp(string phone, string code)
+    {
+        var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes($"{phone}:{code}"));
+        return Convert.ToHexString(bytes);
+    }
+
+    /// <summary>True when another account already uses this mobile number, however it was typed.</summary>
+    public async Task<bool> IsPhoneRegisteredAsync(string? phone, string? exceptUserId = null)
+        => await FindUserByPhoneAsync(phone, exceptUserId) != null;
+
+    /// <summary>Finds the account that uses this mobile number, comparing numbers in their canonical form.</summary>
+    public async Task<ApplicationUser?> FindUserByPhoneAsync(string? phone, string? exceptUserId = null)
+    {
+        var canon = CanonicalPhone(phone);
+        if (canon == null) return null;
+        var users = await _db.Users.AsNoTracking()
+            .Where(u => u.PhoneNumber != null && u.PhoneNumber != "")
+            .ToListAsync();
+        return users.FirstOrDefault(u => u.Id != exceptUserId && CanonicalPhone(u.PhoneNumber) == canon);
+    }
+
+    /// <summary>
+    /// Sends a 6 digit code to the number over WhatsApp. Limits: one code every 30 seconds and five an hour per number.
+    /// Codes are stored hashed, last 5 minutes and work once.
+    /// </summary>
+    public async Task<OtpSendResult> SendOtpAsync(string? phone)
+    {
+        var canon = CanonicalPhone(phone);
+        if (canon == null) return new OtpSendResult(false, "Enter a valid 10-digit mobile number.", 0, null);
+
+        var now = DateTime.UtcNow;
+        var recent = await _db.PhoneOtps.Where(o => o.PhoneNumber == canon && o.CreatedAt >= now.AddHours(-1))
+            .OrderByDescending(o => o.CreatedAt).ToListAsync();
+        if (recent.Count > 0)
+        {
+            var wait = (int)Math.Ceiling((recent[0].CreatedAt + OtpResendCooldown - now).TotalSeconds);
+            if (wait > 0) return new OtpSendResult(false, $"Please wait {wait} seconds before asking for another code.", wait, null);
+        }
+        if (recent.Count >= OtpMaxPerHour)
+            return new OtpSendResult(false, "Too many codes were requested for this number. Try again in an hour.", 3600, null);
+
+        var code = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0, (int)Math.Pow(10, OtpDigits)).ToString($"D{OtpDigits}");
+        foreach (var old in recent.Where(o => !o.IsUsed)) old.IsUsed = true; // only the newest code works
+        _db.PhoneOtps.Add(new PhoneOtp
+        {
+            PhoneNumber = canon,
+            Code = HashOtp(canon, code),
+            ExpiresAt = now + OtpLifetime,
+            CreatedAt = now
+        });
+        OtpWrongTries.TryRemove(canon, out _);
+        await _db.SaveChangesAsync();
+
+        var mode = GetWhatsAppMode();
+        var message = $"{code} is your ProTouch verification code. It expires in 5 minutes. Do not share it with anyone.";
+        string status;
+        if (mode == "Twilio")
+        {
+            try
+            {
+                var cfg = GetTwilioConfig();
+                var to = ToWhatsAppAddress("+" + canon)!;
+                var from = cfg.From.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? cfg.From : "whatsapp:" + cfg.From;
+                TwilioClient.Init(cfg.Sid, cfg.Token);
+                var msg = await MessageResource.CreateAsync(body: message,
+                    from: new Twilio.Types.PhoneNumber(from), to: new Twilio.Types.PhoneNumber(to));
+                status = msg.Status.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not send a verification code to {Phone}", MaskPhone(canon));
+                return new OtpSendResult(false, "We could not send the code just now. Please try again in a minute.", 0, null);
+            }
+        }
+        else
+        {
+            status = "Simulated";
+            _logger.LogWarning("WhatsApp is in test mode. The verification code for {Phone} was not sent.", MaskPhone(canon));
+        }
+
+        // The log records that a code was sent, never the code itself.
+        _db.WhatsAppLogs.Add(new WhatsAppLog
+        {
+            TargetAudience = mode == "Twilio" ? "Verification code" : "Verification code (simulated)",
+            MessageTemplate = $"Verification code sent to {MaskPhone(canon)}",
+            RecipientCount = 1,
+            SentAt = now,
+            Status = status,
+            LogDetail = JsonSerializer.Serialize(new[] { new { Phone = MaskPhone(canon), Status = status } })
+        });
+        await _db.SaveChangesAsync();
+
+        return new OtpSendResult(true, null, (int)OtpResendCooldown.TotalSeconds, mode == "Twilio" ? null : code);
+    }
+
+    /// <summary>Checks a code. Five wrong tries lock the number for 15 minutes.</summary>
+    public async Task<OtpVerifyResult> VerifyOtpAsync(string? phone, string? code)
+    {
+        var canon = CanonicalPhone(phone);
+        code = (code ?? "").Trim();
+        if (canon == null || code.Length != OtpDigits || !code.All(char.IsAsciiDigit))
+            return new OtpVerifyResult(false, $"Enter the {OtpDigits}-digit code.", OtpMaxWrongTries);
+
+        var now = DateTime.UtcNow;
+        if (OtpWrongTries.TryGetValue(canon, out var tries))
+        {
+            if (now - tries.Since > OtpLockout) OtpWrongTries.TryRemove(canon, out _);
+            else if (tries.Wrong >= OtpMaxWrongTries)
+                return new OtpVerifyResult(false, "Too many wrong codes. Try again in 15 minutes, or ask for a new code then.", 0);
+        }
+
+        var otp = await _db.PhoneOtps
+            .Where(o => o.PhoneNumber == canon && !o.IsUsed && o.ExpiresAt >= now)
+            .OrderByDescending(o => o.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (otp == null)
+            return new OtpVerifyResult(false, "That code has expired. Ask for a new one.", OtpMaxWrongTries);
+
+        if (!System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                System.Text.Encoding.UTF8.GetBytes(otp.Code), System.Text.Encoding.UTF8.GetBytes(HashOtp(canon, code))))
+        {
+            var wrong = OtpWrongTries.AddOrUpdate(canon, _ => (1, now), (_, t) => (t.Wrong + 1, t.Since)).Wrong;
+            var left = Math.Max(0, OtpMaxWrongTries - wrong);
+            return new OtpVerifyResult(false, left > 0 ? $"That code is not right. {left} {(left == 1 ? "try" : "tries")} left." : "Too many wrong codes. Try again in 15 minutes.", left);
+        }
+
+        otp.IsUsed = true;
+        OtpWrongTries.TryRemove(canon, out _);
+        await _db.SaveChangesAsync();
+        return new OtpVerifyResult(true, null, OtpMaxWrongTries);
     }
 
     // ==========================================

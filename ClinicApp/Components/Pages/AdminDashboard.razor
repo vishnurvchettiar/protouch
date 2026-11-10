@@ -1288,6 +1288,7 @@
             // Check for email collision on another account
             var existing = await UserManager.FindByEmailAsync(newEmail.Trim());
             if (existing != null && existing.Id != editingUserId) { createUserMessage = "Email already in use by another account."; createUserSuccess = false; return; }
+            if (!string.IsNullOrWhiteSpace(newPhone) && await ClinicService.IsPhoneRegisteredAsync(newPhone, editingUserId)) { createUserMessage = "This mobile number already belongs to another account."; createUserSuccess = false; return; }
             user.FullName = newName.Trim();
             user.PhoneNumber = newPhone.Trim();
             var result = await UserManager.UpdateAsync(user);
@@ -1305,6 +1306,7 @@
         try {
             if (string.IsNullOrWhiteSpace(newName) || string.IsNullOrWhiteSpace(newEmail)) { createUserMessage = "Name and email are required."; createUserSuccess = false; return; }
             if (await UserManager.FindByEmailAsync(newEmail.Trim()) != null) { createUserMessage = "A user with this email already exists."; createUserSuccess = false; return; }
+            if (!string.IsNullOrWhiteSpace(newPhone) && await ClinicService.IsPhoneRegisteredAsync(newPhone)) { createUserMessage = "This mobile number already belongs to another account."; createUserSuccess = false; return; }
             var password = $"PT{Random.Shared.Next(100000, 999999)}!a";
             var user = new ApplicationUser { UserName = newEmail.Trim(), Email = newEmail.Trim(), EmailConfirmed = true, FullName = newName.Trim(), PhoneNumber = newPhone.Trim() };
             var result = await UserManager.CreateAsync(user, password);

@@ -2,148 +2,417 @@
 @layout AuthLayout
 
 @using System.ComponentModel.DataAnnotations
-@using System.Text
-@using System.Text.Encodings.Web
+@using System.Text.Json
+@using Microsoft.AspNetCore.DataProtection
 @using Microsoft.AspNetCore.Identity
-@using Microsoft.AspNetCore.WebUtilities
 @using ClinicApp.Data
 
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
-@inject IEmailSender<ApplicationUser> EmailSender
 @inject ILogger<Register> Logger
-@inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject RoleManager<IdentityRole> RoleManager
 @inject ClinicApp.Services.ClinicService ClinicService
+@inject IDataProtectionProvider DataProtection
+@inject IWebHostEnvironment Environment
 
-<PageTitle>Register | ProTouch Physio - Slimming Clinic</PageTitle>
+<PageTitle>Create account | ProTouch Physio - Slimming Clinic</PageTitle>
 
-<div class="pt-auth-card--wide">
-    <h1 class="pt-auth-heading">Create Your Account</h1>
-    <p class="pt-auth-subheading">Create your client account</p>
+<AuthSplitShell BrandTitle="Start your journey with ProTouch"
+                BrandTagline="Book visits, log your progress and follow your plan, all in one place."
+                Benefits="@(new[] { "Track weight, meals and measurements", "See your diet plan and next appointment", "Message the clinic on WhatsApp" })">
 
-    <StatusMessage Message="@Message" />
+    <div class="pt-auth-role-badge">
+        <span class="pt-auth-role-dot"></span>
+        Client sign up
+    </div>
 
-    <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
-        <DataAnnotationsValidator />
-        <ValidationSummary class="pt-auth-field-error" role="alert" />
+    <ol class="pt-auth-steps" aria-label="Sign up progress">
+        <li class="@(step == "form" ? "is-current" : "is-done")"><span>@(step == "form" ? "1" : "✓")</span>Your details</li>
+        <li class="@(step == "verify" ? "is-current" : "")"><span>2</span>Verify mobile</li>
+    </ol>
 
-        <div class="pt-auth-grid">
+    <h1 class="pt-auth-heading">@(step == "verify" ? "Verify your mobile" : "Create your account")</h1>
+
+    @if (step == "verify")
+    {
+        <p class="pt-auth-subheading">We sent a 6-digit code on WhatsApp to <strong>@maskedPhone</strong>.</p>
+
+        @if (!string.IsNullOrEmpty(notice))
+        {
+            <div class="pt-auth-alert pt-auth-alert--info" role="status">@notice</div>
+        }
+        @if (!string.IsNullOrEmpty(verifyError))
+        {
+            <div class="pt-auth-alert pt-auth-alert--error pt-auth-error-alert" role="alert">@verifyError</div>
+        }
+        @if (!string.IsNullOrEmpty(testCode))
+        {
+            @if (Environment.IsDevelopment())
+            {
+                <div class="pt-auth-testcode" role="status">
+                    <span>Development only. WhatsApp is in test mode, so no message was sent. Your code is</span>
+                    <strong>@testCode</strong>
+                </div>
+            }
+            else
+            {
+                <div class="pt-auth-alert pt-auth-alert--info" role="status">
+                    WhatsApp is in test mode, so no code was sent. Ask the clinic to switch on live messaging.
+                </div>
+            }
+        }
+
+        <EditForm Model="Verify" FormName="register-verify" OnValidSubmit="VerifyAndCreate" method="post" autocomplete="off">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="pt-auth-field-error" role="alert" />
+            <input type="hidden" name="Verify.Token" value="@token" />
+
             <div class="pt-auth-field">
-                <label for="Input.FullName">Full Name *</label>
-                <InputText @bind-Value="Input.FullName" id="Input.FullName" class="pt-auth-input"
-                           autocomplete="name" aria-required="true" placeholder="Your full name" />
+                <label for="Verify.Code">Verification code</label>
+                <InputText @bind-Value="Verify.Code"
+                           id="Verify.Code"
+                           class="pt-auth-input pt-auth-otp"
+                           type="text"
+                           inputmode="numeric"
+                           autocomplete="one-time-code"
+                           maxlength="6"
+                           pattern="[0-9]{6}"
+                           data-pt-otp
+                           autofocus
+                           aria-required="true"
+                           placeholder="••••••" />
+                <ValidationMessage For="() => Verify.Code" class="pt-auth-field-error" />
+            </div>
+
+            <button type="submit" class="pt-auth-button" data-pt-submit data-pt-loading="Verifying…">
+                <span>Verify and create account</span>
+                <span class="pt-auth-btn-arrow">→</span>
+            </button>
+        </EditForm>
+
+        <div class="pt-auth-inline-actions">
+            <EditForm Model="Resend" FormName="register-resend" OnSubmit="ResendCode" method="post">
+                <input type="hidden" name="Resend.Token" value="@token" />
+                <button type="submit" class="pt-auth-link-button" data-pt-countdown="@retryAfter" data-pt-countdown-label="Resend code">Resend code</button>
+            </EditForm>
+            <EditForm Model="Edit" FormName="register-edit" OnSubmit="EditDetails" method="post">
+                <input type="hidden" name="Edit.Token" value="@token" />
+                <button type="submit" class="pt-auth-link-button">Use a different number</button>
+            </EditForm>
+        </div>
+    }
+    else
+    {
+        <p class="pt-auth-subheading">It takes a minute. We confirm your mobile number with a code.</p>
+
+        <StatusMessage Message="@Message" />
+
+        <EditForm Model="Input" method="post" OnValidSubmit="StartRegistration" FormName="register" autocomplete="off">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="pt-auth-field-error" role="alert" />
+
+            <div class="pt-auth-field">
+                <label for="Input.FullName">Full name</label>
+                <div class="pt-auth-input-wrap">
+                    <svg class="pt-auth-input-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+                    <InputText @bind-Value="Input.FullName" id="Input.FullName" class="pt-auth-input"
+                               autocomplete="off" data-pt-clear data-pt-keep="@(!string.IsNullOrEmpty(Input.FullName))" autofocus aria-required="true" placeholder="Your full name" />
+                </div>
                 <ValidationMessage For="() => Input.FullName" class="pt-auth-field-error" />
             </div>
 
             <div class="pt-auth-field">
-                <label for="Input.Email">Email Address *</label>
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="pt-auth-input"
-                           autocomplete="username" aria-required="true"
-                           placeholder="name@example.com" />
+                <label for="Input.Email">Email address</label>
+                <div class="pt-auth-input-wrap" data-pt-field="email">
+                    <svg class="pt-auth-input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6" /></svg>
+                    <InputText @bind-Value="Input.Email" id="Input.Email" class="pt-auth-input" type="email"
+                               autocomplete="off" autocapitalize="none" spellcheck="false" inputmode="email"
+                               data-pt-clear data-pt-keep="@(!string.IsNullOrEmpty(Input.Email))" aria-required="true" placeholder="name@example.com" />
+                    <span class="pt-auth-valid" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></svg></span>
+                </div>
                 <ValidationMessage For="() => Input.Email" class="pt-auth-field-error" />
             </div>
 
             <div class="pt-auth-field">
-                <label for="Input.PhoneNumber">Mobile Number</label>
-                <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="pt-auth-input"
-                           maxlength="15" placeholder="10-digit mobile number" />
+                <label for="Input.PhoneNumber">Mobile number</label>
+                <div class="pt-auth-input-wrap" data-pt-field="phone">
+                    <span class="pt-auth-prefix">+91</span>
+                    <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="pt-auth-input pt-auth-input--prefix"
+                               type="tel" inputmode="numeric" autocomplete="off" maxlength="14"
+                               data-pt-clear data-pt-keep="@(!string.IsNullOrEmpty(Input.PhoneNumber))" aria-required="true" placeholder="98765 43210" />
+                    <span class="pt-auth-valid" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></svg></span>
+                </div>
+                <small class="pt-auth-help">We send a code here on WhatsApp. One account per number.</small>
                 <ValidationMessage For="() => Input.PhoneNumber" class="pt-auth-field-error" />
             </div>
 
             <div class="pt-auth-field">
-                <!-- spacer -->
-            </div>
-
-            <div class="pt-auth-field">
-                <label for="Input.Password">Password *</label>
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password"
-                           class="pt-auth-input" autocomplete="new-password"
-                           aria-required="true" placeholder="Minimum 8 characters" />
+                <label for="Input.Password">Password</label>
+                <div class="pt-auth-input-wrap" data-pt-field="newpass">
+                    <svg class="pt-auth-input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3" /></svg>
+                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="pt-auth-input"
+                               autocomplete="new-password" data-pt-clear aria-required="true" placeholder="Create a password" />
+                    <button type="button" class="pt-auth-show-pw" data-pt-toggle-password aria-pressed="false" aria-label="Show password">
+                        <svg class="pt-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
+                        <svg class="pt-eye-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 6.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.5 7.5A17 17 0 0 0 2 12s3.5 7 10 7a9.6 9.6 0 0 0 4-.9" /></svg>
+                    </button>
+                </div>
+                <div class="pt-auth-meter" data-pt-meter hidden>
+                    <div class="pt-auth-meter-bar"><i></i></div>
+                    <span class="pt-auth-meter-label" data-pt-meter-label></span>
+                </div>
+                <ul class="pt-auth-rules" data-pt-rules>
+                    <li data-rule="len">8 or more characters</li>
+                    <li data-rule="upper">A capital letter</li>
+                    <li data-rule="lower">A small letter</li>
+                    <li data-rule="digit">A number</li>
+                </ul>
                 <ValidationMessage For="() => Input.Password" class="pt-auth-field-error" />
             </div>
 
             <div class="pt-auth-field">
-                <label for="Input.ConfirmPassword">Confirm Password *</label>
-                <InputText type="password" @bind-Value="Input.ConfirmPassword"
-                           id="Input.ConfirmPassword" class="pt-auth-input"
-                           autocomplete="new-password" aria-required="true"
-                           placeholder="Repeat your password" />
+                <label for="Input.ConfirmPassword">Confirm password</label>
+                <div class="pt-auth-input-wrap" data-pt-field="confirm">
+                    <svg class="pt-auth-input-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3" /></svg>
+                    <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="pt-auth-input"
+                               autocomplete="new-password" data-pt-clear aria-required="true" placeholder="Repeat your password" />
+                    <span class="pt-auth-valid" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" /></svg></span>
+                </div>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="pt-auth-field-error" />
             </div>
-        </div>
 
-        <button type="submit" class="pt-auth-button">Create Account →</button>
+            <button type="submit" class="pt-auth-button" data-pt-submit data-pt-loading="Sending code…">
+                <span>Send verification code</span>
+                <span class="pt-auth-btn-arrow">→</span>
+            </button>
 
-        <div class="pt-auth-form-footer">
-            <span>Already registered?</span>
-            <a href="Account/Login" class="pt-auth-link">Sign in</a>
-        </div>
-    </EditForm>
-</div>
+            <div class="pt-auth-form-footer">
+                <span>Already registered?</span>
+                <a href="Account/Login" class="pt-auth-link">Sign in</a>
+            </div>
+        </EditForm>
+    }
+</AuthSplitShell>
 
 @code {
+    private string step = "form";
+    private string token = "";
+    private string maskedPhone = "";
+    private string? testCode;
+    private string? notice;
+    private string? verifyError;
+    private int retryAfter;
     private IEnumerable<IdentityError>? identityErrors;
 
-    [SupplyParameterFromForm]
+    [SupplyParameterFromForm(FormName = "register")]
     private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromForm(FormName = "register-verify")]
+    private VerifyModel Verify { get; set; } = new();
+
+    [SupplyParameterFromForm(FormName = "register-resend")]
+    private TokenModel Resend { get; set; } = new();
+
+    [SupplyParameterFromForm(FormName = "register-edit")]
+    private TokenModel Edit { get; set; } = new();
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    // A posted form can only be handled if it exists when the page first renders, so the step
+    // that was on screen is worked out from the form that was sent.
+    protected override void OnInitialized()
+    {
+        if (HttpMethods.IsPost(HttpContext.Request.Method) && HttpContext.Request.HasFormContentType)
+        {
+            var form = HttpContext.Request.Form;
+            if (form.ContainsKey("Verify.Token") || form.ContainsKey("Resend.Token") || form.ContainsKey("Edit.Token"))
+                step = "verify";
+        }
+    }
 
     private string? Message => identityErrors is null
         ? null
         : $"Error: {string.Join(", ", identityErrors.Select(e => e.Description))}";
 
-    public async Task RegisterUser(EditContext editContext)
-    {
-        var user = Activator.CreateInstance<ApplicationUser>();
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-        var emailStore = (IUserEmailStore<ApplicationUser>)UserStore;
-        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-        user.FullName = Input.FullName;
-        if (!string.IsNullOrWhiteSpace(Input.PhoneNumber))
-            user.PhoneNumber = Input.PhoneNumber;
+    private ITimeLimitedDataProtector Protector =>
+        DataProtection.CreateProtector("ProTouch.Register.v1").ToTimeLimitedDataProtector();
 
-        var result = await UserManager.CreateAsync(user, Input.Password);
-        if (!result.Succeeded) { identityErrors = result.Errors; return; }
+    private string MakeToken(Pending pending) =>
+        Protector.Protect(JsonSerializer.Serialize(pending), TimeSpan.FromMinutes(20));
+
+    private Pending? ReadToken(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        try { return JsonSerializer.Deserialize<Pending>(Protector.Unprotect(value)); }
+        catch { return null; }
+    }
+
+    // Step 1: check the details, then send a code. Nothing is created yet.
+    public async Task StartRegistration(EditContext editContext)
+    {
+        var messages = new ValidationMessageStore(editContext);
+        var email = Input.Email.Trim();
+
+        var problem = false;
+        if (await UserManager.FindByEmailAsync(email) != null)
+        {
+            messages.Add(() => Input.Email, "An account with this email already exists. Sign in, or reset your password.");
+            problem = true;
+        }
+        if (await ClinicService.IsPhoneRegisteredAsync(Input.PhoneNumber))
+        {
+            messages.Add(() => Input.PhoneNumber, "This mobile number is already registered. Sign in, or reset your password.");
+            problem = true;
+        }
+        if (problem)
+        {
+            Input.Password = ""; Input.ConfirmPassword = "";
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        var sent = await ClinicService.SendOtpAsync(Input.PhoneNumber);
+        if (!sent.Sent)
+        {
+            messages.Add(() => Input.PhoneNumber, sent.Error ?? "We could not send a code to this number.");
+            Input.Password = ""; Input.ConfirmPassword = "";
+            editContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        var canon = ClinicApp.Services.ClinicService.CanonicalPhone(Input.PhoneNumber)!;
+        token = MakeToken(new Pending(Input.FullName.Trim(), email, canon, Input.Password));
+        maskedPhone = ClinicApp.Services.ClinicService.MaskPhone(canon);
+        testCode = sent.TestCode;
+        retryAfter = sent.RetryAfterSeconds;
+        step = "verify";
+    }
+
+    // Step 2: check the code, then create the account and sign in.
+    public async Task VerifyAndCreate()
+    {
+        token = Verify.Token;
+        var pending = ReadToken(token);
+        step = "verify";
+        if (pending == null)
+        {
+            step = "form";
+            identityErrors = new[] { new IdentityError { Description = "That sign up expired. Please start again." } };
+            return;
+        }
+        maskedPhone = ClinicApp.Services.ClinicService.MaskPhone(pending.Phone);
+
+        var check = await ClinicService.VerifyOtpAsync(pending.Phone, Verify.Code);
+        if (!check.Ok)
+        {
+            verifyError = check.Error;
+            Verify.Code = "";
+            return;
+        }
+
+        // Someone may have taken the email or number while this person was verifying.
+        if (await UserManager.FindByEmailAsync(pending.Email) != null || await ClinicService.IsPhoneRegisteredAsync(pending.Phone))
+        {
+            step = "form";
+            identityErrors = new[] { new IdentityError { Description = "That email or mobile number is already registered. Sign in, or reset your password." } };
+            return;
+        }
+
+        var user = Activator.CreateInstance<ApplicationUser>();
+        await UserStore.SetUserNameAsync(user, pending.Email, CancellationToken.None);
+        await ((IUserEmailStore<ApplicationUser>)UserStore).SetEmailAsync(user, pending.Email, CancellationToken.None);
+        user.FullName = pending.Name;
+        user.PhoneNumber = "+" + pending.Phone;
+        user.PhoneNumberConfirmed = true;
+
+        var result = await UserManager.CreateAsync(user, pending.Password);
+        if (!result.Succeeded)
+        {
+            step = "form";
+            identityErrors = result.Errors;
+            return;
+        }
 
         if (!await RoleManager.RoleExistsAsync("Client"))
             await RoleManager.CreateAsync(new IdentityRole("Client"));
         await UserManager.AddToRoleAsync(user, "Client");
 
-        Logger.LogInformation("User created a new account.");
-
-        if (!string.IsNullOrWhiteSpace(Input.PhoneNumber))
-        {
-            await ClinicService.GeneratePhoneOtpAsync(Input.PhoneNumber);
-            RedirectManager.RedirectTo("Account/VerifyPhone",
-                new() { ["phone"] = Input.PhoneNumber, ["returnUrl"] = ReturnUrl });
-            return;
-        }
+        Logger.LogInformation("User created a new account after verifying their mobile number.");
 
         await SignInManager.SignInAsync(user, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl ?? "client-dashboard");
     }
 
+    public async Task ResendCode()
+    {
+        token = Resend.Token;
+        var pending = ReadToken(token);
+        step = "verify";
+        if (pending == null)
+        {
+            step = "form";
+            identityErrors = new[] { new IdentityError { Description = "That sign up expired. Please start again." } };
+            return;
+        }
+
+        maskedPhone = ClinicApp.Services.ClinicService.MaskPhone(pending.Phone);
+        var sent = await ClinicService.SendOtpAsync(pending.Phone);
+        retryAfter = sent.RetryAfterSeconds;
+        if (sent.Sent) { notice = "A new code is on its way."; testCode = sent.TestCode; }
+        else verifyError = sent.Error;
+    }
+
+    // Back to the form with the name and email kept, so a typo in the number is quick to fix.
+    public void EditDetails()
+    {
+        var pending = ReadToken(Edit.Token);
+        step = "form";
+        if (pending != null) { Input.FullName = pending.Name; Input.Email = pending.Email; }
+    }
+
+    private sealed record Pending(string Name, string Email, string Phone, string Password);
+
+    private sealed class IndianMobileAttribute : ValidationAttribute
+    {
+        public override bool IsValid(object? value) => ClinicApp.Services.ClinicService.CanonicalPhone(value as string) != null;
+    }
+
     private sealed class InputModel
     {
-        [Required, Display(Name = "Full name")]
+        [Required(ErrorMessage = "Enter your full name."), Display(Name = "Full name")]
         public string FullName { get; set; } = "";
 
-        [Required, EmailAddress]
+        [Required(ErrorMessage = "Enter your email address."), EmailAddress(ErrorMessage = "Enter a valid email address.")]
         public string Email { get; set; } = "";
 
-        [Phone, StringLength(15)]
+        [Required(ErrorMessage = "Enter your mobile number."), IndianMobile(ErrorMessage = "Enter a valid 10-digit mobile number.")]
         public string PhoneNumber { get; set; } = "";
 
-        [Required, StringLength(100, MinimumLength = 8), DataType(DataType.Password)]
+        [Required(ErrorMessage = "Create a password."), DataType(DataType.Password)]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,100}$", ErrorMessage = "Use at least 8 characters with a capital letter, a small letter and a number.")]
         public string Password { get; set; } = "";
 
         [DataType(DataType.Password)]
-        [Compare("Password", ErrorMessage = "Passwords do not match.")]
+        [Compare("Password", ErrorMessage = "The two passwords do not match.")]
         public string ConfirmPassword { get; set; } = "";
+    }
+
+    private sealed class VerifyModel
+    {
+        public string Token { get; set; } = "";
+
+        [Required(ErrorMessage = "Enter the 6-digit code."), RegularExpression(@"^\d{6}$", ErrorMessage = "The code is 6 digits.")]
+        public string Code { get; set; } = "";
+    }
+
+    private sealed class TokenModel
+    {
+        public string Token { get; set; } = "";
     }
 }
