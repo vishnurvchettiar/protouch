@@ -208,145 +208,192 @@
     <!-- ADD USER TAB -->
     @if (activeTab == "add")
     {
-        <div class="row g-4">
-            <div class="col-xl-8">
-                <div class="pt-card p-4">
-                    <div class="section-heading"><div><span class="eyebrow">USER ACCESS</span><h3>@(editingUserId == null ? "Add user & assign role" : "Edit existing user")</h3></div>
-                    @if (editingUserId != null) { <button class="btn-clinic-secondary" @onclick="CancelEditUser">Cancel edit</button> }
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-6"><label class="clinic-label">Full name</label><input class="clinic-input" @bind="newName" /></div>
-                        <div class="col-md-6"><label class="clinic-label">Role</label><select class="clinic-input" @bind="newRole" disabled="@(editingUserId != null)"><option>Client</option><option>Admin</option></select></div>
-                        <div class="col-md-6"><label class="clinic-label">Email / username</label><input class="clinic-input" type="email" @bind="newEmail" disabled="@(editingUserId != null)" /></div>
-                        <div class="col-md-6"><label class="clinic-label">WhatsApp number</label><input class="clinic-input" @bind="newPhone" /></div>
-                        @if (newRole == "Client" && editingUserId == null) {
-                            <div class="col-md-4"><label class="clinic-label">Starting weight (kg)</label><input class="clinic-input" type="number" @bind="newStartWeight" /></div>
-                            <div class="col-md-4"><label class="clinic-label">Target weight (kg)</label><input class="clinic-input" type="number" @bind="newTargetWeight" /></div>
-                            <div class="col-md-4"><label class="clinic-label">Height (cm)</label><input class="clinic-input" type="number" @bind="newHeight" /></div>
-                        }
-                        <div class="col-12"><label class="clinic-label">Clinical / staff notes</label><textarea class="clinic-input" rows="3" @bind="newNotes"></textarea></div>
-                    </div>
-                    @if (editingUserId == null) {
-                        <button class="btn-clinic mt-3" @onclick="CreateUser" disabled="@creatingUser">@(creatingUser ? "Creating..." : "Create user")</button>
-                    } else {
-                        <button class="btn-clinic mt-3" @onclick="SaveEditUser" disabled="@creatingUser">@(creatingUser ? "Saving..." : "Save changes")</button>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(createUserMessage)) { <div class="clinic-alert @(createUserSuccess ? "clinic-alert-info" : "clinic-alert-danger") mt-3">@createUserMessage</div> }
-                </div>
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">@(editingUserId == null ? "Add user" : "Edit user")</h1>
+                <span class="pt-ov-sub">@(editingUserId == null ? "Create a login and assign a role" : "Update this person's details")</span>
             </div>
-            <div class="col-xl-4">
-                <div class="pt-card p-4 h-100">
-                    <span class="eyebrow">ACCESS POLICY</span><h3>Roles are explicit</h3>
-                    <p class="text-secondary">Admins manage clinic records. Clients can access only their own portal for logs, booking and guidance.</p>
-                    @if (!string.IsNullOrWhiteSpace(lastCreatedEmail)) {
+            @if (editingUserId != null)
+            {
+                <div class="pt-ov-actions"><button type="button" class="pt-ov-act" @onclick="CancelEditUser">Cancel edit</button></div>
+            }
+        </div>
+        <div class="pt-split pt-split--r">
+            <div class="pt-card pt-form">
+                <div class="pt-grid2">
+                    <div class="pt-field"><label for="nu-name">Full name</label><input id="nu-name" class="pt-input" @bind="newName" /></div>
+                    <div class="pt-field"><label for="nu-role">Role</label><select id="nu-role" class="pt-input" @bind="newRole" disabled="@(editingUserId != null)"><option>Client</option><option>Admin</option></select></div>
+                    <div class="pt-field"><label for="nu-email">Email / username</label><input id="nu-email" class="pt-input" type="email" @bind="newEmail" disabled="@(editingUserId != null)" /></div>
+                    <div class="pt-field"><label for="nu-phone">WhatsApp number</label><input id="nu-phone" class="pt-input" @bind="newPhone" placeholder="98765 43210" /></div>
+                </div>
+                @if (newRole == "Client" && editingUserId == null)
+                {
+                    <div class="pt-form-section">Treatment details <span>clients only</span></div>
+                    <div class="pt-grid3">
+                        <div class="pt-field"><label for="nu-sw">Starting weight (kg)</label><input id="nu-sw" class="pt-input" type="number" @bind="newStartWeight" /></div>
+                        <div class="pt-field"><label for="nu-tw">Target weight (kg)</label><input id="nu-tw" class="pt-input" type="number" @bind="newTargetWeight" /></div>
+                        <div class="pt-field"><label for="nu-h">Height (cm)</label><input id="nu-h" class="pt-input" type="number" @bind="newHeight" /></div>
+                    </div>
+                }
+                <div class="pt-field"><label for="nu-notes">Clinical / staff notes</label><textarea id="nu-notes" class="pt-input" rows="3" @bind="newNotes"></textarea></div>
+                <div class="pt-form-actions">
+                    @if (editingUserId == null)
+                    {
+                        <button type="button" class="pt-btn pt-btn--pri" @onclick="CreateUser" disabled="@creatingUser">@(creatingUser ? "Creating..." : "Create user")</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="pt-btn pt-btn--pri" @onclick="SaveEditUser" disabled="@creatingUser">@(creatingUser ? "Saving..." : "Save changes")</button>
+                    }
+                </div>
+                @if (!string.IsNullOrWhiteSpace(createUserMessage)) { <div class="clinic-alert @(createUserSuccess ? "clinic-alert-info" : "clinic-alert-danger")" role="status">@createUserMessage</div> }
+            </div>
+            <div class="pt-card">
+                <div class="pt-card-head"><h3>What each role can do</h3></div>
+                <div class="pt-role-help">
+                    <span class="pt-ov-status pt-ov-status--ok">Client</span>
+                    <p>Sees their own dashboard, logs weight and meals, books appointments and reads their diet plan.</p>
+                    <span class="pt-ov-status pt-ov-status--info">Admin</span>
+                    <p>Manages clients, visits, bookings and WhatsApp. Create admins sparingly.</p>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(lastCreatedEmail))
+                {
+                    <div class="pt-created">
+                        <h4>Login created</h4>
                         <div class="credential-row"><span>Login</span><strong>@lastCreatedEmail</strong></div>
                         <div class="credential-row"><span>Temporary password</span><strong>@lastCreatedPassword</strong></div>
-                        @if (!string.IsNullOrWhiteSpace(lastCredentialWhatsAppLink)) { <a class="btn-clinic mt-3" target="_blank" href="@lastCredentialWhatsAppLink">Send credentials via WhatsApp</a> }
-                        else { <span class="text-secondary small mt-3 d-block">No phone number provided — share credentials manually.</span> }
-                    }
-                </div>
+                        @if (!string.IsNullOrWhiteSpace(lastCredentialWhatsAppLink)) { <a class="pt-btn pt-btn--pri" target="_blank" rel="noopener" href="@lastCredentialWhatsAppLink">Send credentials via WhatsApp</a> }
+                        else { <span class="pt-muted">No phone number provided. Share the credentials manually.</span> }
+                    </div>
+                }
             </div>
         </div>
     }
     else if (activeTab == "visits")
     {
-        <div class="pt-card p-4">
-            <div class="section-heading"><div><span class="eyebrow">TREATMENT REGISTER</span><h3>Log a visit</h3></div><span class="soft-pill">@todayAttendanceCount today</span></div>
-            <div class="row g-3 mb-4">
-                <div class="col-md-4"><label class="clinic-label">Client</label><select class="clinic-input" @bind="visitUserId"><option value="">Select client</option>@foreach (var c in clients) { <option value="@c.UserId">@c.User?.FullName</option> }</select></div>
-                <div class="col-md-4"><label class="clinic-label">Visit date & time</label><input class="clinic-input" type="datetime-local" @bind="visitDate" /></div>
-                <div class="col-md-4"><label class="clinic-label">Treatment given</label><select class="clinic-input" @bind="visitTreatment"><option>Physiotherapy</option><option>Skin Consultation</option><option>Diet Review</option><option>Slimming Therapy</option><option>Wellness Consultation</option></select></div>
-                <div class="col-md-4"><label class="clinic-label">Doctor / practitioner</label><input class="clinic-input" @bind="visitPractitioner" /></div>
-                <div class="col-md-4"><label class="clinic-label">Next appointment</label><input class="clinic-input" type="datetime-local" @bind="nextAppointmentDate" /></div>
-                <div class="col-md-4"><label class="clinic-label">Notes</label><input class="clinic-input" @bind="visitNotes" placeholder="Treatment response / instructions" /></div>
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Visits</h1>
+                <span class="pt-ov-sub">@todayAttendanceCount logged today</span>
             </div>
-            <button class="btn-clinic mb-4" @onclick="SaveVisit" disabled="@string.IsNullOrWhiteSpace(visitUserId)">Save visit</button>
-            @if (!string.IsNullOrWhiteSpace(visitSaveMsg)) { <div class="clinic-alert clinic-alert-info mb-3">@visitSaveMsg</div> }
-            <h4 class="mb-3">Service history</h4>
-            @foreach (var visit in attendanceLogs.Take(50))
-            {
-                @if (editingVisitId == visit.Id)
+        </div>
+        <div class="pt-kpis">
+            <div class="pt-kpi"><b>@todayAttendanceCount</b><span>Today</span></div>
+            <div class="pt-kpi"><b>@VisitsSince(7)</b><span>Last 7 days</span></div>
+            <div class="pt-kpi"><b>@VisitsSince(30)</b><span>Last 30 days</span></div>
+        </div>
+        <div class="pt-split">
+            <div class="pt-card pt-form">
+                <div class="pt-card-head"><h3>Log a visit</h3></div>
+                <div class="pt-field"><label for="v-client">Client</label><select id="v-client" class="pt-input" @bind="visitUserId"><option value="">Select client</option>@foreach (var c in clients) { <option value="@c.UserId">@c.User?.FullName</option> }</select></div>
+                <div class="pt-field"><label for="v-date">Visit date and time</label><input id="v-date" class="pt-input" type="datetime-local" @bind="visitDate" /></div>
+                <div class="pt-field"><label for="v-treat">Treatment given</label><select id="v-treat" class="pt-input" @bind="visitTreatment"><option>Physiotherapy</option><option>Skin Consultation</option><option>Diet Review</option><option>Slimming Therapy</option><option>Wellness Consultation</option></select></div>
+                <div class="pt-field"><label for="v-prac">Doctor / practitioner</label><input id="v-prac" class="pt-input" @bind="visitPractitioner" /></div>
+                <div class="pt-field"><label for="v-next">Next appointment</label><input id="v-next" class="pt-input" type="datetime-local" @bind="nextAppointmentDate" /></div>
+                <div class="pt-field"><label for="v-notes">Notes</label><input id="v-notes" class="pt-input" @bind="visitNotes" placeholder="Treatment response or instructions" /></div>
+                <div class="pt-form-actions"><button type="button" class="pt-btn pt-btn--pri" @onclick="SaveVisit" disabled="@string.IsNullOrWhiteSpace(visitUserId)">Save visit</button></div>
+                @if (!string.IsNullOrWhiteSpace(visitSaveMsg)) { <div class="clinic-alert clinic-alert-info" role="status">@visitSaveMsg</div> }
+            </div>
+            <div class="pt-card">
+                <div class="pt-card-head"><h3>Service history</h3><span class="pt-ov-pill">latest 50</span></div>
+                @if (!attendanceLogs.Any()) { <p class="pt-ov-empty">No visits recorded yet.</p> }
+                <div class="pt-rows">
+                @foreach (var visit in attendanceLogs.Take(50))
                 {
-                    <div class="pt-card p-3 mb-3 border-0" style="background: rgba(0,242,254,0.03);">
+                    @if (editingVisitId == visit.Id)
+                {
+                    <div class="pt-edit-box">
                         <div class="row g-2">
-                            <div class="col-md-4"><label class="clinic-label">Treatment</label><input class="clinic-input" @bind="editVisit.TreatmentReceived" /></div>
-                            <div class="col-md-4"><label class="clinic-label">Therapist</label><input class="clinic-input" @bind="editVisit.Therapist" /></div>
-                            <div class="col-md-4"><label class="clinic-label">Status</label><select class="clinic-input" @bind="editVisit.Status"><option>Checked In</option><option>Completed</option><option>Absent</option></select></div>
-                            <div class="col-md-4"><label class="clinic-label">Checkout time</label><input class="clinic-input" type="datetime-local" @bind="editVisitCheckout" /></div>
-                            <div class="col-md-4"><label class="clinic-label">Next appointment</label><input class="clinic-input" type="datetime-local" @bind="editVisitNextAppt" /></div>
-                            <div class="col-12"><label class="clinic-label">Notes</label><textarea class="clinic-input" rows="2" @bind="editVisit.Notes" maxlength="2000"></textarea></div>
+                            <div class="col-md-4"><label class="pt-label">Treatment</label><input class="pt-input" @bind="editVisit.TreatmentReceived" /></div>
+                            <div class="col-md-4"><label class="pt-label">Therapist</label><input class="pt-input" @bind="editVisit.Therapist" /></div>
+                            <div class="col-md-4"><label class="pt-label">Status</label><select class="pt-input" @bind="editVisit.Status"><option>Checked In</option><option>Completed</option><option>Absent</option></select></div>
+                            <div class="col-md-4"><label class="pt-label">Checkout time</label><input class="pt-input" type="datetime-local" @bind="editVisitCheckout" /></div>
+                            <div class="col-md-4"><label class="pt-label">Next appointment</label><input class="pt-input" type="datetime-local" @bind="editVisitNextAppt" /></div>
+                            <div class="col-12"><label class="pt-label">Notes</label><textarea class="pt-input" rows="2" @bind="editVisit.Notes" maxlength="2000"></textarea></div>
                         </div>
-                        <div class="d-flex gap-2 mt-2">
-                            <button class="btn-clinic" @onclick="SaveEditVisit">Save</button>
-                            <button class="btn-clinic-secondary" @onclick="CancelEditVisit">Cancel</button>
+                        <div class="pt-form-actions">
+                            <button class="pt-btn pt-btn--pri" type="button" @onclick="SaveEditVisit">Save</button>
+                            <button class="pt-btn" type="button" @onclick="CancelEditVisit">Cancel</button>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(visitEditError)) { <div class="clinic-alert clinic-alert-danger mt-2">@visitEditError</div> }
                     </div>
                 }
-                else
+                    else
+                    {
+                        <div class="pt-row">
+                            <span class="pt-avatar" style="--c:@AvatarColour(visit.User?.FullName)">@Initials(visit.User?.FullName)</span>
+                            <div class="pt-row-main">
+                                <strong>@visit.User?.FullName</strong>
+                                <small>@visit.TreatmentReceived · @visit.Therapist</small>
+                                <small>@visit.CheckInTime.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt") · Next: @(visit.NextAppointmentDate?.ToLocalTime().ToString("dd MMM yyyy") ?? "not set")</small>
+                                @if (!string.IsNullOrWhiteSpace(visit.Notes)) { <small>@visit.Notes</small> }
+                            </div>
+                            <div class="pt-row-actions">
+                                <span class="pt-ov-status pt-ov-status--@(visit.Status == "Completed" ? "ok" : visit.Status == "Absent" ? "bad" : "info")">@visit.Status</span>
+                                @if (visit.Status == "Checked In") { <button type="button" class="pt-btn pt-btn--sm" @onclick="() => CheckoutVisit(visit)">Check out</button> }
+                                <button type="button" class="pt-btn pt-btn--sm" @onclick="() => StartEditVisit(visit)">Edit</button>
+                                <button type="button" class="pt-btn pt-btn--sm pt-btn--dng" @onclick="() => ConfirmDeleteVisit(visit)">Delete</button>
+                            </div>
+                        </div>
+                    }
+                }
+                </div>
+                @if (deleteVisitConfirm != null)
                 {
-                    <div class="message-row">
-                        <div><strong>@visit.User?.FullName</strong><div class="text-secondary small">@visit.TreatmentReceived • @visit.Therapist</div><div class="text-muted small">@visit.CheckInTime.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt") • Next: @(visit.NextAppointmentDate?.ToLocalTime().ToString("dd MMM yyyy") ?? "Not set")</div>@if (!string.IsNullOrWhiteSpace(visit.Notes)) { <div class="text-secondary small mt-1">@visit.Notes</div> }</div>
-                        <div class="d-flex gap-2 align-items-center flex-wrap">
-                            <span class="soft-pill">@visit.Status</span>
-                            @if (visit.Status == "Checked In") { <button class="btn-clinic-secondary" @onclick="() => CheckoutVisit(visit)">Check out</button> }
-                            <button class="btn-clinic-secondary" @onclick="() => StartEditVisit(visit)">Edit</button>
-                            <button class="btn-clinic-danger" @onclick="() => ConfirmDeleteVisit(visit)">Delete</button>
+                    <div class="clinic-alert clinic-alert-danger" role="alert">
+                        Delete visit by <strong>@deleteVisitConfirm.User?.FullName</strong> on <strong>@deleteVisitConfirm.CheckInTime.ToLocalTime().ToString("dd MMM yyyy")</strong>?
+                        <div class="pt-form-actions">
+                            <button type="button" class="pt-btn pt-btn--dng" @onclick="ExecuteDeleteVisit">Yes, delete</button>
+                            <button type="button" class="pt-btn" @onclick="() => deleteVisitConfirm = null">Cancel</button>
                         </div>
                     </div>
                 }
-            }
-            @if (deleteVisitConfirm != null)
-            {
-                <div class="clinic-alert clinic-alert-danger mt-3">
-                    Delete visit by <strong>@deleteVisitConfirm.User?.FullName</strong> on <strong>@deleteVisitConfirm.CheckInTime.ToLocalTime().ToString("dd MMM yyyy")</strong>?
-                    <div class="d-flex gap-2 mt-2">
-                        <button class="btn-clinic-danger" @onclick="ExecuteDeleteVisit">Yes, delete</button>
-                        <button class="btn-clinic-secondary" @onclick="() => deleteVisitConfirm = null">Cancel</button>
-                    </div>
-                </div>
-            }
+            </div>
         </div>
     }
     else if (activeTab == "appointments")
     {
-        <div class="pt-card p-4">
-            <div class="section-heading"><div><span class="eyebrow">APPOINTMENTS</span><h3>All Appointments</h3></div></div>
-            @if (!allAppointments.Any()) { <div class="empty-state">No appointments found.</div> }
-            else {
-                <div class="clinic-table-container">
-                    <table class="clinic-table">
-                        <thead><tr><th>Client</th><th>Treatment</th><th>Date</th><th>Status</th><th></th><th>Reminder</th></tr></thead>
+        var shownAppts = FilteredAppointments().ToList();
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Appointments</h1>
+                <span class="pt-ov-sub">@allAppointments.Count(a => IsToday(a.AppointmentDate)) today · @allAppointments.Count(a => a.AppointmentDate > DateTime.UtcNow && (a.Status == "Scheduled" || a.Status == "Confirmed")) upcoming</span>
+            </div>
+        </div>
+        <div class="pt-toolbar">
+            <div class="pt-seg" role="group" aria-label="Appointment filter">
+                @foreach (var f in new[] { ("today", "Today"), ("upcoming", "Upcoming"), ("completed", "Completed"), ("cancelled", "Cancelled"), ("all", "All") })
+                {
+                    <button type="button" class="@(apptFilter == f.Item1 ? "on" : "")" @onclick="() => apptFilter = f.Item1">@f.Item2</button>
+                }
+            </div>
+            <div class="pt-search"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-search"></use></svg><input aria-label="Search appointments" placeholder="Search client" @bind="apptSearch" @bind:event="oninput" /></div>
+        </div>
+        <div class="pt-card pt-card--flush">
+            @if (!shownAppts.Any()) { <p class="pt-ov-empty pt-pad">No appointments in this view.</p> }
+            else
+            {
+                <div class="pt-table-wrap">
+                    <table class="pt-table">
+                        <thead><tr><th>When</th><th>Client</th><th>Treatment</th><th>Status</th><th>Reminder</th></tr></thead>
                         <tbody>
-                            @foreach (var appt in allAppointments)
+                            @foreach (var appt in shownAppts)
                             {
                                 <tr>
-                                    <td>@appt.User?.FullName</td>
+                                    <td class="pt-nowrap"><strong>@appt.AppointmentDate.ToLocalTime().ToString("hh:mm tt")</strong><small>@appt.AppointmentDate.ToLocalTime().ToString("dd MMM yyyy")</small></td>
+                                    <td><div class="pt-cell-user"><span class="pt-avatar" style="--c:@AvatarColour(appt.User?.FullName)">@Initials(appt.User?.FullName)</span>@appt.User?.FullName</div></td>
                                     <td>@appt.TreatmentType</td>
-                                    <td>@appt.AppointmentDate.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</td>
                                     <td>
-                                        <select class="clinic-input" style="width:auto;" value="@appt.Status" @onchange="(e) => UpdateApptStatus(appt.Id, e.Value?.ToString() ?? appt.Status)">
+                                        <select class="pt-input pt-input--sm" aria-label="Status" value="@appt.Status" @onchange="(e) => UpdateApptStatus(appt.Id, e.Value?.ToString() ?? appt.Status)">
                                             <option>Scheduled</option><option>Confirmed</option><option>Completed</option><option>Cancelled</option>
                                         </select>
+                                        @if (apptUpdateError.ContainsKey(appt.Id)) { <small class="pt-err">@apptUpdateError[appt.Id]</small> }
                                     </td>
-                                    <td>@if (apptUpdateError.ContainsKey(appt.Id)) { <span class="text-danger small">@apptUpdateError[appt.Id]</span> }</td>
                                     <td>
-                                        @if (remindersSent.Contains(appt.Id))
-                                        {
-                                            <span class="soft-pill">Reminder Sent ✓</span>
-                                        }
-                                        else if (string.IsNullOrWhiteSpace(appt.User?.PhoneNumber))
-                                        {
-                                            <span class="text-muted small">No phone</span>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn-clinic-secondary" @onclick="() => SendReminderManually(appt)">Send Reminder</button>
-                                        }
-                                        @if (reminderErrors.ContainsKey(appt.Id))
-                                        {
-                                            <div class="clinic-alert clinic-alert-danger mt-1 small">@reminderErrors[appt.Id]</div>
-                                        }
+                                        @if (remindersSent.Contains(appt.Id)) { <span class="pt-ov-status pt-ov-status--ok">Sent</span> }
+                                        else if (string.IsNullOrWhiteSpace(appt.User?.PhoneNumber)) { <small class="pt-muted">No phone</small> }
+                                        else { <button type="button" class="pt-btn pt-btn--sm" @onclick="() => SendReminderManually(appt)">Send reminder</button> }
+                                        @if (reminderErrors.ContainsKey(appt.Id)) { <small class="pt-err">@reminderErrors[appt.Id]</small> }
                                     </td>
                                 </tr>
                             }
@@ -358,80 +405,100 @@
     }
     else if (activeTab == "mealreview")
     {
-        <div class="pt-card p-4">
-            <div class="section-heading"><div><span class="eyebrow">MEAL REVIEW</span><h3>Client Meal Photos</h3></div><span class="soft-pill">Page @mealPage</span></div>
-            @if (!mealLogs.Any()) { <div class="empty-state">No meal photos uploaded yet.</div> }
-            else {
-                <div class="row g-3">
-                    @foreach (var log in mealLogs)
-                    {
-                        <div class="col-md-6 col-lg-4">
-                            <div class="pt-card p-3 h-100">
-                                <div class="d-flex gap-3 mb-2">
-                                    @if (!string.IsNullOrWhiteSpace(log.MealPhotoUrl)) { <img src="@log.MealPhotoUrl" class="meal-thumb" alt="Meal" /> }
-                                    <div><strong>@log.User?.FullName</strong><div class="text-secondary small">@log.LogDate.ToString("dd MMM yyyy")</div></div>
-                                </div>
-                                @if (!string.IsNullOrWhiteSpace(log.DietNotes)) { <p class="text-secondary small mb-2">@log.DietNotes</p> }
-                                <!-- Macro Bar -->
-                                <div class="macro-bar mb-2">
-                                    <div class="seg-carbs" style="width: @log.CarbsPercentage%"></div>
-                                    <div class="seg-protein" style="width: @log.ProteinPercentage%"></div>
-                                    <div class="seg-fat" style="width: @log.FatPercentage%"></div>
-                                    <div class="seg-veg" style="width: @log.VegPercentage%"></div>
-                                </div>
-                                <div class="text-muted small mb-2">C:@log.CarbsPercentage% P:@log.ProteinPercentage% F:@log.FatPercentage% V:@log.VegPercentage%</div>
-                                <button class="btn-clinic-danger" @onclick="() => DeleteMealLog(log.Id)">Delete</button>
-                                @if (mealDeleteErrors.ContainsKey(log.Id)) { <div class="clinic-alert clinic-alert-danger mt-1 small">@mealDeleteErrors[log.Id]</div> }
-                            </div>
-                        </div>
-                    }
-                </div>
-                <div class="d-flex gap-2 mt-4">
-                    <button class="btn-clinic-secondary" @onclick="PrevMealPage" disabled="@(mealPage <= 1)">← Previous</button>
-                    <button class="btn-clinic-secondary" @onclick="NextMealPage" disabled="@(mealLogs.Count < 20)">Next →</button>
-                </div>
-            }
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Meal review</h1>
+                <span class="pt-ov-sub">Photos and notes clients logged with their weight</span>
+            </div>
+            <span class="pt-ov-pill">Page @mealPage</span>
         </div>
+        @if (!mealLogs.Any()) { <div class="pt-card"><p class="pt-ov-empty">No meal photos uploaded yet.</p></div> }
+        else
+        {
+            <div class="pt-meal-grid">
+                @foreach (var log in mealLogs)
+                {
+                    <div class="pt-card pt-meal">
+                        @if (!string.IsNullOrWhiteSpace(log.MealPhotoUrl)) { <img src="@log.MealPhotoUrl" class="pt-meal-photo" alt="Meal photo from @log.User?.FullName" loading="lazy" /> }
+                        else { <div class="pt-meal-photo pt-meal-photo--empty"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-leaf"></use></svg></div> }
+                        <div class="pt-meal-body">
+                            <div class="pt-meal-top"><strong>@log.User?.FullName</strong><span>@log.LogDate.ToString("dd MMM yyyy")</span></div>
+                            @if (!string.IsNullOrWhiteSpace(log.DietNotes)) { <p class="pt-meal-notes">@log.DietNotes</p> }
+                            <div class="macro-bar">
+                                <div class="seg-carbs" style="width: @log.CarbsPercentage%"></div>
+                                <div class="seg-protein" style="width: @log.ProteinPercentage%"></div>
+                                <div class="seg-fat" style="width: @log.FatPercentage%"></div>
+                                <div class="seg-veg" style="width: @log.VegPercentage%"></div>
+                            </div>
+                            <div class="pt-meal-macros">Carbs @log.CarbsPercentage% · Protein @log.ProteinPercentage% · Fat @log.FatPercentage% · Veg @log.VegPercentage%</div>
+                            <div class="pt-meal-actions"><button type="button" class="pt-btn pt-btn--sm pt-btn--dng" @onclick="() => DeleteMealLog(log.Id)">Delete</button></div>
+                            @if (mealDeleteErrors.ContainsKey(log.Id)) { <div class="clinic-alert clinic-alert-danger" role="alert">@mealDeleteErrors[log.Id]</div> }
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="pt-pager">
+                <button type="button" class="pt-btn pt-btn--sm" @onclick="PrevMealPage" disabled="@(mealPage <= 1)">Previous</button>
+                <span>Page @mealPage</span>
+                <button type="button" class="pt-btn pt-btn--sm" @onclick="NextMealPage" disabled="@(mealLogs.Count < 20)">Next</button>
+            </div>
+        }
     }
     else if (activeTab == "bookings")
     {
-        <div class="pt-card p-4">
-            <div class="section-heading"><div><span class="eyebrow">BOOKING REQUESTS</span><h3>All Booking Requests</h3></div><span class="soft-pill">@pendingBookingsCount pending</span></div>
-            @if (!allBookings.Any()) { <div class="empty-state">No booking requests yet. They will appear here after visitors submit the /book form.</div> }
-            else {
-                <div class="clinic-table-container">
-                    <table class="clinic-table">
-                        <thead><tr><th>Name</th><th>Phone</th><th>Service</th><th>Preferred Date</th><th>Notes</th><th>Status</th><th>Actions</th></tr></thead>
+        var shownBookings = allBookings.Where(b => bookingFilter == "All" || b.Status == bookingFilter).ToList();
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Bookings</h1>
+                <span class="pt-ov-sub">Requests from the website booking form</span>
+            </div>
+        </div>
+        <div class="pt-kpis">
+            <div class="pt-kpi pt-kpi--wait"><b>@allBookings.Count(b => b.Status == "Pending")</b><span>Pending</span></div>
+            <div class="pt-kpi pt-kpi--ok"><b>@allBookings.Count(b => b.Status == "Confirmed")</b><span>Confirmed</span></div>
+            <div class="pt-kpi pt-kpi--bad"><b>@allBookings.Count(b => b.Status == "Cancelled")</b><span>Cancelled</span></div>
+        </div>
+        <div class="pt-toolbar">
+            <div class="pt-seg" role="group" aria-label="Booking filter">
+                @foreach (var f in new[] { "Pending", "Confirmed", "Cancelled", "All" })
+                {
+                    <button type="button" class="@(bookingFilter == f ? "on" : "")" @onclick="() => bookingFilter = f">@f</button>
+                }
+            </div>
+        </div>
+        <div class="pt-card pt-card--flush">
+            @if (!allBookings.Any()) { <p class="pt-ov-empty pt-pad">No booking requests yet. They appear here after visitors submit the booking form.</p> }
+            else if (!shownBookings.Any()) { <p class="pt-ov-empty pt-pad">No @bookingFilter.ToLowerInvariant() requests.</p> }
+            else
+            {
+                <div class="pt-table-wrap">
+                    <table class="pt-table">
+                        <thead><tr><th>Requested by</th><th>Service</th><th>Preferred date</th><th>Notes</th><th>Status</th><th></th></tr></thead>
                         <tbody>
-                            @foreach (var booking in allBookings)
+                            @foreach (var booking in shownBookings)
                             {
+                                var waLink = string.IsNullOrWhiteSpace(booking.PhoneNumber) ? "" : ClinicService.BuildWhatsAppLink(booking.PhoneNumber, $"Hello {booking.FullName}, this is ProTouch Physio - Slimming Clinic regarding your booking for {booking.ServiceType}.");
                                 <tr>
-                                    <td><strong>@booking.FullName</strong><div class="text-muted small">@booking.SubmittedAt.ToLocalTime().ToString("dd MMM, hh:mm tt")</div></td>
-                                    <td>@booking.PhoneNumber</td>
+                                    <td><strong>@booking.FullName</strong><small>@booking.PhoneNumber · sent @booking.SubmittedAt.ToLocalTime().ToString("dd MMM, hh:mm tt")</small></td>
                                     <td>@booking.ServiceType</td>
-                                    <td>@booking.PreferredDate.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</td>
-                                    <td style="max-width: 200px; white-space: normal;">@booking.Notes</td>
+                                    <td class="pt-nowrap">@booking.PreferredDate.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</td>
+                                    <td class="pt-notes-cell">@booking.Notes</td>
+                                    <td><span class="pt-ov-status pt-ov-status--@(booking.Status == "Pending" ? "wait" : booking.Status == "Confirmed" ? "ok" : "bad")">@booking.Status</span></td>
                                     <td>
-                                        <span class="soft-pill @(booking.Status == "Pending" ? "badge-pending" : booking.Status == "Confirmed" ? "badge-active" : "badge-danger")">@booking.Status</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex gap-2 flex-wrap">
+                                        <div class="pt-row-actions">
                                             @if (booking.Status == "Pending")
                                             {
-                                                <button class="btn-clinic" @onclick="() => ConfirmBooking(booking.Id)">Confirm</button>
-                                                <button class="btn-clinic-danger" @onclick="() => CancelBooking(booking.Id)">Cancel</button>
+                                                <button type="button" class="pt-btn pt-btn--sm pt-btn--pri" @onclick="() => ConfirmBooking(booking.Id)">Confirm</button>
+                                                <button type="button" class="pt-btn pt-btn--sm pt-btn--dng" @onclick="() => CancelBooking(booking.Id)">Cancel</button>
                                             }
                                             else if (booking.Status == "Confirmed")
                                             {
-                                                <button class="btn-clinic-danger" @onclick="() => CancelBooking(booking.Id)">Cancel</button>
+                                                <button type="button" class="pt-btn pt-btn--sm pt-btn--dng" @onclick="() => CancelBooking(booking.Id)">Cancel</button>
                                             }
-                                            @{
-                                                var waLink = string.IsNullOrWhiteSpace(booking.PhoneNumber) ? "" : ClinicService.BuildWhatsAppLink(booking.PhoneNumber, $"Hello {booking.FullName}, this is ProTouch Physio - Slimming Clinic regarding your booking for {booking.ServiceType}.");
-                                            }
-                                            @if (!string.IsNullOrWhiteSpace(waLink)) { <a class="btn-clinic-secondary" target="_blank" href="@waLink">WhatsApp</a> }
-                                            else { <span class="text-muted small">Phone missing/invalid</span> }
+                                            @if (!string.IsNullOrWhiteSpace(waLink)) { <a class="pt-btn pt-btn--sm" target="_blank" rel="noopener" href="@waLink">WhatsApp</a> }
+                                            else { <small class="pt-muted">Phone missing</small> }
                                         </div>
-                                        @if (bookingUpdateErrors.ContainsKey(booking.Id)) { <div class="clinic-alert clinic-alert-danger mt-1 small">@bookingUpdateErrors[booking.Id]</div> }
+                                        @if (bookingUpdateErrors.ContainsKey(booking.Id)) { <small class="pt-err">@bookingUpdateErrors[booking.Id]</small> }
                                     </td>
                                 </tr>
                             }
@@ -442,360 +509,389 @@
         </div>
     }
     else if (activeTab == "whatsapp")
-    {        <!-- Task 11.1: Template approval notice banner -->
-        <div class="clinic-alert clinic-alert-info mb-4">
+    {
+        var recipientStats = RecipientStats();
+        <div class="pt-ov-head">
             <div>
-                <strong>ℹ️ WhatsApp Template Requirement:</strong> Twilio requires pre-approved message templates for WhatsApp Business messaging.
-                Ensure your templates are approved in the <a href="https://console.twilio.com" target="_blank" rel="noopener" style="color: var(--accent-teal);">Twilio Console</a> before sending bulk campaigns.
+                <h1 class="pt-ov-title">WhatsApp</h1>
+                <span class="pt-ov-sub">Bulk campaigns and message history</span>
             </div>
+            <span class="pt-ov-status pt-ov-status--@(settingsMode == "Twilio" ? "ok" : "wait")">@(settingsMode == "Twilio" ? "Live: Twilio" : "Test mode")</span>
         </div>
-        <div class="row g-4">
-            <div class="col-xl-5">
-                <div class="pt-card p-4">
-                    <span class="eyebrow">CSV BROADCAST</span><h3>Bulk WhatsApp Campaign</h3>
-                    <p class="text-secondary small">Upload a CSV with <strong>Name</strong> and <strong>Phone</strong> columns. Use <code>{{Name}}</code> in your message to personalise it.</p>
-                    <label class="clinic-label">CSV recipients</label>
-                    <InputFile class="clinic-input mb-3" accept=".csv,text/csv" OnChange="ReadCsvRecipients" />
-                    <label class="clinic-label">Message template</label>
-                    <textarea class="clinic-input" rows="7" @bind="campaignText"></textarea>
-                    <!-- Task 11.3: Progress bar -->
+        @if (settingsMode != "Twilio")
+        {
+            <div class="pt-banner pt-banner--warn" role="status"><span><strong>Test mode is on.</strong> Campaigns are simulated and nothing is sent. Switch WhatsApp mode to Twilio in Settings to send for real.</span></div>
+        }
+        else
+        {
+            <div class="pt-banner pt-banner--info" role="status"><span><strong>Templates:</strong> Twilio only delivers free-text messages inside the 24-hour reply window. Use templates approved in the <a href="https://console.twilio.com" target="_blank" rel="noopener">Twilio Console</a> for everyone else.</span></div>
+        }
+        <div class="pt-split pt-split--w">
+            <div class="pt-stack">
+                <div class="pt-card pt-form">
+                    <div class="pt-step"><em>1</em>Upload recipients</div>
+                    <label class="pt-drop" for="csv-upload">
+                        <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-upload"></use></svg>
+                        <strong>@(csvRecipients.Any() ? $"{csvRecipients.Count} rows loaded" : "Choose a CSV file")</strong>
+                        <span>Needs a Name column and a Phone column. Up to 2 MB.</span>
+                        <InputFile id="csv-upload" class="pt-drop-input" accept=".csv,text/csv" OnChange="ReadCsvRecipients" />
+                    </label>
+                    @if (csvRecipients.Any())
+                    {
+                        <div class="pt-chips">
+                            <span class="pt-ov-status pt-ov-status--ok">@recipientStats.Ready ready</span>
+                            @if (recipientStats.Duplicates > 0) { <span class="pt-ov-status pt-ov-status--wait">@recipientStats.Duplicates duplicate</span> }
+                            @if (recipientStats.Invalid > 0) { <span class="pt-ov-status pt-ov-status--bad">@recipientStats.Invalid invalid number</span> }
+                        </div>
+                    }
+                </div>
+                <div class="pt-card pt-form">
+                    <div class="pt-step"><em>2</em>Write the message</div>
+                    <div class="pt-toolbar pt-toolbar--tight">
+                        <button type="button" class="pt-btn pt-btn--sm" @onclick="UseDietTemplate">Diet reminder</button>
+                        <button type="button" class="pt-btn pt-btn--sm" @onclick="UseAppointmentTemplate">Appointment</button>
+                        <button type="button" class="pt-btn pt-btn--sm" @onclick="InsertNameToken">Insert name</button>
+                    </div>
+                    <div class="pt-field"><label for="campaign-text">Message. Use <code>{{Name}}</code> to personalise.</label><textarea id="campaign-text" class="pt-input" rows="5" @bind="campaignText" @bind:event="oninput"></textarea></div>
+                    <div class="pt-hint"><span>@((campaignText ?? "").Length) of 4,096 characters</span><span>The opt-out line is added automatically</span></div>
+                </div>
+                <div class="pt-card pt-form">
+                    <div class="pt-step"><em>3</em>Review and send</div>
+                    <div class="pt-send-row">
+                        <span>@(csvRecipients.Any() ? $"Sending to {recipientStats.Ready} people" : "Add recipients to continue")</span>
+                        <div class="pt-row-actions">
+                            <button type="button" class="pt-btn" @onclick="PreviewCsvCampaign" disabled="@(!csvRecipients.Any() || sendingCampaign)">Preview all</button>
+                            <button type="button" class="pt-btn pt-btn--pri" @onclick="SendCsvCampaign" disabled="@(!csvRecipients.Any() || sendingCampaign)">@(sendingCampaign ? "Sending..." : (settingsMode == "Twilio" ? "Send campaign" : "Run test campaign"))</button>
+                        </div>
+                    </div>
                     @if (sendingCampaign)
                     {
-                        <div class="mt-3">
-                            <div class="progress mb-1"><div class="progress-bar" style="width: @(campaignTotal > 0 ? (int)((double)campaignSent / campaignTotal * 100) : 0)%"></div></div>
-                            <span class="text-secondary small">Sent: @campaignSent / @campaignTotal @(campaignFailed > 0 ? $"• Failed: {campaignFailed}" : "")</span>
-                        </div>
+                        <div class="pt-progress"><div class="pt-progress-bar" style="width: @(campaignTotal > 0 ? (int)((double)campaignSent / campaignTotal * 100) : 0)%"></div></div>
+                        <div class="pt-hint"><span>@campaignSent of @campaignTotal done@(campaignFailed > 0 ? $" · {campaignFailed} failed" : "")</span></div>
                     }
-                    <div class="d-flex gap-2 mt-3 flex-wrap">
-                        <button class="btn-clinic" @onclick="SendCsvCampaign" disabled="@(!csvRecipients.Any() || sendingCampaign)">@(sendingCampaign ? "Sending..." : "Send Bulk Campaign")</button>
-                        <!-- Task 11.2: Preview button -->
-                        <button class="btn-clinic-secondary" @onclick="PreviewCsvCampaign" disabled="@(!csvRecipients.Any() || sendingCampaign)">Preview</button>
-                        <button class="btn-clinic-secondary" @onclick="UseDietTemplate">Diet template</button>
-                    </div>
-                    @if (!string.IsNullOrWhiteSpace(campaignSuccessMsg)) { <div class="clinic-alert clinic-alert-info mt-3">@campaignSuccessMsg</div> }
+                    @if (!string.IsNullOrWhiteSpace(campaignSuccessMsg)) { <div class="clinic-alert clinic-alert-info" role="status">@campaignSuccessMsg</div> }
+                    @if (!string.IsNullOrWhiteSpace(campaignErrorMsg)) { <div class="clinic-alert clinic-alert-danger" role="alert">@campaignErrorMsg</div> }
                 </div>
             </div>
-            <div class="col-xl-7">
-                <!-- Task 11.2: Preview panel -->
+            <div class="pt-stack">
+                <div class="pt-chat">
+                    <div class="pt-chat-label">Preview for @PreviewName()</div>
+                    <div class="pt-bubble">@BubbleText()<small>Reply STOP to unsubscribe.</small></div>
+                </div>
                 @if (campaignPreviews.Any())
                 {
-                    <div class="pt-card p-4 mb-4" style="max-height: 400px; overflow-y: auto;">
-                        <div class="section-heading"><div><span class="eyebrow">MESSAGE PREVIEW</span><h3>@campaignPreviews.Count personalised messages</h3></div></div>
-                        @foreach (var preview in campaignPreviews.Take(500))
-                        {
-                            <div class="message-row"><div><strong>@preview.RecipientName</strong><div class="text-secondary small">@preview.RecipientPhone</div><div class="text-muted small" style="white-space: pre-wrap; font-size: 0.8rem;">@preview.PersonalisedMessage</div></div></div>
-                        }
+                    <div class="pt-card pt-scroll">
+                        <div class="pt-card-head"><h3>@campaignPreviews.Count personalised messages</h3></div>
+                        <ul class="pt-rows">
+                            @foreach (var preview in campaignPreviews.Take(500))
+                            {
+                                <li class="pt-row">
+                                    <div class="pt-row-main"><strong>@preview.RecipientName</strong><small>@preview.RecipientPhone</small><small class="pt-pre">@preview.PersonalisedMessage</small></div>
+                                    @if (preview.Warning != null) { <span class="pt-ov-status pt-ov-status--wait">@preview.Warning</span> }
+                                </li>
+                            }
+                        </ul>
                     </div>
                 }
-                <div class="pt-card p-4">
-                    <div class="section-heading"><div><span class="eyebrow">RECIPIENT PREVIEW</span><h3>@csvRecipients.Count CSV recipients</h3></div></div>
-                    @if (!csvRecipients.Any()) { <div class="empty-state">Choose a CSV file to preview recipients.</div> }
-                    else { @foreach (var recipient in csvRecipients.Take(30)) { <div class="message-row"><div><strong>@recipient.Name</strong><div class="text-secondary small">@recipient.Phone</div></div><span class="soft-pill">Ready</span></div> } }
-                </div>
-                <div class="pt-card p-4 mt-4">
-                    <h4>Recent activity</h4>
-                    @foreach (var log in whatsappLogs.Take(8)) {
-                        <!-- Task 11.4: Parse LogDetail for per-recipient status -->
-                        <div class="activity-row">
-                            <div><strong>@log.TargetAudience</strong><div class="text-secondary small">@log.MessageTemplate</div></div>
-                            <div class="d-flex flex-wrap gap-1 align-items-center">
-                                <span class="soft-pill">@log.Status • @log.RecipientCount</span>
-                                @{
-                                    var badges = WhatsAppLogHelper.GetLogDetailBadges(log.LogDetail);
-                                    var extraCount = badges.Count > 5 ? badges.Count - 5 : 0;
-                                }
-                                @foreach (var b in badges.Take(5))
-                                {
-                                    <span class="badge-clinic @b.Css" style="font-size: 0.65rem;">@b.Label</span>
-                                }
-                                @if (extraCount > 0)
-                                {
-                                    <span class="text-muted small">+@extraCount more</span>
-                                }
-                                @if (badges.Count == 0)
-                                {
-                                    <span class="text-muted small">No detail available</span>
-                                }
-                            </div>
-                        </div>
-                    }
+                <div class="pt-card">
+                    <div class="pt-card-head"><h3>Recent campaigns</h3></div>
+                    @if (!whatsappLogs.Any()) { <p class="pt-ov-empty">Nothing sent yet.</p> }
+                    <ul class="pt-rows">
+                        @foreach (var log in whatsappLogs.Take(8))
+                        {
+                            var badges = WhatsAppLogHelper.GetLogDetailBadges(log.LogDetail);
+                            <li class="pt-row">
+                                <div class="pt-row-main">
+                                    <strong>@log.TargetAudience</strong>
+                                    <small class="pt-clip">@log.MessageTemplate</small>
+                                    <small>@TimeZoneInfo.ConvertTimeFromUtc(log.SentAt, GetIst()).ToString("dd MMM, hh:mm tt")</small>
+                                </div>
+                                <div class="pt-row-actions">
+                                    <span class="pt-ov-pill">@log.Status · @log.RecipientCount</span>
+                                    @foreach (var b in badges.Take(3)) { <span class="badge-clinic @b.Css" style="font-size: 0.65rem;">@b.Label</span> }
+                                </div>
+                            </li>
+                        }
+                    </ul>
                 </div>
             </div>
         </div>
     }
     else if (activeTab == "feedback")
     {
-        <div class="pt-card p-4">
-            <div class="section-heading">
-                <div><span class="eyebrow">PATIENT FEEDBACK</span><h3>Feedback Management</h3></div>
+        var fbFiltered = (_feedbackStarFilter.HasValue ? _feedbackList.Where(f => f.Rating == _feedbackStarFilter.Value) : _feedbackList).ToList();
+        var fbPageCount = Math.Max(1, (int)Math.Ceiling(fbFiltered.Count / (double)FeedbackPageSize));
+        if (_feedbackPage > fbPageCount) _feedbackPage = fbPageCount;
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Feedback</h1>
+                <span class="pt-ov-sub">What clients say on the website</span>
             </div>
-
-            <!-- Summary stats -->
-            @if (_feedbackList.Any())
-            {
-                <div class="pt-feedback-stats d-flex flex-wrap gap-3 mb-4">
-                    <span class="soft-pill">Total: <strong>@_feedbackTotal</strong></span>
-                    <span class="soft-pill">Average: <strong>@_feedbackAvgRating ★</strong></span>
-                    @foreach (var r in Enumerable.Range(1, 5))
-                    {
-                        <span class="soft-pill">@r★: <strong>@_feedbackPerStar[r]</strong></span>
-                    }
-                </div>
-            }
-
-            <!-- Star filter -->
-            <div class="mb-3">
-                <label class="clinic-label">Filter by star rating</label>
-                <select class="clinic-input" style="width:auto;"
-                        value="@(_feedbackStarFilter?.ToString() ?? "")"
-                        @onchange="(e) => _feedbackStarFilter = string.IsNullOrEmpty(e.Value?.ToString()) ? (int?)null : int.Parse(e.Value.ToString()!)">
-                    <option value="">All</option>
-                    @foreach (var r in Enumerable.Range(1, 5))
-                    {
-                        <option value="@r">@r ★</option>
-                    }
-                </select>
-            </div>
-
-            @if (!_feedbackList.Any())
-            {
-                <div class="empty-state">No feedback submitted yet.</div>
-            }
-            else
-            {
-                <div class="clinic-table-container">
-                    <table class="clinic-table">
-                        <thead>
-                            <tr>
-                                <th>Date / Time (IST)</th>
-                                <th>Rating</th>
-                                <th>Comment</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var f in FilteredFeedback)
-                            {
-                                <tr>
-                                    <td>@TimeZoneInfo.ConvertTimeFromUtc(f.SubmittedAt, GetIst()).ToString("dd MMM yyyy, hh:mm tt")</td>
-                                    <td>@(new string('★', f.Rating))</td>
-                                    <td>
-                                        @if (f.Comment?.Length > 100 && !_feedbackExpandedIds.Contains(f.Id))
-                                        {
-                                            @f.Comment[..100]<text>… </text>
-                                            <button type="button" class="btn-link" @onclick="() => ToggleFeedbackExpand(f.Id)">Show more</button>
-                                        }
-                                        else if (f.Comment?.Length > 100 && _feedbackExpandedIds.Contains(f.Id))
-                                        {
-                                            @f.Comment
-                                            <button type="button" class="btn-link" @onclick="() => ToggleFeedbackExpand(f.Id)">Show less</button>
-                                        }
-                                        else
-                                        {
-                                            @f.Comment
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (_feedbackDeleteId == f.Id)
-                                        {
-                                            <span>Confirm? </span>
-                                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDeleteFeedback(f.Id)">Yes</button>
-                                            <button class="btn btn-sm btn-clinic-secondary" @onclick="() => _feedbackDeleteId = null">No</button>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => _feedbackDeleteId = f.Id">Delete</button>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
         </div>
+        @if (!_feedbackList.Any())
+        {
+            <div class="pt-card"><p class="pt-ov-empty">No feedback submitted yet.</p></div>
+        }
+        else
+        {
+            <div class="pt-split pt-split--r">
+                <div class="pt-stack">
+                    <div class="pt-toolbar">
+                        <div class="pt-seg" role="group" aria-label="Rating filter">
+                            <button type="button" class="@(_feedbackStarFilter == null ? "on" : "")" @onclick="() => { _feedbackStarFilter = null; _feedbackPage = 1; }">All</button>
+                            @foreach (var r in new[] { 5, 4, 3, 2, 1 })
+                            {
+                                <button type="button" class="@(_feedbackStarFilter == r ? "on" : "")" @onclick="() => { _feedbackStarFilter = r; _feedbackPage = 1; }">@r ★</button>
+                            }
+                        </div>
+                    </div>
+                    @if (!fbFiltered.Any()) { <div class="pt-card"><p class="pt-ov-empty">No feedback with that rating.</p></div> }
+                    @foreach (var f in FilteredFeedback)
+                    {
+                        <div class="pt-card pt-review">
+                            <div class="pt-review-top">
+                                <span class="pt-stars" aria-label="@f.Rating out of 5">@(new string('★', f.Rating))<span>@(new string('★', 5 - f.Rating))</span></span>
+                                <small>@TimeZoneInfo.ConvertTimeFromUtc(f.SubmittedAt, GetIst()).ToString("dd MMM yyyy, hh:mm tt")</small>
+                            </div>
+                            <p class="pt-review-text">
+                                @if (f.Comment?.Length > 160 && !_feedbackExpandedIds.Contains(f.Id)) { @(f.Comment[..160] + "…") <button type="button" class="pt-link" @onclick="() => ToggleFeedbackExpand(f.Id)">Show more</button> }
+                                else if (f.Comment?.Length > 160) { @f.Comment <button type="button" class="pt-link" @onclick="() => ToggleFeedbackExpand(f.Id)">Show less</button> }
+                                else { @f.Comment }
+                            </p>
+                            <div class="pt-row-actions">
+                                @if (_feedbackDeleteId == f.Id)
+                                {
+                                    <span class="pt-muted">Delete this review?</span>
+                                    <button type="button" class="pt-btn pt-btn--sm pt-btn--dng" @onclick="() => ConfirmDeleteFeedback(f.Id)">Yes, delete</button>
+                                    <button type="button" class="pt-btn pt-btn--sm" @onclick="() => _feedbackDeleteId = null">No</button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="pt-btn pt-btn--sm pt-btn--dng" @onclick="() => _feedbackDeleteId = f.Id">Delete</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                    @if (fbPageCount > 1)
+                    {
+                        <div class="pt-pager">
+                            <button type="button" class="pt-btn pt-btn--sm" @onclick="() => _feedbackPage--" disabled="@(_feedbackPage <= 1)">Previous</button>
+                            <span>Page @_feedbackPage of @fbPageCount</span>
+                            <button type="button" class="pt-btn pt-btn--sm" @onclick="() => _feedbackPage++" disabled="@(_feedbackPage >= fbPageCount)">Next</button>
+                        </div>
+                    }
+                </div>
+                <div class="pt-card pt-summary">
+                    <div class="pt-card-head"><h3>Rating summary</h3></div>
+                    <div class="pt-summary-score"><b>@_feedbackAvgRating.ToString("0.0")</b><span>from @_feedbackTotal reviews</span></div>
+                    <ul class="pt-ov-hbars">
+                        @foreach (var r in new[] { 5, 4, 3, 2, 1 })
+                        {
+                            <li>
+                                <div class="pt-ov-hbar-top"><span>@r ★</span><b>@_feedbackPerStar[r]</b></div>
+                                <div class="pt-ov-hbar-track"><div class="pt-ov-hbar-fill" style="width:@(_feedbackTotal == 0 ? 0 : (int)Math.Round(100.0 * _feedbackPerStar[r] / _feedbackTotal))%;background:@(r >= 4 ? "#008d36" : r == 3 ? "#b58900" : "#d6343b")"></div></div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
     }
     else if (activeTab == "settings")
     {
-        <div class="pt-card p-4">
-            <div class="section-heading"><div><span class="eyebrow">CONFIGURATION</span><h3>WhatsApp Settings</h3></div></div>
-            <div class="mb-4">
-                <label class="clinic-label">WhatsApp Mode</label>
-                <div class="d-flex gap-2">
-                    <button class="btn @(settingsMode == "Mock" ? "btn-clinic" : "btn-clinic-secondary")"
-                            @onclick='() => settingsMode = "Mock"'>Mock</button>
-                    <button class="btn @(settingsMode == "Twilio" ? "btn-clinic" : "btn-clinic-secondary")"
-                            @onclick='() => settingsMode = "Twilio"'>Twilio</button>
-                </div>
-                <p class="text-secondary small mt-1">Mock mode logs messages without sending. Twilio mode sends real WhatsApp messages.</p>
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Settings</h1>
+                <span class="pt-ov-sub">WhatsApp connection and sending rules</span>
             </div>
-
-            <!-- Credential inputs -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label class="clinic-label">Account SID</label>
-                    <input class="clinic-input" type="password" @bind="settingsSid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+            <div class="pt-ov-actions">
+                <button type="button" class="pt-ov-act" @onclick="TestTwilioConnectionAsync">Send test message</button>
+                <button type="button" class="pt-ov-act pt-ov-act--primary" @onclick="SaveSettingsAsync">Save settings</button>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(settingsSaveMsg)) { <div class="clinic-alert @(settingsSaveSuccess ? "clinic-alert-info" : "clinic-alert-danger")" role="status">@settingsSaveMsg</div> }
+        @if (!string.IsNullOrWhiteSpace(settingsTestMsg)) { <div class="clinic-alert @(settingsTestSuccess ? "clinic-alert-info" : "clinic-alert-danger")" role="status">@settingsTestMsg</div> }
+        <div class="pt-stack">
+            <div class="pt-card pt-form">
+                <div class="pt-card-head"><h3>WhatsApp connection</h3><span class="pt-ov-status pt-ov-status--@(settingsMode == "Twilio" ? "ok" : "wait")">@(settingsMode == "Twilio" ? "Live" : "Test mode")</span></div>
+                <div class="pt-field">
+                    <span class="pt-label">Mode</span>
+                    <div class="pt-seg" role="group" aria-label="WhatsApp mode">
+                        <button type="button" class="@(settingsMode == "Mock" ? "on" : "")" @onclick='() => settingsMode = "Mock"'>Test (simulated)</button>
+                        <button type="button" class="@(settingsMode == "Twilio" ? "on" : "")" @onclick='() => settingsMode = "Twilio"'>Twilio (live)</button>
+                    </div>
+                    <small class="pt-muted">Test mode records messages without sending. Twilio mode sends real WhatsApp messages.</small>
                 </div>
-                <div class="col-md-6">
-                    <label class="clinic-label">Auth Token</label>
-                    <input class="clinic-input" type="password" @bind="settingsToken" placeholder="Your Twilio Auth Token" />
-                </div>
-                <div class="col-md-6">
-                    <label class="clinic-label">From (Twilio WhatsApp Sender)</label>
-                    <input class="clinic-input" @bind="settingsFrom" placeholder="whatsapp:+14155238886" />
-                </div>
-                <div class="col-md-6">
-                    <label class="clinic-label">Clinic WhatsApp Number</label>
-                    <input class="clinic-input" @bind="settingsClinicNum" placeholder="+919028027888" />
+                <div class="pt-grid2">
+                    <div class="pt-field"><label for="s-sid">Account SID</label><input id="s-sid" class="pt-input" type="password" autocomplete="off" @bind="settingsSid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" /></div>
+                    <div class="pt-field"><label for="s-token">Auth token</label><input id="s-token" class="pt-input" type="password" autocomplete="off" @bind="settingsToken" placeholder="Your Twilio auth token" /></div>
+                    <div class="pt-field"><label for="s-from">Sending number</label><input id="s-from" class="pt-input" @bind="settingsFrom" placeholder="whatsapp:+14155238886" /></div>
+                    <div class="pt-field"><label for="s-clinic">Clinic number for alerts</label><input id="s-clinic" class="pt-input" @bind="settingsClinicNum" placeholder="+919028027888" /></div>
                 </div>
             </div>
-
-            <!-- Actions -->
-            <div class="d-flex gap-2 flex-wrap mb-3">
-                <button class="btn-clinic" @onclick="SaveSettingsAsync">Save</button>
-                <button class="btn-clinic-secondary" @onclick="TestTwilioConnectionAsync">Test Connection</button>
-            </div>
-
-            <!-- Status messages -->
-            @if (!string.IsNullOrWhiteSpace(settingsSaveMsg))
-            {
-                <div class="clinic-alert @(settingsSaveSuccess ? "clinic-alert-info" : "clinic-alert-danger") mb-3">@settingsSaveMsg</div>
-            }
-            @if (!string.IsNullOrWhiteSpace(settingsTestMsg))
-            {
-                <div class="clinic-alert @(settingsTestSuccess ? "clinic-alert-info" : "clinic-alert-danger") mb-3">@settingsTestMsg</div>
-            }
-
-            <!-- Twilio Setup Guide (Req 5.3) -->
-            <details>
-                <summary class="clinic-label" style="cursor:pointer;">📖 Twilio Setup Guide (click to expand)</summary>
-                <div class="pt-card p-3 mt-2">
-                    <ol class="text-secondary small" style="line-height: 2;">
-                        <li>Create a free Twilio account at <a href="https://twilio.com" target="_blank" rel="noopener" style="color: var(--accent-teal);">twilio.com</a></li>
-                        <li>From the Twilio Console dashboard, copy your <strong>Account SID</strong> and <strong>Auth Token</strong></li>
-                        <li>Go to <strong>Messaging → Senders → WhatsApp Senders</strong> and join the Twilio Sandbox (send the join code from your WhatsApp)</li>
-                        <li>Your Twilio WhatsApp sender number is <code>whatsapp:+14155238886</code> (sandbox default)</li>
-                        <li>Enter your clinic's WhatsApp number (e.g. <code>+919028027888</code>) in the <strong>Clinic Number</strong> field</li>
-                        <li>Set <strong>WhatsApp Mode</strong> to <strong>Twilio</strong> and click Save</li>
-                        <li>Send a test reminder from the Appointments tab to verify delivery</li>
-                    </ol>
+            <div class="pt-card pt-form">
+                <div class="pt-card-head"><h3>Bulk sending</h3></div>
+                <div class="pt-grid2">
+                    <div class="pt-field"><label for="s-delay">Pause between messages (ms)</label><input id="s-delay" class="pt-input" type="number" min="100" max="60000" step="100" @bind="settingsBulkDelay" /><small class="pt-muted">Between 100 and 60,000. A longer pause is safer for large lists.</small></div>
+                    <div class="pt-field"><label for="s-footer">Opt-out line</label><input id="s-footer" class="pt-input" @bind="settingsOptOut" placeholder="Reply STOP to unsubscribe." /><small class="pt-muted">Added to the end of every bulk message.</small></div>
                 </div>
+            </div>
+            <details class="pt-card pt-guide">
+                <summary>Twilio setup guide</summary>
+                <ol>
+                    <li>Create a free Twilio account at <a href="https://twilio.com" target="_blank" rel="noopener">twilio.com</a>.</li>
+                    <li>From the Twilio Console dashboard, copy your <strong>Account SID</strong> and <strong>Auth Token</strong>.</li>
+                    <li>Go to <strong>Messaging, Senders, WhatsApp Senders</strong> and join the Twilio Sandbox by sending the join code from your WhatsApp.</li>
+                    <li>The sandbox sending number is <code>whatsapp:+14155238886</code>.</li>
+                    <li>Enter the clinic's WhatsApp number, for example <code>+919028027888</code>, in the alerts field.</li>
+                    <li>Set the mode to <strong>Twilio (live)</strong> and save.</li>
+                    <li>Use <strong>Send test message</strong> to check delivery.</li>
+                </ol>
             </details>
         </div>
     }
     else
     {
-        <div class="row g-4">
-            <div class="col-xl-4">
-                <div class="pt-card p-4 sticky-xl-top" style="top:20px">
-                    <div class="section-heading"><div><span class="eyebrow">DIRECTORY</span><h3>Clients</h3></div><button class="btn-icon" @onclick='() => { activeTab = "add"; editingUserId = null; }'>+</button></div>
-                    <input class="clinic-input mb-3" placeholder="Search clients..." @bind="searchQuery" @bind:event="oninput" />
-                    <div class="client-list">
-                        @foreach (var client in FilteredClients) {
-                            <button class="client-list-item @(selectedClient?.Id == client.Id ? "selected" : "")" @onclick="() => InspectClient(client)">
-                                <span class="avatar-sm">@(client.User?.FullName?.FirstOrDefault() ?? '?')</span>
-                                <span class="text-start flex-grow-1"><strong>@client.User?.FullName</strong><small>@client.User?.PhoneNumber</small></span>
-                            </button>
-                        }
-                    </div>
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Clients</h1>
+                <span class="pt-ov-sub">@clients.Count(c => c.IsActive) active · @clients.Count(c => !c.IsActive) inactive</span>
+            </div>
+            <div class="pt-ov-actions">
+                <button type="button" class="pt-ov-act pt-ov-act--primary" @onclick='() => { activeTab = "add"; editingUserId = null; }'>
+                    <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-user-plus"></use></svg>Add client
+                </button>
+            </div>
+        </div>
+        <div class="pt-split">
+            <div class="pt-card pt-dir">
+                <div class="pt-search"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-search"></use></svg><input aria-label="Search clients" placeholder="Search by name or phone" @bind="searchQuery" @bind:event="oninput" /></div>
+                <div class="pt-seg" role="group" aria-label="Status filter">
+                    @foreach (var f in new[] { ("active", "Active"), ("inactive", "Inactive"), ("all", "All") })
+                    {
+                        <button type="button" class="@(clientStatusFilter == f.Item1 ? "on" : "")" @onclick="() => clientStatusFilter = f.Item1">@f.Item2</button>
+                    }
+                </div>
+                <div class="pt-dir-list">
+                    @foreach (var client in FilteredClients)
+                    {
+                        <button type="button" class="pt-dir-item @(selectedClient?.Id == client.Id ? "on" : "")" @onclick="() => InspectClient(client)">
+                            <span class="pt-avatar" style="--c:@AvatarColour(client.User?.FullName)">@Initials(client.User?.FullName)</span>
+                            <span class="pt-dir-name">@client.User?.FullName<small>@client.User?.PhoneNumber</small></span>
+                            <i class="pt-dot @(client.IsActive ? "" : "off")" title="@(client.IsActive ? "Active" : "Inactive")"></i>
+                        </button>
+                    }
+                    @if (!FilteredClients.Any()) { <p class="pt-ov-empty">No clients match.</p> }
                 </div>
             </div>
-            <div class="col-xl-8">
-                @if (selectedClient == null) {
-                    <div class="pt-card p-5 text-center"><h2>Select a client</h2><p class="text-secondary">Select a profile to review treatment history, weight trend, measurements and billing.</p></div>
-                } else {
-                    <div class="pt-card p-4">
-                        <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
-                            <div><span class="eyebrow">CLIENT PROFILE</span><h2>@selectedClient.User?.FullName</h2><span class="text-secondary">@selectedClient.User?.Email • @selectedClient.User?.PhoneNumber</span></div>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <button class="btn-clinic-secondary" @onclick="() => StartEditUser(selectedClient)">Edit user</button>
-                                <a class="btn-clinic" target="_blank" href='@ClinicService.BuildWhatsAppLink(selectedClient.User?.PhoneNumber ?? "", $"Hello {selectedClient.User?.FullName}, this is ProTouch Physio - Slimming Clinic.")'>WhatsApp</a>
-                                <button class="btn-clinic-danger" @onclick="ConfirmDeleteClient">Delete</button>
+            <div class="pt-stack">
+                @if (selectedClient == null)
+                {
+                    <div class="pt-card pt-empty-detail"><h3>Select a client</h3><p>Pick someone from the list to see their weight trend, fees, measurements and treatment history.</p></div>
+                }
+                else
+                {
+                    var latestKg = selectedClientLogs.FirstOrDefault()?.Weight;
+                    var lostKg = latestKg.HasValue ? selectedClient.StartWeight - latestKg.Value : 0;
+                    var planKg = selectedClient.StartWeight - selectedClient.TargetWeight;
+                    var goalPct = planKg > 0 ? (int)Math.Clamp(lostKg / planKg * 100, 0, 100) : 0;
+                    <div class="pt-card">
+                        <div class="pt-profile-head">
+                            <span class="pt-avatar pt-avatar--lg" style="--c:@AvatarColour(selectedClient.User?.FullName)">@Initials(selectedClient.User?.FullName)</span>
+                            <div class="pt-profile-id">
+                                <h2>@selectedClient.User?.FullName</h2>
+                                <span>@selectedClient.User?.Email · @selectedClient.User?.PhoneNumber</span>
+                            </div>
+                            <div class="pt-row-actions">
+                                <button type="button" class="pt-btn pt-btn--sm" @onclick="() => StartEditUser(selectedClient)">Edit user</button>
+                                <a class="pt-btn pt-btn--sm" target="_blank" rel="noopener" href='@ClinicService.BuildWhatsAppLink(selectedClient.User?.PhoneNumber ?? "", $"Hello {selectedClient.User?.FullName}, this is ProTouch Physio - Slimming Clinic.")'>WhatsApp</a>
+                                <button type="button" class="pt-btn pt-btn--sm pt-btn--dng" @onclick="ConfirmDeleteClient">Delete</button>
                             </div>
                         </div>
-                        <!-- Delete confirmation modal (Task 9.2) -->
                         @if (showDeleteConfirm)
                         {
-                            <div class="clinic-alert clinic-alert-danger mb-3">
+                            <div class="clinic-alert clinic-alert-danger" role="alert">
                                 <div>
-                                    <strong>⚠️ Confirm deletion of @selectedClient.User?.FullName</strong><br />
-                                    This will permanently delete:<br />
-                                    • <strong>@selectedClientLogs.Count</strong> daily logs<br />
-                                    • <strong>@selectedClientVisits.Count</strong> visit records<br />
-                                    • <strong>@selectedClientAppts.Count</strong> appointments<br />
-                                    • <strong>@selectedClientPayments.Count</strong> payment records<br />
-                                    This action cannot be undone.
+                                    <strong>Delete @selectedClient.User?.FullName?</strong><br />
+                                    This permanently deletes <strong>@selectedClientLogs.Count</strong> daily logs, <strong>@selectedClientVisits.Count</strong> visit records, <strong>@selectedClientAppts.Count</strong> appointments and <strong>@selectedClientPayments.Count</strong> payment records. It cannot be undone.
                                 </div>
-                                <div class="d-flex gap-2 mt-2">
-                                    <button class="btn-clinic-danger" @onclick="ExecuteDeleteClient">Yes, delete permanently</button>
-                                    <button class="btn-clinic-secondary" @onclick="() => showDeleteConfirm = false">Cancel</button>
+                                <div class="pt-form-actions">
+                                    <button type="button" class="pt-btn pt-btn--dng" @onclick="ExecuteDeleteClient">Yes, delete permanently</button>
+                                    <button type="button" class="pt-btn" @onclick="() => showDeleteConfirm = false">Cancel</button>
                                 </div>
                             </div>
                         }
-                        @if (!string.IsNullOrWhiteSpace(deleteClientError)) { <div class="clinic-alert clinic-alert-danger mb-3">@deleteClientError</div> }
-                        <!-- Task 9.4: Measurement validation -->
-                        @if (!string.IsNullOrWhiteSpace(profileMeasurementError)) { <div class="clinic-alert clinic-alert-danger mb-3">@profileMeasurementError</div> }
-                        <div class="row g-3">
-                            <div class="col-md-4"><label class="clinic-label">Access role</label><select class="clinic-input" @bind="selectedRole"><option>Client</option><option>Admin</option></select></div>
-                            <div class="col-md-4">
-                                <label class="clinic-label">Height (cm)</label>
-                                <input class="clinic-input" type="number" step="0.1" @bind="selectedClient.Height" />
-                                @if (heightError != null) { <span class="text-danger small">@heightError</span> }
-                            </div>
-                            <div class="col-md-4"><label class="clinic-label">Current weight</label><div class="clinic-input readonly">@(selectedClientLogs.FirstOrDefault()?.Weight.ToString("F1") ?? "—") kg</div></div>
-                            <div class="col-md-3">
-                                <label class="clinic-label">Waist (in)</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.WaistInches" />
-                                @if (waistError != null) { <span class="text-danger small">@waistError</span> }
-                            </div>
-                            <div class="col-md-3">
-                                <label class="clinic-label">Chest (in)</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.ChestInches" />
-                                @if (chestError != null) { <span class="text-danger small">@chestError</span> }
-                            </div>
-                            <div class="col-md-3">
-                                <label class="clinic-label">Hips (in)</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.HipsInches" />
-                                @if (hipsError != null) { <span class="text-danger small">@hipsError</span> }
-                            </div>
-                            <div class="col-md-3">
-                                <label class="clinic-label">Arms (in)</label><input class="clinic-input" type="number" step="0.1" @bind="selectedClient.ArmsInches" />
-                                @if (armsError != null) { <span class="text-danger small">@armsError</span> }
-                            </div>
-                            <div class="col-12"><label class="clinic-label">Doctor / dietician notes</label><textarea class="clinic-input" rows="2" @bind="selectedClient.DoctorNotes"></textarea></div>
+                        @if (!string.IsNullOrWhiteSpace(deleteClientError)) { <div class="clinic-alert clinic-alert-danger" role="alert">@deleteClientError</div> }
+                    </div>
+                    <div class="pt-kpis pt-kpis--4">
+                        <div class="pt-kpi"><b>@selectedClient.StartWeight.ToString("0.#") kg</b><span>Start weight</span></div>
+                        <div class="pt-kpi"><b>@(latestKg.HasValue ? latestKg.Value.ToString("0.#") + " kg" : "—")</b><span>Current weight</span></div>
+                        <div class="pt-kpi"><b>@selectedClient.TargetWeight.ToString("0.#") kg</b><span>Target</span></div>
+                        <div class="pt-kpi pt-kpi--ok"><b>@goalPct%</b><span>Goal reached</span></div>
+                    </div>
+                    <div class="pt-grid2 pt-grid2--top">
+                        <div class="pt-card">
+                            <div class="pt-card-head"><h3>Weight trend</h3><span class="pt-ov-pill">last @Math.Min(selectedClientLogs.Count, 12) logs</span></div>
+                            @if (selectedClientLogs.Count < 2) { <p class="pt-ov-empty">Needs at least two weight logs to draw a trend.</p> }
+                            else { @WeightTrendChart(selectedClientLogs.Take(12).OrderBy(x => x.LogDate).ToList(), selectedClient.TargetWeight) }
                         </div>
-                        <div class="d-flex gap-2 mt-3">
-                            <button class="btn-clinic" @onclick="SaveClient">Save profile & role</button>
-                            <button class="btn-clinic-secondary" @onclick="ToggleClientStatus">@(selectedClient.IsActive ? "Suspend" : "Activate")</button>
-                        </div>
-                        <div class="row g-4 mt-1">
-                            <div class="col-md-6">
-                                <div class="pt-card p-3 h-100"><h4>Weight trend</h4>
-                                    @if (selectedClientLogs.Any()) { @foreach (var log in selectedClientLogs.Take(7).OrderBy(x => x.LogDate)) { <div class="message-row"><span>@log.LogDate.ToString("dd MMM")</span><strong>@log.Weight.ToString("F1") kg</strong></div> } }
-                                    else { <span class="text-secondary">No weight logs yet.</span> }
-                                </div>
+                        <div class="pt-card">
+                            <div class="pt-card-head"><h3>Fees</h3><span class="pt-ov-status pt-ov-status--@(selectedClientPayments.Any(x => !x.IsPaid) ? "wait" : "ok")">@selectedClientPayments.Count(x => !x.IsPaid) pending</span></div>
+                            <div class="pt-inline-form">
+                                <input class="pt-input" aria-label="Fee description" placeholder="Description" @bind="newInvoiceDesc" />
+                                <input class="pt-input" aria-label="Amount" type="number" step="0.01" min="1" placeholder="Amount ₹" @bind="newInvoiceAmount" />
+                                <button type="button" class="pt-btn pt-btn--pri" @onclick="CreateClientInvoice">Add</button>
                             </div>
-                            <div class="col-md-6">
-                                <div class="pt-card p-3 h-100">
-                                    <div class="d-flex justify-content-between"><h4>Billing</h4><span class="soft-pill">@selectedClientPayments.Count(x => !x.IsPaid) pending</span></div>
-                                    <div class="d-flex gap-2 mb-2"><input class="clinic-input" placeholder="Fee description" @bind="newInvoiceDesc" /><input class="clinic-input" type="number" step="0.01" min="1" placeholder="Amount ₹" @bind="newInvoiceAmount" /><button class="btn-clinic" @onclick="CreateClientInvoice">Add</button></div>
-                                    @foreach (var invoice in selectedClientPayments) { <div class="message-row"><div><strong>₹@invoice.Amount</strong><div class="text-secondary small">@invoice.Description</div></div>@if (!invoice.IsPaid) { <button class="btn-clinic-secondary btn-sm" @onclick="() => MarkPaid(invoice.Id)">Settle</button> } else { <span class="soft-pill">Paid</span> }</div> }
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="pt-card p-3"><h4>Treatment history</h4>
-                                    @if (!selectedClientVisits.Any()) { <span class="text-secondary">No visits recorded yet.</span> }
-                                    else { @foreach (var visit in selectedClientVisits.Take(8)) { <div class="message-row"><div><strong>@visit.TreatmentReceived</strong><div class="text-secondary small">@visit.Therapist • @visit.CheckInTime.ToLocalTime().ToString("dd MMM yyyy")</div><div class="text-muted small">@visit.Notes</div></div><span class="soft-pill">@visit.Status</span></div> } }
-                                </div>
-                            </div>
+                            <ul class="pt-rows">
+                                @foreach (var invoice in selectedClientPayments)
+                                {
+                                    <li class="pt-row">
+                                        <div class="pt-row-main"><strong>₹@invoice.Amount</strong><small>@invoice.Description</small></div>
+                                        @if (!invoice.IsPaid) { <button type="button" class="pt-btn pt-btn--sm" @onclick="() => MarkPaid(invoice.Id)">Settle</button> }
+                                        else { <span class="pt-ov-status pt-ov-status--ok">Paid</span> }
+                                    </li>
+                                }
+                            </ul>
                         </div>
-                        @if (!string.IsNullOrWhiteSpace(profileSaveMsg)) { <div class="text-success small mt-2">@profileSaveMsg</div> }
-
-                        <!-- Diet Plan Panel — Task 9.2, 9.3 -->
-                        <div class="mt-3">
-                            <button class="btn-clinic-secondary" @onclick="OpenDietPanel">📋 Send Diet Plan</button>
+                    </div>
+                    <div class="pt-card pt-form">
+                        <div class="pt-card-head"><h3>Profile and measurements</h3></div>
+                        @if (!string.IsNullOrWhiteSpace(profileMeasurementError)) { <div class="clinic-alert clinic-alert-danger" role="alert">@profileMeasurementError</div> }
+                        <div class="pt-grid3">
+                            <div class="pt-field"><label for="p-role">Access role</label><select id="p-role" class="pt-input" @bind="selectedRole"><option>Client</option><option>Admin</option></select></div>
+                            <div class="pt-field"><label for="p-height">Height (cm)</label><input id="p-height" class="pt-input" type="number" step="0.1" @bind="selectedClient.Height" />@if (heightError != null) { <small class="pt-err">@heightError</small> }</div>
+                            <div class="pt-field"><span class="pt-label">Current weight</span><div class="pt-input pt-input--readonly">@(latestKg.HasValue ? latestKg.Value.ToString("F1") : "—") kg</div></div>
                         </div>
-
+                        <div class="pt-grid4">
+                            <div class="pt-field"><label for="p-waist">Waist (in)</label><input id="p-waist" class="pt-input" type="number" step="0.1" @bind="selectedClient.WaistInches" />@if (waistError != null) { <small class="pt-err">@waistError</small> }</div>
+                            <div class="pt-field"><label for="p-chest">Chest (in)</label><input id="p-chest" class="pt-input" type="number" step="0.1" @bind="selectedClient.ChestInches" />@if (chestError != null) { <small class="pt-err">@chestError</small> }</div>
+                            <div class="pt-field"><label for="p-hips">Hips (in)</label><input id="p-hips" class="pt-input" type="number" step="0.1" @bind="selectedClient.HipsInches" />@if (hipsError != null) { <small class="pt-err">@hipsError</small> }</div>
+                            <div class="pt-field"><label for="p-arms">Arms (in)</label><input id="p-arms" class="pt-input" type="number" step="0.1" @bind="selectedClient.ArmsInches" />@if (armsError != null) { <small class="pt-err">@armsError</small> }</div>
+                        </div>
+                        <div class="pt-field"><label for="p-notes">Doctor / dietician notes</label><textarea id="p-notes" class="pt-input" rows="2" @bind="selectedClient.DoctorNotes"></textarea></div>
+                        <div class="pt-form-actions">
+                            <button type="button" class="pt-btn pt-btn--pri" @onclick="SaveClient">Save profile and role</button>
+                            <button type="button" class="pt-btn" @onclick="ToggleClientStatus">@(selectedClient.IsActive ? "Suspend" : "Activate")</button>
+                            <button type="button" class="pt-btn" @onclick="OpenDietPanel">Send diet plan</button>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(profileSaveMsg)) { <div class="clinic-alert clinic-alert-info" role="status">@profileSaveMsg</div> }
+                    </div>
+                    <div class="pt-card">
+                        <div class="pt-card-head"><h3>Treatment history</h3></div>
+                        @if (!selectedClientVisits.Any()) { <p class="pt-ov-empty">No visits recorded yet.</p> }
+                        <ul class="pt-rows">
+                            @foreach (var visit in selectedClientVisits.Take(8))
+                            {
+                                <li class="pt-row">
+                                    <div class="pt-row-main"><strong>@visit.TreatmentReceived</strong><small>@visit.Therapist · @visit.CheckInTime.ToLocalTime().ToString("dd MMM yyyy")</small>@if (!string.IsNullOrWhiteSpace(visit.Notes)) { <small>@visit.Notes</small> }</div>
+                                    <span class="pt-ov-status pt-ov-status--@(visit.Status == "Completed" ? "ok" : visit.Status == "Absent" ? "bad" : "info")">@visit.Status</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                         @if (showDietPanel && selectedClient != null)
                         {
-                            <div class="pt-card p-4 mt-3">
+                            <div class="pt-card pt-form">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h5 class="mb-0">Diet Plan for @selectedClientName</h5>
                                     <button class="btn-clinic-secondary" @onclick="CloseDietPanel">✕ Close</button>
@@ -875,7 +971,6 @@
                                 </div>
                             </div>
                         }
-                    </div>
                 }
             </div>
         </div>
@@ -923,6 +1018,7 @@
     private List<CsvRecipient> csvRecipients = new();
     private List<CsvPreviewRow> campaignPreviews = new();
     private bool sendingCampaign;
+    private string? campaignErrorMsg;
     private int campaignSent, campaignFailed, campaignTotal;
 
     // Visit management
@@ -974,9 +1070,11 @@
     private string settingsSaveMsg = "", settingsTestMsg = "";
     private bool settingsSaveSuccess, settingsTestSuccess;
 
-    private IEnumerable<ClientProfile> FilteredClients => string.IsNullOrWhiteSpace(searchQuery)
-        ? clients
-        : clients.Where(c => (c.User?.FullName ?? "").Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+    private IEnumerable<ClientProfile> FilteredClients => clients
+        .Where(c => clientStatusFilter == "all" || (clientStatusFilter == "active" ? c.IsActive : !c.IsActive))
+        .Where(c => string.IsNullOrWhiteSpace(searchQuery)
+            || (c.User?.FullName ?? "").Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+            || (c.User?.PhoneNumber ?? "").Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
@@ -1314,6 +1412,8 @@
         settingsToken = await ClinicService.GetSettingAsync("WhatsApp:Twilio:AuthToken") ?? "";
         settingsFrom = await ClinicService.GetSettingAsync("WhatsApp:Twilio:From") ?? "";
         settingsClinicNum = await ClinicService.GetSettingAsync("WhatsApp:ClinicNumber") ?? "";
+        settingsBulkDelay = int.TryParse(await ClinicService.GetSettingAsync("WhatsApp:BulkDelayMs"), out var delay) ? delay : 1000;
+        settingsOptOut = await ClinicService.GetSettingAsync("WhatsApp:OptOutFooter") ?? "";
     }
 
     // Task 5.5: Save settings to DB
@@ -1327,6 +1427,15 @@
             await ClinicService.SetSettingAsync("WhatsApp:Twilio:AuthToken", settingsToken);
             await ClinicService.SetSettingAsync("WhatsApp:Twilio:From", settingsFrom);
             await ClinicService.SetSettingAsync("WhatsApp:ClinicNumber", settingsClinicNum);
+            if (settingsBulkDelay < 100 || settingsBulkDelay > 60000)
+            {
+                settingsSaveMsg = "The pause between messages must be between 100 and 60,000 ms.";
+                settingsSaveSuccess = false;
+                StateHasChanged();
+                return;
+            }
+            await ClinicService.SetSettingAsync("WhatsApp:BulkDelayMs", settingsBulkDelay.ToString());
+            await ClinicService.SetSettingAsync("WhatsApp:OptOutFooter", settingsOptOut ?? "");
             settingsSaveMsg = "Settings saved successfully.";
             settingsSaveSuccess = true;
         }
@@ -1384,32 +1493,72 @@
     // WhatsApp
     private async Task ReadCsvRecipients(InputFileChangeEventArgs e)
     {
-        using var reader = new StreamReader(e.File.OpenReadStream(2 * 1024 * 1024));
-        var lines = (await reader.ReadToEndAsync()).Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        csvRecipients = lines.Skip(1).Select(line => line.Split(',')).Where(parts => parts.Length >= 2)
-            .Select(parts => new CsvRecipient(parts[0].Trim().Trim('"'), parts[1].Trim().Trim('"')))
-            .Where(x => !string.IsNullOrWhiteSpace(x.Phone)).ToList();
-        campaignSuccessMsg = csvRecipients.Any() ? $"Loaded {csvRecipients.Count} CSV recipients." : "No valid recipients found. Use Name,Phone headings.";
+        campaignErrorMsg = null;
+        try
+        {
+            using var reader = new StreamReader(e.File.OpenReadStream(2 * 1024 * 1024));
+            csvRecipients = CsvRecipientParser.Parse(await reader.ReadToEndAsync());
+            var invalid = csvRecipients.Count(r => string.IsNullOrEmpty(ClinicService.NormalisePhone(r.Phone)));
+            campaignSuccessMsg = csvRecipients.Any()
+                ? $"Loaded {csvRecipients.Count} recipients." + (invalid > 0 ? $" {invalid} have an invalid phone number and will be skipped." : "")
+                : "No valid recipients found. The file needs a Name column and a Phone column.";
+        }
+        catch (Exception ex)
+        {
+            csvRecipients = new();
+            campaignSuccessMsg = null;
+            campaignErrorMsg = ex is IOException
+                ? "That file is too large. Keep CSV files under 2 MB."
+                : "Could not read that file. Check that it is a CSV.";
+            _logger.LogWarning(ex, "CSV recipient upload failed");
+        }
         campaignPreviews = new();
     }
 
     private async Task PreviewCsvCampaign()
     {
         if (!csvRecipients.Any()) return;
+        campaignErrorMsg = null;
         campaignPreviews = await ClinicService.PreviewCsvCampaignAsync(campaignText, csvRecipients);
         StateHasChanged();
     }
 
     private async Task SendCsvCampaign()
     {
+        if (sendingCampaign || !csvRecipients.Any()) return;
+        if (string.IsNullOrWhiteSpace(campaignText))
+        {
+            campaignErrorMsg = "Write a message first.";
+            return;
+        }
+
+        campaignErrorMsg = null; campaignSuccessMsg = null;
         sendingCampaign = true; campaignSent = 0; campaignFailed = 0; campaignTotal = csvRecipients.Count;
-        try {
+        try
+        {
             var progress = new Progress<(int sent, int failed, int total)>(r => { campaignSent = r.sent; campaignFailed = r.failed; campaignTotal = r.total; InvokeAsync(StateHasChanged); });
-            await ClinicService.SendCsvWhatsAppCampaignAsync("CSV broadcast", campaignText, csvRecipients, progress);
-            campaignSuccessMsg = $"✓ Bulk campaign dispatched to {csvRecipients.Count} recipients.";
-            csvRecipients = new(); campaignPreviews = new();
+            var result = await ClinicService.SendCsvWhatsAppCampaignAsync("CSV broadcast", campaignText, csvRecipients, progress);
+
+            if (result.Mode != "Twilio")
+                campaignSuccessMsg = $"Test run only: {result.Simulated} messages were simulated and nothing was sent. Switch WhatsApp mode to Twilio in Settings to send for real.";
+            else if (result.Failed == 0)
+                campaignSuccessMsg = $"Sent to {result.Sent} recipients." + (result.Skipped > 0 ? $" {result.Skipped} duplicates skipped." : "");
+            else
+                campaignErrorMsg = $"Sent to {result.Sent}, {result.Failed} failed" + (result.Skipped > 0 ? $", {result.Skipped} duplicates skipped" : "") + ". See Recent activity for the reason.";
+
+            // Keep the list when nothing went out so it can be retried after fixing the problem.
+            if (result.Sent + result.Simulated > 0)
+            {
+                csvRecipients = new(); campaignPreviews = new();
+            }
             await LoadAdminDataAsync();
-        } finally { sendingCampaign = false; }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bulk WhatsApp campaign failed");
+            campaignErrorMsg = "The campaign stopped unexpectedly. Check Recent activity to see who was messaged before retrying.";
+        }
+        finally { sendingCampaign = false; }
     }
 
     private void UseDietTemplate() => campaignText = "Hello {{Name}}, this is your ProTouch Physio - Slimming Clinic diet reminder. Please follow your prescribed diet plan and update today's morning weight.";
@@ -1663,6 +1812,119 @@
             case "feedback": await SwitchToFeedback(); break;
             default: activeTab = wanted; break;
         }
+    }
+
+
+    // ── Admin page helpers ──────────────────────────────────────────────────
+    private string clientStatusFilter = "active";
+    private string apptFilter = "today", apptSearch = "";
+    private string bookingFilter = "Pending";
+    private int settingsBulkDelay = 1000;
+    private string settingsOptOut = "";
+
+    private record RecipientSummary(int Ready, int Duplicates, int Invalid);
+
+    private static string Initials(string? name)
+    {
+        var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 0) return "?";
+        return (parts.Length == 1 ? parts[0][..1] : parts[0][..1] + parts[^1][..1]).ToUpperInvariant();
+    }
+
+    private static string AvatarColour(string? name)
+    {
+        var palette = new[] { "#7c1b68", "#008d36", "#2563eb", "#b58900", "#c2410c", "#0e7490" };
+        var hash = 0;
+        foreach (var ch in name ?? "") hash = (hash * 31 + ch) & 0x7fffffff;
+        return palette[hash % palette.Length];
+    }
+
+    private bool IsToday(DateTime utc) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), GetIst()).Date == IstToday();
+
+    private int VisitsSince(int days)
+    {
+        var from = IstToday().AddDays(-(days - 1));
+        var tz = GetIst();
+        return attendanceLogs.Count(a => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(a.CheckInTime, DateTimeKind.Utc), tz).Date >= from);
+    }
+
+    private IEnumerable<Appointment> FilteredAppointments()
+    {
+        IEnumerable<Appointment> list = apptFilter switch
+        {
+            "today" => allAppointments.Where(a => IsToday(a.AppointmentDate)),
+            "upcoming" => allAppointments.Where(a => a.AppointmentDate > DateTime.UtcNow && (a.Status == "Scheduled" || a.Status == "Confirmed")),
+            "completed" => allAppointments.Where(a => a.Status == "Completed"),
+            "cancelled" => allAppointments.Where(a => a.Status == "Cancelled"),
+            _ => allAppointments
+        };
+        if (!string.IsNullOrWhiteSpace(apptSearch))
+            list = list.Where(a => (a.User?.FullName ?? "").Contains(apptSearch, StringComparison.OrdinalIgnoreCase));
+        return apptFilter == "upcoming" ? list.OrderBy(a => a.AppointmentDate) : list.OrderByDescending(a => a.AppointmentDate);
+    }
+
+    private RecipientSummary RecipientStats()
+    {
+        var seen = new HashSet<string>();
+        int ready = 0, dup = 0, invalid = 0;
+        foreach (var r in csvRecipients)
+        {
+            var n = ClinicService.NormalisePhone(r.Phone);
+            if (string.IsNullOrEmpty(n)) invalid++;
+            else if (!seen.Add(n)) dup++;
+            else ready++;
+        }
+        return new RecipientSummary(ready, dup, invalid);
+    }
+
+    private string PreviewName() => string.IsNullOrWhiteSpace(csvRecipients.FirstOrDefault()?.Name) ? "a client" : csvRecipients.First().Name;
+
+    private string BubbleText()
+    {
+        var name = string.IsNullOrWhiteSpace(csvRecipients.FirstOrDefault()?.Name) ? "Meera" : csvRecipients.First().Name;
+        return (campaignText ?? "").Replace("{{Name}}", name).Replace("{Name}", name);
+    }
+
+    private void UseAppointmentTemplate() => campaignText = "Hello {{Name}}, a reminder about your appointment at ProTouch Physio - Slimming Clinic. Please reply to confirm.";
+    private void InsertNameToken() => campaignText = (campaignText ?? "") + "{{Name}}";
+
+    // Line chart of weight over time with a dashed target line, drawn to one scale.
+    private static MarkupString WeightTrendChart(List<DailyLog> logs, double target)
+    {
+        const int w = 360, h = 170, left = 34, right = 10, top = 14, bottom = 24;
+        var points = logs.Where(l => l.Weight > 0).ToList();
+        if (points.Count < 2) return new MarkupString("");
+        double min = Math.Min(points.Min(l => l.Weight), target > 0 ? target : double.MaxValue);
+        double max = points.Max(l => l.Weight);
+        min = Math.Floor(min - 1); max = Math.Ceiling(max + 1);
+        double plotW = w - left - right, plotH = h - top - bottom;
+        double X(int i) => left + plotW * i / (points.Count - 1);
+        double Y(double kg) => top + plotH - plotH * (kg - min) / (max - min);
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"<svg class=\"pt-chart\" viewBox=\"0 0 {w} {h}\" role=\"img\" aria-label=\"Weight trend\">");
+        foreach (var tick in new[] { min, (min + max) / 2, max })
+        {
+            sb.Append($"<line x1=\"{left}\" x2=\"{w - right}\" y1=\"{Y(tick):F1}\" y2=\"{Y(tick):F1}\" class=\"pt-chart-grid\"/>");
+            sb.Append($"<text x=\"{left - 6}\" y=\"{Y(tick) + 3:F1}\" text-anchor=\"end\" class=\"pt-chart-text\">{tick:0}</text>");
+        }
+        if (target >= min && target <= max)
+        {
+            sb.Append($"<line x1=\"{left}\" x2=\"{w - right}\" y1=\"{Y(target):F1}\" y2=\"{Y(target):F1}\" stroke=\"#7c1b68\" stroke-dasharray=\"4 3\" stroke-width=\"1.2\"/>");
+            sb.Append($"<text x=\"{w - right}\" y=\"{Y(target) - 4:F1}\" text-anchor=\"end\" class=\"pt-chart-text\" fill=\"#7c1b68\">Target {target:0.#} kg</text>");
+        }
+        sb.Append("<polyline fill=\"none\" stroke=\"#008d36\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" points=\"");
+        for (int i = 0; i < points.Count; i++) sb.Append($"{X(i):F1},{Y(points[i].Weight):F1} ");
+        sb.Append("\"/>");
+        for (int i = 0; i < points.Count; i++)
+        {
+            bool last = i == points.Count - 1;
+            sb.Append($"<circle cx=\"{X(i):F1}\" cy=\"{Y(points[i].Weight):F1}\" r=\"{(last ? 4 : 2.6)}\" fill=\"#008d36\"><title>{points[i].LogDate:d MMM}: {points[i].Weight:0.#} kg</title></circle>");
+        }
+        sb.Append($"<text x=\"{left}\" y=\"{h - 6}\" class=\"pt-chart-text\">{points.First().LogDate:d MMM}</text>");
+        sb.Append($"<text x=\"{w - right}\" y=\"{h - 6}\" text-anchor=\"end\" class=\"pt-chart-text\">{points.Last().LogDate:d MMM}</text>");
+        sb.Append("</svg>");
+        return new MarkupString(sb.ToString());
     }
 
 

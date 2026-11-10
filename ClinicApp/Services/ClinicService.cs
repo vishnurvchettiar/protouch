@@ -14,7 +14,10 @@ using Twilio.Rest.Api.V2010.Account;
 namespace ClinicApp.Services;
 
 public record CsvRecipient(string Name, string Phone);
-public record CsvPreviewRow(string RecipientName, string RecipientPhone, string PersonalisedMessage);
+public record CsvPreviewRow(string RecipientName, string RecipientPhone, string PersonalisedMessage, string? Warning = null);
+
+/// <summary>Outcome of a bulk WhatsApp campaign.</summary>
+public record CampaignResult(int Sent, int Simulated, int Failed, int Skipped, string Mode);
 
 public class ClinicService
 {
@@ -218,6 +221,21 @@ public class ClinicService
             return string.Empty;
 
         return "91" + digits;
+    }
+
+    /// <summary>
+    /// Builds the address Twilio needs for WhatsApp ("whatsapp:+91XXXXXXXXXX").
+    /// Returns null when the number is not a valid 10-digit Indian mobile number.
+    /// Addresses that already start with "whatsapp:" are passed through unchanged.
+    /// </summary>
+    public static string? ToWhatsAppAddress(string? raw)
+    {
+        var trimmed = (raw ?? string.Empty).Trim();
+        if (trimmed.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase))
+            return trimmed.Length > "whatsapp:".Length ? "whatsapp:" + trimmed["whatsapp:".Length..].Trim() : null;
+
+        var normalised = NormalisePhone(trimmed);
+        return string.IsNullOrEmpty(normalised) ? null : "whatsapp:+" + normalised;
     }
 
     public string BuildWhatsAppLink(string phone, string message)
@@ -847,6 +865,7 @@ public class ClinicService
     {
         var footer = await GetOptOutFooterAsync();
         var rows = new List<CsvPreviewRow>();
+        var seenPhones = new HashSet<string>();
         foreach (var recipient in recipients)
         {
             var name = string.IsNullOrWhiteSpace(recipient.Name) ? "{{Name}}" : recipient.Name;
@@ -855,20 +874,27 @@ public class ClinicService
                 .Replace("{Name}", name);
             AppendOptOutFooter(personalised, footer, out _);
             var finalMessage = personalised + "\n\n" + footer;
-            rows.Add(new CsvPreviewRow(recipient.Name, recipient.Phone, finalMessage));
+            string? warning = null;
+            var normalised = NormalisePhone(recipient.Phone);
+            if (string.IsNullOrEmpty(normalised))
+                warning = "Invalid phone number. This recipient will be skipped.";
+            else if (!seenPhones.Add(normalised))
+                warning = "Duplicate number. Only the first one is sent.";
+            rows.Add(new CsvPreviewRow(recipient.Name, recipient.Phone, finalMessage, warning));
         }
         // No DB writes — pure preview
         return rows;
     }
 
     // Task 4.3: CSV campaign with delay + progress (Req 11.1–11.4)
-    public async Task SendCsvWhatsAppCampaignAsync(
+    public async Task<CampaignResult> SendCsvWhatsAppCampaignAsync(
         string campaignName,
         string template,
         IEnumerable<CsvRecipient> recipients,
         IProgress<(int sent, int failed, int total)>? progress = null)
     {
         var footer = await GetOptOutFooterAsync();
+        var mode = GetWhatsAppMode();
 
         // Read delay setting
         var delayMs = 1000;
@@ -876,48 +902,72 @@ public class ClinicService
         if (int.TryParse(delaySetting, out var parsedDelay) && parsedDelay >= 100 && parsedDelay <= 60000)
             delayMs = parsedDelay;
 
-        var recipientList = recipients.Where(r => !string.IsNullOrWhiteSpace(r.Phone)).ToList();
+        // Skip blank numbers and repeats so nobody is messaged twice.
+        var seen = new HashSet<string>();
+        var recipientList = new List<CsvRecipient>();
+        var skipped = 0;
+        var dispatchDetails = new List<object>();
+        foreach (var r in recipients.Where(r => !string.IsNullOrWhiteSpace(r.Phone)))
+        {
+            var key = NormalisePhone(r.Phone);
+            if (!string.IsNullOrEmpty(key) && !seen.Add(key))
+            {
+                skipped++;
+                dispatchDetails.Add(new { Name = r.Name, Phone = r.Phone, Status = "Skipped", Error = "Duplicate number" });
+                continue;
+            }
+            recipientList.Add(r);
+        }
+
         var total = recipientList.Count;
         var sent = 0;
         var failed = 0;
-        var dispatchDetails = new List<object>();
+        var simulated = 0;
 
         foreach (var recipient in recipientList)
         {
             var message = template
-                .Replace("{{Name}}", recipient.Name ?? "Client")
-                .Replace("{Name}", recipient.Name ?? "Client");
+                .Replace("{{Name}}", string.IsNullOrWhiteSpace(recipient.Name) ? "there" : recipient.Name)
+                .Replace("{Name}", string.IsNullOrWhiteSpace(recipient.Name) ? "there" : recipient.Name);
             var messageWithFooter = AppendOptOutFooter(message, footer, out _);
 
             try
             {
+                if (mode == "Twilio" && ToWhatsAppAddress(recipient.Phone) == null)
+                    throw new ArgumentException("Not a valid 10-digit phone number.");
+
                 await SendWhatsAppMessageAsync(recipient.Phone, messageWithFooter);
-                sent++;
-                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = "Sent" });
+                if (mode == "Twilio") sent++; else simulated++;
+                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = mode == "Twilio" ? "Sent" : "Simulated" });
             }
             catch (Exception ex)
             {
                 failed++;
                 _logger.LogError(ex, "Failed to send WhatsApp to {Phone}", recipient.Phone);
-                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = "Failed" });
+                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = "Failed", Error = ex.Message });
             }
 
-            progress?.Report((sent, failed, total));
+            progress?.Report((sent + simulated, failed, total));
 
             if (delayMs > 0)
                 await Task.Delay(delayMs);
         }
 
+        var status = failed > 0 ? $"Partial ({failed} failed)"
+                   : mode == "Twilio" ? "Bulk campaign dispatched"
+                   : "Bulk campaign simulated";
         _db.WhatsAppLogs.Add(new WhatsAppLog
         {
             TargetAudience = campaignName,
             MessageTemplate = template,
-            RecipientCount = sent,
+            RecipientCount = sent + simulated,
             SentAt = DateTime.UtcNow,
-            Status = failed > 0 ? $"Partial ({failed} failed)" : "Bulk campaign dispatched",
+            Status = status,
             LogDetail = JsonSerializer.Serialize(dispatchDetails)
         });
         await _db.SaveChangesAsync();
+
+        return new CampaignResult(sent, simulated, failed, skipped, mode);
     }
 
     // ==========================================
@@ -1017,11 +1067,15 @@ public class ClinicService
             var cfg = GetTwilioConfig();
             if (!string.IsNullOrEmpty(cfg.Sid) && !string.IsNullOrEmpty(cfg.Token))
             {
+                var toAddress = ToWhatsAppAddress(toPhone)
+                    ?? throw new ArgumentException($"'{toPhone}' is not a valid phone number.", nameof(toPhone));
+                var fromAddress = cfg.From.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? cfg.From : "whatsapp:" + cfg.From;
+
                 TwilioClient.Init(cfg.Sid, cfg.Token);
-                var msg = MessageResource.Create(
+                var msg = await MessageResource.CreateAsync(
                     body: messageText,
-                    from: new Twilio.Types.PhoneNumber(cfg.From),
-                    to: new Twilio.Types.PhoneNumber(toPhone)
+                    from: new Twilio.Types.PhoneNumber(fromAddress),
+                    to: new Twilio.Types.PhoneNumber(toAddress)
                 );
 
                 var log = new WhatsAppLog
