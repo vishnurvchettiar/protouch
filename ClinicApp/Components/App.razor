@@ -33,6 +33,10 @@
     <meta name="theme-color" content="#008d36" />
     <meta http-equiv="Permissions-Policy" content="unload=()" />
     <meta name="robots" content="noindex, nofollow" />
+    <!-- Restore the sidebar hide/show state before first paint (no flash) -->
+    <script>
+        try { if (localStorage.getItem('pt-sidebar-collapsed') === '1') document.documentElement.classList.add('pt-sb-collapsed'); } catch (e) { }
+    </script>
     <HeadOutlet />
 </head>
 

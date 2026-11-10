@@ -618,3 +618,38 @@ window.scheduleDeferredInit_home = function () {
         setTimeout(runDeferred, 200);
     }
 };
+
+
+// ── Sidebar hide / show ─────────────────────────────────────
+// State is stored on <html class="pt-sb-collapsed"> so Blazor's enhanced
+// navigation cannot reset it, and remembered in localStorage.
+(function () {
+    var KEY = 'pt-sidebar-collapsed';
+    var root = document.documentElement;
+
+    function sync() {
+        var collapsed = root.classList.contains('pt-sb-collapsed');
+        document.querySelectorAll('[data-pt-sidebar-toggle]').forEach(function (btn) {
+            var label = collapsed ? 'Show sidebar' : 'Hide sidebar';
+            btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('title', label);
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('[data-pt-sidebar-toggle]');
+        if (!btn) return;
+        var collapsed = root.classList.toggle('pt-sb-collapsed');
+        try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (err) { }
+        sync();
+    });
+
+    document.addEventListener('DOMContentLoaded', sync);
+    if (window.Blazor && Blazor.addEventListener) {
+        Blazor.addEventListener('enhancedload', sync);
+    } else {
+        document.addEventListener('enhancedload', sync);
+    }
+    sync();
+})();
