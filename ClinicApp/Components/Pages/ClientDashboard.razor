@@ -39,552 +39,422 @@ else if (userProfile == null)
 else
 {
     <div class="container-fluid client-dashboard-shell py-3">
+    @{
+        double kgLost    = userProfile.StartWeight - latestWeight;
+        double heroTotal = userProfile.StartWeight - userProfile.TargetWeight;
+        int    goalPct   = heroTotal > 0 ? (int)Math.Clamp(kgLost / heroTotal * 100.0, 0.0, 100.0) : 0;
+        double toGo      = Math.Max(0, latestWeight - userProfile.TargetWeight);
+        var    nextAppt  = GetNextAppointment(appointments);
+        string dietPreview = GetDietPreview(userProfile.DietPlan);
+        string firstName = (userProfile.User?.FullName ?? currentUser?.FullName ?? "there").Split(' ')[0];
+        var week = LoggedLastDays(7);
+        int streak = LogStreak();
+    }
 
-        <!-- ── pt-client-hero section (tasks 6.1-6.5) ───────────────────── -->
-        @{
-            const double HeroR = 44.0;
-            const double HeroC = 2 * Math.PI * HeroR;
-            double kgLost    = userProfile.StartWeight - latestWeight;
-            double heroTotal = userProfile.StartWeight - userProfile.TargetWeight;
-            int    goalPct   = heroTotal > 0
-                                 ? (int)Math.Clamp(kgLost / heroTotal * 100.0, 0.0, 100.0)
-                                 : 0;
-            double dashOffset = HeroC * (1.0 - goalPct / 100.0);
-            string ringLabel  = heroTotal <= 0 ? "Goal not set" : $"{goalPct}% of goal";
-            var    nextAppt   = GetNextAppointment(appointments);
-            string dietPreview = GetDietPreview(userProfile.DietPlan);
-            string heroGreet   = GetClientGreeting();
-        }
-
-        <section class="pt-client-hero mb-4" aria-label="Client overview hero">
-            <div class="pt-client-hero-left">
-                <!-- SVG Progress Ring -->
-                <div class="pt-progress-ring" aria-label="Weight goal @goalPct% achieved">
-                    <svg viewBox="0 0 100 100" class="pt-ring-svg">
-                        <!-- Background grey ring -->
-                        <circle cx="50" cy="50" r="@HeroR"
-                                fill="none"
-                                stroke="rgba(255,255,255,0.08)"
-                                stroke-width="8" />
-                        <!-- Green progress arc -->
-                        <circle cx="50" cy="50" r="@HeroR"
-                                fill="none"
-                                stroke="#008d36"
-                                stroke-width="8"
-                                stroke-linecap="round"
-                                stroke-dasharray="@HeroC.ToString("F2")"
-                                stroke-dashoffset="@dashOffset.ToString("F2")"
-                                transform="rotate(-90 50 50)" />
-                        <!-- Centre label -->
-                        <text x="50" y="45" text-anchor="middle"
-                              fill="var(--text-primary)"
-                              font-size="12" font-weight="900"
-                              font-family="Outfit, sans-serif">
-                            @($"{kgLost:F1} kg")
-                        </text>
-                        <text x="50" y="60" text-anchor="middle"
-                              fill="var(--text-secondary)"
-                              font-size="8"
-                              font-family="Outfit, sans-serif">
-                            @ringLabel
-                        </text>
-                    </svg>
-                </div>
-
-                <!-- Greeting + stat pills -->
-                <div class="flex-grow-1">
-                    <h2 class="gradient-text mb-1">@heroGreet, @(userProfile.User?.FullName ?? currentUser?.FullName ?? "Patient") 👋</h2>
-                    <p class="text-secondary mb-3">Keep going — every session counts.</p>
-
-                    <div class="pt-client-profile-row">
-                        <div class="profile-photo-wrap">
-                            @if (!string.IsNullOrWhiteSpace(userProfile.ProfilePhotoUrl))
-                            { <img src="@userProfile.ProfilePhotoUrl" class="profile-photo" alt="Profile photo" /> }
-                            else { <div class="profile-photo placeholder">@(currentUser?.FullName?.FirstOrDefault() ?? 'P')</div> }
-                        </div>
-                        <div>
-                            <span class="soft-pill">Joined @userProfile.JoiningDate.ToString("MMM yyyy")</span>
-                            <div class="mt-2"><label class="upload-mini">📷 Change photo <InputFile OnChange="HandleProfilePhotoUpload" accept="image/*" /></label></div>
-                            @if (!string.IsNullOrWhiteSpace(photoUploadError))
-                            {
-                                <div class="clinic-alert clinic-alert-danger mt-2 small">@photoUploadError</div>
-                            }
-                        </div>
-                    </div>
-
-                    <!-- Stat Pills -->
-                    <div class="pt-stat-pills">
-                        <div class="pt-stat-pill">
-                            <span class="pill-value">@latestWeight.ToString("F1") kg</span>
-                            <span class="pill-label">Current Weight</span>
-                        </div>
-                        <div class="pt-stat-pill">
-                            <span class="pill-value">@userProfile.TargetWeight.ToString("F1") kg</span>
-                            <span class="pill-label">Target Weight</span>
-                        </div>
-                        <div class="pt-stat-pill">
-                            <span class="pill-value">@dailyLogs.Count</span>
-                            <span class="pill-label">Total Visits</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pt-client-hero-right">
-                <!-- Daily Check-In Prompt (task 6.5) -->
-                <div class="pt-checkin-prompt @(hasLoggedWeightToday ? "logged" : "needs-log")">
-                    @if (hasLoggedWeightToday)
-                    {
-                        <span>✅ Weight logged today — great work!</span>
-                    }
-                    else
-                    {
-                        <span>⏰ Log your weight today to stay on track.</span>
-                    }
-                </div>
-
-                <!-- Next Appointment Card (task 6.4) -->
-                @if (nextAppt != null)
-                {
-                    <div class="pt-next-appt-card">
-                        <span class="eyebrow mb-1">NEXT APPOINTMENT</span>
-                        <div class="appt-time">
-                            @TimeZoneInfo.ConvertTimeFromUtc(nextAppt.AppointmentDate, GetClientIst()).ToString("ddd dd MMM, h:mm tt")
-                        </div>
-                        <div class="appt-service">@nextAppt.TreatmentType</div>
-                        <span class="soft-pill mt-2" style="font-size: 0.7rem;">@nextAppt.Status</span>
-                    </div>
-                }
-                else
-                {
-                    <div class="pt-next-appt-card">
-                        <span class="eyebrow mb-1">NEXT APPOINTMENT</span>
-                        <p class="text-secondary small mt-1 mb-1">No upcoming appointments</p>
-                        <a href="#appointments" class="text-success small">Book now →</a>
-                    </div>
-                }
-
-                <!-- Diet Preview (task 6.5) -->
-                @if (!string.IsNullOrWhiteSpace(dietPreview))
-                {
-                    <div class="pt-diet-preview">
-                        <span class="eyebrow mb-1">DIET PLAN PREVIEW</span>
-                        <p>@dietPreview</p>
-                        <a href="#diet" class="text-success small">View full plan →</a>
-                    </div>
-                }
-                else
-                {
-                    <div class="pt-diet-preview">
-                        <span class="eyebrow mb-1">DIET PLAN</span>
-                        <p>No plan assigned yet — contact your clinic.</p>
-                    </div>
-                }
-            </div>
-        </section>
-        <!-- ── end pt-client-hero ────────────────────────────────────────── -->
-
-        <!-- Reminders / Alerts -->
+    @if (activeTab == "overview")
+    {
+        <!-- ═════════ OVERVIEW (main page) ═════════ -->
         @if (activePaymentAlerts != null && activePaymentAlerts.Any())
         {
             @foreach (var alert in activePaymentAlerts)
             {
-                <div class="clinic-alert clinic-alert-danger">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi me-2" viewBox="0 0 16 16">
-                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.002-13a1 1 0 0 0-.707.293l-5.647 5.646a.5.5 0 0 0-.146.354v5.414A1 1 0 0 0 2.5 15h11a1 1 0 0 0 1-1V8.293a.5.5 0 0 0-.146-.354l-5.647-5.646A1 1 0 0 0 8.002 3z"/>
-                    </svg>
-                    <div class="w-100 d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <strong>⚠️ Billing Reminder:</strong> An outstanding payment of <strong>@alert.Amount.ToString("C")</strong> for "<em>@alert.Description</em>" is due. Please settle.
-                        </div>
-                        <button class="btn btn-clinic-secondary py-1 px-3 mt-2 mt-md-0 btn-sm text-white" @onclick="() => PayInvoice(alert.Id)">
-                            💳 Pay invoice (Demo)
-                        </button>
-                    </div>
+                <div class="pt-banner pt-banner--warn" role="alert">
+                    <span><strong>Payment due:</strong> @alert.Amount.ToString("C") for "@alert.Description".</span>
+                    <button type="button" class="pt-btn pt-btn--sm" @onclick="() => PayInvoice(alert.Id)">Pay invoice (demo)</button>
                 </div>
             }
-            @if (!string.IsNullOrWhiteSpace(paymentSuccessMsg))
-            {
-                <div class="clinic-alert clinic-alert-success">@paymentSuccessMsg</div>
-            }
+            @if (!string.IsNullOrWhiteSpace(paymentSuccessMsg)) { <div class="clinic-alert clinic-alert-info" role="status">@paymentSuccessMsg</div> }
         }
+
+        <section class="pt-cl-hero" aria-label="Your progress">
+            <div class="pt-cl-ring" role="img" aria-label="@goalPct percent of your goal">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="9" />
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#2fd072" stroke-width="9" stroke-linecap="round"
+                            stroke-dasharray="263.9" stroke-dashoffset="@((263.9 * (1 - goalPct / 100.0)).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))" transform="rotate(-90 50 50)" />
+                </svg>
+                <div class="pt-cl-ring-text"><b>@kgLost.ToString("0.0") kg</b><span>@(heroTotal > 0 ? $"{goalPct}% of goal" : "lost so far")</span></div>
+            </div>
+            <div class="pt-cl-main">
+                <h2>@(heroTotal > 0 ? $"You are {goalPct}% of the way there" : $"Welcome, {firstName}")</h2>
+                <p>@(streak > 1 ? $"{streak} day logging streak. Keep it going." : "Log your weight each day to build a streak.")</p>
+                <div class="pt-cl-chips">
+                    <span><b>@latestWeight.ToString("0.0") kg</b>Current</span>
+                    <span><b>@userProfile.TargetWeight.ToString("0.0") kg</b>Target</span>
+                    <span><b>@toGo.ToString("0.0") kg</b>To go</span>
+                </div>
+            </div>
+            <div class="pt-cl-next">
+                <small>Next appointment</small>
+                @if (nextAppt != null)
+                {
+                    <b>@ToIst(nextAppt.AppointmentDate).ToString("ddd d MMM, h:mm tt")</b>
+                    <span>@nextAppt.TreatmentType · @nextAppt.Status</span>
+                }
+                else
+                {
+                    <b>None booked</b>
+                    <button type="button" class="pt-link pt-link--light" @onclick='() => GoTab("appointments")'>Book a visit</button>
+                }
+            </div>
+        </section>
 
         @if (!hasLoggedWeightToday)
         {
-            <div class="clinic-alert clinic-alert-warning">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi me-2" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
-                </svg>
-                <div>
-                    <strong>🕒 Daily Logging Notice:</strong> You haven't recorded your weight or meals today. Keep your streak going to stay on track!
-                </div>
+            <div class="pt-nudge pt-only-desktop" role="status">
+                <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-check"></use></svg>
+                <span><strong>Log today's weight</strong> to keep your streak. It takes under a minute.</span>
+                <button type="button" class="pt-btn pt-btn--pri pt-btn--sm" @onclick='() => GoTab("checkin")'>Check in now</button>
             </div>
+            <button type="button" class="pt-cta-float pt-only-mobile" @onclick='() => GoTab("checkin")'>Log today's weight</button>
         }
 
-        <!-- Stat Row -->
-        <div class="dashboard-grid">
-            <!-- Current Weight Card -->
-            <div class="pt-card stat-card">
-                <div class="stat-info">
-                    <h4>Current Weight</h4>
-                    <p>@(latestWeight > 0 ? $"{latestWeight:F1} kg" : "N/A")</p>
-                    <span class="text-secondary small">Target: @userProfile.TargetWeight kg</span>
-                </div>
-                <div class="stat-icon pt-client-stat-icon" style="--c:#008d36"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-grid"></use></svg></div>
-            </div>
+        <div class="pt-kpis pt-kpis--client">
+            <div class="pt-kpi"><b>@(latestWeight > 0 ? latestWeight.ToString("0.0") + " kg" : "N/A")</b><span>Current weight</span></div>
+            <div class="pt-kpi pt-kpi--ok"><b>@(kgLost >= 0 ? "−" : "+")@Math.Abs(kgLost).ToString("0.0") kg</b><span>@(kgLost >= 0 ? "Total lost" : "Total gained")</span></div>
+            <div class="pt-kpi"><b>@attendanceRecords.Count</b><span>Clinic visits</span></div>
+        </div>
 
-            <!-- Weight Loss Progress Card -->
-            <div class="pt-card stat-card">
-                <div class="stat-info">
-                    <h4>Weight Loss Journey</h4>
-                    @{
-                        double diff = userProfile.StartWeight - latestWeight;
-                        double totalTarget = userProfile.StartWeight - userProfile.TargetWeight;
-                        int percentage = totalTarget > 0 ? (int)Math.Clamp((diff / totalTarget) * 100, 0, 100) : 0;
+        <div class="pt-split pt-split--client">
+            <div class="pt-card">
+                <div class="pt-card-head"><h3>Weight progress</h3><span class="pt-ov-pill">@Math.Min(dailyLogs.Count, 14) logs</span></div>
+                @if (dailyLogs.Count < 2) { <p class="pt-ov-empty">Log your weight on two different days to see your progress here.</p> }
+                else { @ProgressChart(dailyLogs.Take(14).OrderBy(x => x.LogDate).ToList(), userProfile.TargetWeight) }
+            </div>
+            <div class="pt-card pt-stack">
+                <div class="pt-card-head"><h3>This week</h3></div>
+                <div class="pt-streak" role="img" aria-label="@week.Count(d => d) of 7 days logged">
+                    @for (int i = 0; i < week.Length; i++)
+                    {
+                        <i class="@(week[i] ? "on" : (i == week.Length - 1 ? "today" : ""))">@if (week[i]) { <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-check"></use></svg> }</i>
                     }
-                    <p>@($"{diff:F1} kg lost")</p>
-                    <span class="text-secondary small">@percentage% of target achieved</span>
                 </div>
-                <div class="stat-icon pt-client-stat-icon" style="--c:#0a8f5a"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-trend"></use></svg></div>
-            </div>
-
-            <!-- Attendance Counter Card -->
-            <div class="pt-card stat-card">
-                <div class="stat-info">
-                    <h4>Total Clinic Visits</h4>
-                    <p>@attendanceRecords.Count</p>
-                    <span class="text-secondary small">Active Check-ins: @(attendanceRecords.Any(ar => ar.Status == "Checked In") ? "1" : "0")</span>
+                <span class="pt-muted">Weight logged @week.Count(d => d) of 7 days</span>
+                <div class="pt-diet-peek">
+                    <div class="pt-card-head"><h3>Your diet plan</h3></div>
+                    @if (!string.IsNullOrWhiteSpace(dietPreview)) { <p>@dietPreview</p><button type="button" class="pt-link" @onclick='() => GoTab("diet")'>Open full plan</button> }
+                    else { <p class="pt-muted">No plan assigned yet. Contact the clinic.</p> }
                 </div>
-                <div class="stat-icon pt-client-stat-icon" style="--c:#7c1b68"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-pulse"></use></svg></div>
             </div>
         </div>
 
-        <!-- Graphs -->
-        @{
-            var weightChanges = WeightChanges(8);
-            var visitMonths = VisitsByMonth(6);
-        }
-        <div class="pt-ov-charts mb-4">
+        var weightChanges = WeightChanges(8);
+        var visitMonths = VisitsByMonth(6);
+        <div class="pt-ov-charts">
             <div class="pt-card pt-ov-chart">
-                <div class="pt-ov-card-head">
-                    <h3>Weight change per log</h3>
-                    <span class="pt-ov-pill">kg vs previous</span>
-                </div>
-                @if (weightChanges.Count == 0)
-                {
-                    <p class="pt-ov-empty">Log your weight on two different days to see your change.</p>
-                }
-                else
-                {
-                    @ChangeChart(weightChanges)
-                }
+                <div class="pt-card-head"><h3>Weight change per log</h3><span class="pt-ov-pill">kg vs previous</span></div>
+                @if (weightChanges.Count == 0) { <p class="pt-ov-empty">Log on two different days to see your change.</p> }
+                else { @ChangeChart(weightChanges) }
             </div>
             <div class="pt-card pt-ov-chart">
-                <div class="pt-ov-card-head">
-                    <h3>Clinic visits, last 6 months</h3>
-                    <span class="pt-ov-pill">@visitMonths.Sum(x => x.Value) total</span>
-                </div>
-                @if (visitMonths.Sum(x => x.Value) == 0)
-                {
-                    <p class="pt-ov-empty">No clinic visits recorded yet.</p>
-                }
-                else
-                {
-                    @MonthChart(visitMonths)
-                }
+                <div class="pt-card-head"><h3>Clinic visits, last 6 months</h3><span class="pt-ov-pill">@visitMonths.Sum(x => x.Value) total</span></div>
+                @if (visitMonths.Sum(x => x.Value) == 0) { <p class="pt-ov-empty">No clinic visits recorded yet.</p> }
+                else { @MonthChart(visitMonths) }
             </div>
         </div>
-
-        <div class="row g-4">
-            <!-- Left Side: Weight Chart and Logging Tools -->
-            <div class="col-lg-8">
-                <!-- Weight Trend Chart -->
-                <div class="pt-card p-4 mb-4">
-                    <h3 class="mb-3">Weight Progress Chart</h3>
-                    @if (dailyLogs == null || dailyLogs.Count < 2)
-                    {
-                        <div class="text-center py-5 text-secondary">
-                            <p>Not enough logs to render progress chart. Log your weight for multiple days to view history.</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <!-- Beautiful SVG Line Chart -->
-                        var chartPoints = GetClientChartPoints();
-                        var pointsString = string.Join(" ", chartPoints.Select(p => $"{p.X:F1},{p.Y:F1}"));
-                        var fillPath = GetClientFillPath(chartPoints);
-                        double targetY = GetTargetY(userProfile.TargetWeight, chartPoints);
-
-                        <div class="chart-container">
-                            <svg viewBox="0 0 700 200" class="chart-svg">
-                                <!-- Grid Lines -->
-                                <line x1="35" y1="35" x2="665" y2="35" stroke="rgba(255,255,255,0.05)" />
-                                <line x1="35" y1="100" x2="665" y2="100" stroke="rgba(255,255,255,0.05)" />
-                                <line x1="35" y1="165" x2="665" y2="165" stroke="rgba(255,255,255,0.1)" />
-
-                                <!-- Target Weight Indicator Line -->
-                                @if (targetY >= 35 && targetY <= 165)
-                                {
-                                    <line x1="35" y1="@targetY" x2="665" y2="@targetY" stroke="rgba(0, 242, 254, 0.4)" stroke-dasharray="4" />
-                                    @((MarkupString)$"<text x='585' y='{targetY - 5}' fill='var(--accent-teal)' font-size='9' font-weight='bold'>Target: {userProfile.TargetWeight} kg</text>")
-                                }
-
-                                <!-- Progress line -->
-                                <polyline fill="none" stroke="url(#chartGrad)" stroke-width="4" stroke-linecap="round" points="@pointsString" />
-
-                                <!-- Gradient fill beneath the line -->
-                                <path d="@fillPath" fill="url(#areaGrad)" opacity="0.15" />
-
-                                <!-- Interactive Data Circles -->
-                                @foreach (var pt in chartPoints)
-                                {
-                                    <circle cx="@pt.X" cy="@pt.Y" r="5" class="chart-point" />
-                                    @((MarkupString)$"<text x='{pt.X}' y='{pt.Y - 10}' fill='var(--text-primary)' font-size='10' text-anchor='middle' font-weight='700'>{pt.Weight}</text>")
-                                    @((MarkupString)$"<text x='{pt.X}' y='188' fill='var(--text-secondary)' font-size='9' text-anchor='middle'>{pt.Label}</text>")
-                                }
-
-                                <defs>
-                                    <linearGradient id="chartGrad" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stop-color="var(--accent-blue)" />
-                                        <stop offset="100%" stop-color="var(--accent-teal)" />
-                                    </linearGradient>
-                                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stop-color="var(--accent-teal)" />
-                                        <stop offset="100%" stop-color="transparent" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                        </div>
-                    }
-                </div>
-
-                <!-- Daily Checking Form -->
-        <div id="checkin" class="pt-card p-4 mb-4 dashboard-anchor-target">
-            <div class="section-heading"><div><span class="eyebrow">DAILY CHECK-IN</span><h3>Weight & Meal Update</h3></div>
-                <div class="d-flex gap-2">
-                    <button class="btn-clinic-secondary @(portalView == "log" ? "active" : "")" @onclick='() => portalView = "log"'>Log Entry</button>
-                    <button class="btn-clinic-secondary @(portalView == "history" ? "active" : "")" @onclick='() => portalView = "history"'>Photo History</button>
-                </div>
+    }
+    else if (activeTab == "checkin")
+    {
+        <!-- ═════════ CHECK-IN ═════════ -->
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Daily check-in</h1>
+                <span class="pt-ov-sub">Weight, measurements and today's meals</span>
             </div>
+            <span class="pt-ov-status pt-ov-status--@(hasLoggedWeightToday ? "ok" : "wait")">@(hasLoggedWeightToday ? "Logged today" : "Not logged today")</span>
+        </div>
+        <div class="pt-seg pt-seg--page" role="group" aria-label="Check-in view">
+            <button type="button" class="@(portalView == "log" ? "on" : "")" @onclick='() => portalView = "log"'>Log entry</button>
+            <button type="button" class="@(portalView == "history" ? "on" : "")" @onclick='() => portalView = "history"'>Photo history</button>
+        </div>
 
-            @if (portalView == "history")
+        @if (portalView == "history")
+        {
+            @if (!dailyLogs.Any(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)))
             {
-                @if (dailyLogs == null || !dailyLogs.Any(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)))
-                {
-                    <div class="empty-state">No meal photos uploaded yet.</div>
-                }
-                else
-                {
-                    <div class="meal-timeline">
-                        @foreach (var log in (dailyLogs ?? new()).Where(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)).Take(20))
-                        {
-                            <div class="meal-timeline-item">
-                                <img src="@log.MealPhotoUrl" alt="Meal photo" />
-                                <div class="meal-info">
-                                    <div class="meal-date">@log.LogDate.ToString("dd MMM yyyy")</div>
-                                    <div class="meal-notes">@log.DietNotes</div>
-                                    <div class="macro-bar mt-1">
-                                        <div class="seg-carbs" style="width: @log.CarbsPercentage%"></div>
-                                        <div class="seg-protein" style="width: @log.ProteinPercentage%"></div>
-                                        <div class="seg-fat" style="width: @log.FatPercentage%"></div>
-                                        <div class="seg-veg" style="width: @log.VegPercentage%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
+                <div class="pt-card"><p class="pt-ov-empty">No meal photos uploaded yet.</p></div>
             }
             else
             {
-                <p class="text-secondary small mb-4">Send your weight, diet notes and a real meal photo to the clinic team. Your dietician can review the information and follow up through WhatsApp.</p>
-                <EditForm Model="logModel" OnValidSubmit="HandleLogSubmission">
-                    <DataAnnotationsValidator />
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6"><label class="clinic-label">Weight today (kg)</label><InputNumber @bind-Value="logModel.Weight" class="clinic-input" step="0.1" /></div>
-                        <div class="col-md-6"><label class="clinic-label">Log date</label><InputDate @bind-Value="logModel.LogDate" class="clinic-input" /></div>
-                        <!-- Task 12.4: Optional measurement fields -->
-                        <div class="col-md-3"><label class="clinic-label">Waist (in) <span class="text-muted small">optional</span></label><input type="number" class="clinic-input" step="0.1" min="0.1" max="999.9" @bind="waistInput" @bind:event="oninput" /></div>
-                        <div class="col-md-3"><label class="clinic-label">Chest (in) <span class="text-muted small">optional</span></label><input type="number" class="clinic-input" step="0.1" min="0.1" max="999.9" @bind="chestInput" @bind:event="oninput" /></div>
-                        <div class="col-md-3"><label class="clinic-label">Hips (in) <span class="text-muted small">optional</span></label><input type="number" class="clinic-input" step="0.1" min="0.1" max="999.9" @bind="hipsInput" @bind:event="oninput" /></div>
-                        <div class="col-md-3"><label class="clinic-label">Arms (in) <span class="text-muted small">optional</span></label><input type="number" class="clinic-input" step="0.1" min="0.1" max="999.9" @bind="armsInput" @bind:event="oninput" /></div>
-                        @if (!string.IsNullOrWhiteSpace(measurementError)) { <div class="col-12"><span class="text-danger small">@measurementError</span></div> }
-                        <div class="col-12"><label class="clinic-label">Diet / symptoms / water / activity notes</label><InputTextArea @bind-Value="logModel.DietNotes" class="clinic-input" rows="4" placeholder="Tell your dietician what you ate, water intake, activity and how you felt today..." /></div>
-                    </div>
-
-                    <!-- Task 12.1: Macro sliders -->
-                    <div class="mb-3">
-                        <label class="clinic-label mb-2">Macro Distribution (must total 100%)</label>
-                        <div class="macro-slider-group">
-                            <div class="slider-row">
-                                <label>Carbs</label>
-                                <input type="range" min="0" max="100" value="@logModel.CarbsPercentage" @oninput="OnCarbsChange" />
-                                <span class="pct-label">@logModel.CarbsPercentage%</span>
-                            </div>
-                            <div class="slider-row">
-                                <label>Protein</label>
-                                <input type="range" min="0" max="100" value="@logModel.ProteinPercentage" @oninput="OnProteinChange" />
-                                <span class="pct-label">@logModel.ProteinPercentage%</span>
-                            </div>
-                            <div class="slider-row">
-                                <label>Fat</label>
-                                <input type="range" min="0" max="100" value="@logModel.FatPercentage" @oninput="OnFatChange" />
-                                <span class="pct-label">@logModel.FatPercentage%</span>
-                            </div>
-                            <div class="slider-row">
-                                <label>Veg</label>
-                                <input type="range" min="0" max="100" value="@logModel.VegPercentage" @oninput="OnVegChange" />
-                                <span class="pct-label">@logModel.VegPercentage%</span>
-                            </div>
-                        </div>
-                        <!-- Task 12.2: Live macro bar -->
-                        <div class="macro-bar mt-2">
-                            <div class="seg-carbs" style="width: @logModel.CarbsPercentage%"></div>
-                            <div class="seg-protein" style="width: @logModel.ProteinPercentage%"></div>
-                            <div class="seg-fat" style="width: @logModel.FatPercentage%"></div>
-                            <div class="seg-veg" style="width: @logModel.VegPercentage%"></div>
-                        </div>
-                        <div class="text-secondary small mt-1">Total: @(logModel.CarbsPercentage + logModel.ProteinPercentage + logModel.FatPercentage + logModel.VegPercentage)%</div>
-                        <!-- Task 12.3: macro sum validation -->
-                        @if (!string.IsNullOrWhiteSpace(macroSumError)) { <div class="clinic-alert clinic-alert-danger mt-1 small">@macroSumError</div> }
-                    </div>
-
-                    <div class="meal-upload-panel mb-3">
-                        <div><span class="eyebrow">MEAL PHOTO</span><h5 class="mb-1">Upload today's meal</h5><span class="text-secondary small">Use your phone or laptop camera/photo picker.</span></div>
-                        <InputFile OnChange="HandleMealPhotoUpload" accept="image/*" />
-                    </div>
-                    @if (!string.IsNullOrWhiteSpace(mealPhotoError))
+                <div class="pt-meal-grid">
+                    @foreach (var log in dailyLogs.Where(l => !string.IsNullOrWhiteSpace(l.MealPhotoUrl)).Take(20))
                     {
-                        <div class="clinic-alert clinic-alert-danger mt-1 small">@mealPhotoError</div>
-                    }
-                    <!-- Task 12.6: Client-side preview before submit -->
-                    @if (!string.IsNullOrWhiteSpace(mealPhotoPreviewUrl))
-                    {
-                        <div class="mb-3">
-                            <span class="clinic-label">Preview</span>
-                            <img src="@mealPhotoPreviewUrl" class="meal-preview" alt="Meal preview" />
-                        </div>
-                    }
-                    else if (!string.IsNullOrWhiteSpace(logModel.MealPhotoUrl))
-                    {
-                        <img src="@logModel.MealPhotoUrl" class="meal-preview" alt="Uploaded meal" />
-                    }
-                    <div class="d-flex justify-content-between align-items-center mt-3"><span class="text-secondary small">Your clinic team will review this update.</span><button class="btn-clinic" type="submit">Save today's update</button></div>
-                    @if (!string.IsNullOrWhiteSpace(logSaveMsg))
-                    {
-                        <div class="clinic-alert clinic-alert-info mt-2">@logSaveMsg</div>
-                    }
-                </EditForm>
-            }
-        </div>
-
-        <div id="appointments" class="row g-4 mb-4 dashboard-anchor-target">
-            <div class="col-lg-7">
-                <div class="pt-card p-4 h-100">
-                    <div class="section-heading"><div><span class="eyebrow">APPOINTMENTS</span><h3>Book a Clinic Visit</h3></div><span class="soft-pill">Quick booking</span></div>
-                    <EditForm Model="apptModel" OnValidSubmit="HandleAppointmentBooking">
-                        <div class="row g-3">
-                            <div class="col-md-7"><label class="clinic-label">Date & time</label><InputDate @bind-Value="apptModel.AppointmentDate" class="clinic-input" /></div>
-                            <div class="col-md-5"><label class="clinic-label">Service</label><select class="clinic-input" @bind="apptModel.TreatmentType"><option>Slimming</option><option>Physio</option><option>Consultation</option><option>Wellness</option></select></div>
-                            <div class="col-12"><label class="clinic-label">Note</label><InputTextArea @bind-Value="apptModel.Notes" class="clinic-input" rows="2" placeholder="Any preferred time or concern..." /></div>
-                        </div>
-                        <button class="btn-clinic mt-3" type="submit">Request appointment</button>
-                    </EditForm>
-                    @if (!string.IsNullOrWhiteSpace(apptSaveMsg))
-                    {
-                        <div class="clinic-alert clinic-alert-success mt-2">@apptSaveMsg</div>
-                    }
-                    @if (appointments.Any())
-                    {
-                        <div class="mt-4">@foreach (var appt in appointments.Take(5)) { <div class="message-row"><div><strong>@appt.TreatmentType</strong><div class="text-secondary small">@appt.AppointmentDate.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</div></div><span class="soft-pill">@appt.Status</span></div> }</div>
-                    }
-                </div>
-            </div>
-            <div class="col-lg-5">
-                <div class="pt-card p-4 h-100">
-                    <span class="eyebrow">DIRECT COMMUNICATION</span><h3>Talk to the Clinic</h3>
-                    <p class="text-secondary">For diet changes, fee questions, appointment changes or treatment concerns, WhatsApp is the primary communication channel.</p>
-                    @if (currentUser != null)
-                    { <a class="btn-clinic w-100 justify-content-center" target="_blank" href="@GetClinicWhatsAppLink()">💬 Open ProTouch WhatsApp</a> }
-                    <div class="text-secondary small mt-3">Keep your clinic's official WhatsApp number configured by the admin before production use.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- My Diet Plan Section — Requirements 12.1, 12.2, 12.3, 12.4 -->
-        <div id="diet" class="pt-card p-4 mb-4 dashboard-anchor-target">
-            <span class="eyebrow">NUTRITION GUIDANCE</span>
-            <h3 class="mb-3">My Diet Plan</h3>
-            @if (!string.IsNullOrWhiteSpace(userProfile?.DietPlan))
-            {
-                <pre class="diet-plan-text">@userProfile.DietPlan</pre>
-            }
-            @if (dietPlanDocument != null)
-            {
-                <div class="diet-plan-download mt-3">
-                    <div>
-                        <strong>📄 @dietPlanDocument.OriginalFileName</strong>
-                        <span class="text-secondary small d-block">Uploaded @dietPlanDocument.UploadedAtUtc.ToLocalTime().ToString("dd MMM yyyy")</span>
-                    </div>
-                    <a class="btn-clinic" href="/diet-plan-documents/@dietPlanDocument.Id/download" download>
-                        Download diet plan
-                    </a>
-                </div>
-            }
-            @if (string.IsNullOrWhiteSpace(userProfile?.DietPlan) && dietPlanDocument == null)
-            {
-                <div class="empty-state">
-                    No diet plan has been assigned yet. Please contact your clinic.
-                </div>
-            }
-        </div>
-
-        <!-- Clinic Visits & Treatments History -->
-                <div id="history" class="pt-card p-4 dashboard-anchor-target">
-                    <h3 class="mb-3">Clinic Attendance & Treatments</h3>
-                    <p class="text-secondary small mb-3">Record of physical check-in logs and treatments received at the center.</p>
-
-                    @if (attendanceRecords == null || !attendanceRecords.Any())
-                    {
-                        <span class="text-secondary small">No physical check-in logs recorded yet.</span>
-                    }
-                    else
-                    {
-                        <div style="max-height: 400px; overflow-y: auto; padding-right: 4px;">
-                            @foreach (var visit in attendanceRecords)
-                            {
-                                <div class="pt-card p-3 mb-3 border-0" style="background: rgba(255,255,255,0.02); border-left: 3px solid @(visit.Status == "Checked In" ? "var(--accent-warning)" : "var(--accent-success)") !important;">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="text-white small font-weight-bold">@visit.TreatmentReceived</span>
-                                        <span class="badge-clinic @(visit.Status == "Checked In" ? "badge-pending" : "badge-active") text-xs" style="font-size: 0.65rem;">
-                                            @visit.Status
-                                        </span>
-                                    </div>
-                                    <span class="text-secondary small d-block">
-                                        Check In: @visit.CheckInTime.ToLocalTime().ToString("dd MMM, h:mm tt")
-                                    </span>
-                                    @if (visit.CheckOutTime.HasValue)
-                                    {
-                                        <span class="text-secondary small d-block">
-                                            Completed: @visit.CheckOutTime.Value.ToLocalTime().ToString("h:mm tt")
-                                        </span>
-                                    }
-                                    <span class="text-secondary small d-block mt-1">
-                                        <strong>Staff:</strong> @visit.Therapist
-                                    </span>
-                                    @if (!string.IsNullOrEmpty(visit.Notes))
-                                    {
-                                        <span class="text-muted small d-block mt-1 bg-dark p-2 rounded" style="font-size: 0.8rem; background: rgba(0,0,0,0.2) !important;">
-                                            📝 @visit.Notes
-                                        </span>
-                                    }
+                        <div class="pt-card pt-meal">
+                            <img src="@log.MealPhotoUrl" class="pt-meal-photo" alt="Meal photo from @log.LogDate.ToString("dd MMM yyyy")" loading="lazy" />
+                            <div class="pt-meal-body">
+                                <div class="pt-meal-top"><strong>@log.LogDate.ToString("dd MMM yyyy")</strong><span>@log.Weight.ToString("0.0") kg</span></div>
+                                @if (!string.IsNullOrWhiteSpace(log.DietNotes)) { <p class="pt-meal-notes">@log.DietNotes</p> }
+                                <div class="macro-bar">
+                                    <div class="seg-carbs" style="width: @log.CarbsPercentage%"></div>
+                                    <div class="seg-protein" style="width: @log.ProteinPercentage%"></div>
+                                    <div class="seg-fat" style="width: @log.FatPercentage%"></div>
+                                    <div class="seg-veg" style="width: @log.VegPercentage%"></div>
                                 </div>
-                            }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <EditForm Model="logModel" OnValidSubmit="HandleLogSubmission">
+                <DataAnnotationsValidator />
+                <div class="pt-split pt-split--client">
+                    <div class="pt-stack">
+                        <div class="pt-card pt-form">
+                            <div class="pt-card-head"><h3>Weight</h3></div>
+                            <div class="pt-weight-row">
+                                <div class="pt-field pt-field--weight"><label for="ci-weight">Today's weight (kg)</label><InputNumber id="ci-weight" @bind-Value="logModel.Weight" class="pt-input pt-input--big" step="0.1" inputmode="decimal" /></div>
+                                <div class="pt-field"><label for="ci-date">Log date</label><InputDate id="ci-date" @bind-Value="logModel.LogDate" class="pt-input" /></div>
+                            </div>
+                            <details class="pt-more">
+                                <summary>Add measurements <span>optional</span></summary>
+                                <div class="pt-grid4">
+                                    <div class="pt-field"><label for="ci-waist">Waist (in)</label><input id="ci-waist" type="number" class="pt-input" step="0.1" min="0.1" max="999.9" inputmode="decimal" @bind="waistInput" @bind:event="oninput" /></div>
+                                    <div class="pt-field"><label for="ci-chest">Chest (in)</label><input id="ci-chest" type="number" class="pt-input" step="0.1" min="0.1" max="999.9" inputmode="decimal" @bind="chestInput" @bind:event="oninput" /></div>
+                                    <div class="pt-field"><label for="ci-hips">Hips (in)</label><input id="ci-hips" type="number" class="pt-input" step="0.1" min="0.1" max="999.9" inputmode="decimal" @bind="hipsInput" @bind:event="oninput" /></div>
+                                    <div class="pt-field"><label for="ci-arms">Arms (in)</label><input id="ci-arms" type="number" class="pt-input" step="0.1" min="0.1" max="999.9" inputmode="decimal" @bind="armsInput" @bind:event="oninput" /></div>
+                                </div>
+                            </details>
+                            @if (!string.IsNullOrWhiteSpace(measurementError)) { <span class="pt-err">@measurementError</span> }
+                        </div>
+
+                        <div class="pt-card pt-form">
+                            <div class="pt-card-head"><h3>Today's meals</h3>@{ var macroTotal = logModel.CarbsPercentage + logModel.ProteinPercentage + logModel.FatPercentage + logModel.VegPercentage; }<span class="pt-ov-status pt-ov-status--@(macroTotal == 100 ? "ok" : "wait")">@macroTotal%</span></div>
+                            <label class="pt-drop" for="ci-photo">
+                                @if (!string.IsNullOrWhiteSpace(mealPhotoPreviewUrl)) { <img src="@mealPhotoPreviewUrl" class="pt-drop-preview" alt="Meal preview" /> }
+                                else if (!string.IsNullOrWhiteSpace(logModel.MealPhotoUrl)) { <img src="@logModel.MealPhotoUrl" class="pt-drop-preview" alt="Uploaded meal" /> }
+                                else { <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-camera"></use></svg> }
+                                <strong>Add a meal photo</strong>
+                                <span>Take a photo or pick one from your gallery.</span>
+                                <InputFile id="ci-photo" class="pt-drop-input" OnChange="HandleMealPhotoUpload" accept="image/*" />
+                            </label>
+                            @if (!string.IsNullOrWhiteSpace(mealPhotoError)) { <div class="clinic-alert clinic-alert-danger" role="alert">@mealPhotoError</div> }
+
+                            <div class="macro-bar pt-macro-live">
+                                <div class="seg-carbs" style="width: @logModel.CarbsPercentage%"></div>
+                                <div class="seg-protein" style="width: @logModel.ProteinPercentage%"></div>
+                                <div class="seg-fat" style="width: @logModel.FatPercentage%"></div>
+                                <div class="seg-veg" style="width: @logModel.VegPercentage%"></div>
+                            </div>
+                            <div class="pt-sliders">
+                                <div class="pt-slider pt-slider--carbs"><label for="m-carbs">Carbs</label><input id="m-carbs" type="range" min="0" max="100" value="@logModel.CarbsPercentage" @oninput="OnCarbsChange" /><b>@logModel.CarbsPercentage%</b></div>
+                                <div class="pt-slider pt-slider--protein"><label for="m-protein">Protein</label><input id="m-protein" type="range" min="0" max="100" value="@logModel.ProteinPercentage" @oninput="OnProteinChange" /><b>@logModel.ProteinPercentage%</b></div>
+                                <div class="pt-slider pt-slider--fat"><label for="m-fat">Fat</label><input id="m-fat" type="range" min="0" max="100" value="@logModel.FatPercentage" @oninput="OnFatChange" /><b>@logModel.FatPercentage%</b></div>
+                                <div class="pt-slider pt-slider--veg"><label for="m-veg">Veg</label><input id="m-veg" type="range" min="0" max="100" value="@logModel.VegPercentage" @oninput="OnVegChange" /><b>@logModel.VegPercentage%</b></div>
+                            </div>
+                            <span class="pt-muted">The four must add up to 100%.</span>
+                            @if (!string.IsNullOrWhiteSpace(macroSumError)) { <div class="clinic-alert clinic-alert-danger" role="alert">@macroSumError</div> }
+
+                            <div class="pt-field"><label for="ci-notes">Notes for your dietician</label><InputTextArea id="ci-notes" @bind-Value="logModel.DietNotes" class="pt-input" rows="3" placeholder="What you ate, water, activity and how you felt today" /></div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(logSaveMsg)) { <div class="clinic-alert clinic-alert-info" role="status">@logSaveMsg</div> }
+                        <div class="pt-savebar">
+                            <span class="pt-muted pt-only-desktop">Your clinic team will review this update.</span>
+                            <button type="submit" class="pt-btn pt-btn--pri pt-btn--lg">Save today's check-in</button>
+                        </div>
+                    </div>
+
+                    <div class="pt-stack pt-only-desktop">
+                        <div class="pt-card">
+                            <div class="pt-card-head"><h3>Your streak</h3></div>
+                            <div class="pt-streak">
+                                @for (int i = 0; i < week.Length; i++)
+                                {
+                                    <i class="@(week[i] ? "on" : (i == week.Length - 1 ? "today" : ""))">@if (week[i]) { <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-check"></use></svg> }</i>
+                                }
+                            </div>
+                            <p class="pt-muted pt-mt">@(hasLoggedWeightToday ? "Logged today. See you tomorrow." : $"Log today to make it {streak + 1} day{(streak + 1 == 1 ? "" : "s")}.")</p>
+                        </div>
+                        <div class="pt-card">
+                            <div class="pt-card-head"><h3>Recent weights</h3></div>
+                            @if (!dailyLogs.Any()) { <p class="pt-ov-empty">Nothing logged yet.</p> }
+                            <ul class="pt-rows">
+                                @foreach (var l in dailyLogs.Take(5))
+                                {
+                                    <li class="pt-row"><span class="pt-row-main"><strong>@l.LogDate.ToString("d MMM")</strong></span><b class="pt-num">@l.Weight.ToString("0.0") kg</b></li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    }
+    else if (activeTab == "appointments")
+    {
+        <!-- ═════════ APPOINTMENTS ═════════ -->
+        var upcoming = appointments.Where(a => a.AppointmentDate >= DateTime.UtcNow && a.Status != "Cancelled" && a.Status != "Completed").OrderBy(a => a.AppointmentDate).ToList();
+        var past = appointments.Where(a => !upcoming.Contains(a)).OrderByDescending(a => a.AppointmentDate).ToList();
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">Appointments</h1>
+                <span class="pt-ov-sub">Your visits and booking</span>
+            </div>
+        </div>
+        <div class="pt-split pt-split--client">
+            <div class="pt-stack">
+                @if (nextAppt != null)
+                {
+                    <div class="pt-cl-card">
+                        <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-cal"></use></svg>
+                        <div><small>Next appointment</small><b>@ToIst(nextAppt.AppointmentDate).ToString("dddd d MMM, h:mm tt")</b><span>@nextAppt.TreatmentType</span></div>
+                        <span class="pt-ov-status pt-ov-status--@(nextAppt.Status == "Confirmed" ? "ok" : "info")">@nextAppt.Status</span>
+                    </div>
+                }
+                <div class="pt-card pt-form">
+                    <div class="pt-card-head"><h3>Book a visit</h3></div>
+                    <EditForm Model="apptModel" OnValidSubmit="HandleAppointmentBooking" class="pt-form">
+                        <div class="pt-field"><label for="ap-service">Treatment</label><select id="ap-service" class="pt-input" @bind="apptModel.TreatmentType"><option>Slimming</option><option>Physio</option><option>Consultation</option><option>Wellness</option></select></div>
+                        <div class="pt-field"><label for="ap-date">Preferred date</label><InputDate id="ap-date" @bind-Value="apptModel.AppointmentDate" class="pt-input" /></div>
+                        <div class="pt-field"><label for="ap-note">Notes</label><InputTextArea id="ap-note" @bind-Value="apptModel.Notes" class="pt-input" rows="2" placeholder="Preferred time or any concern" /></div>
+                        <button type="submit" class="pt-btn pt-btn--pri pt-btn--block">Request appointment</button>
+                        <span class="pt-muted">The clinic confirms your request on WhatsApp.</span>
+                    </EditForm>
+                    @if (!string.IsNullOrWhiteSpace(apptSaveMsg)) { <div class="clinic-alert clinic-alert-info" role="status">@apptSaveMsg</div> }
+                </div>
+                <div class="pt-card">
+                    <div class="pt-card-head"><h3>Upcoming</h3><span class="pt-ov-pill">@upcoming.Count</span></div>
+                    @if (!upcoming.Any()) { <p class="pt-ov-empty">Nothing booked. Request a visit above.</p> }
+                    <ul class="pt-rows">
+                        @foreach (var a in upcoming)
+                        {
+                            <li class="pt-row">
+                                <div class="pt-row-main"><strong>@a.TreatmentType</strong><small>@ToIst(a.AppointmentDate).ToString("ddd d MMM, h:mm tt")</small></div>
+                                <span class="pt-ov-status pt-ov-status--@(a.Status == "Confirmed" ? "ok" : "info")">@a.Status</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <div class="pt-card">
+                    <div class="pt-card-head"><h3>Past visits</h3><span class="pt-ov-pill">@past.Count</span></div>
+                    @if (!past.Any()) { <p class="pt-ov-empty">No past appointments.</p> }
+                    <ul class="pt-rows">
+                        @foreach (var a in past.Take(10))
+                        {
+                            <li class="pt-row">
+                                <div class="pt-row-main"><strong>@a.TreatmentType</strong><small>@ToIst(a.AppointmentDate).ToString("d MMM yyyy")</small></div>
+                                <span class="pt-ov-status pt-ov-status--@(a.Status == "Completed" ? "ok" : a.Status == "Cancelled" ? "bad" : "info")">@a.Status</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-stack pt-sticky">
+                <div class="pt-card">
+                    <div class="pt-card-head"><h3>Talk to the clinic</h3></div>
+                    <p class="pt-muted pt-mb">For diet changes, fees, appointment changes or treatment concerns, WhatsApp is the quickest way.</p>
+                    @if (currentUser != null) { <a class="pt-btn pt-btn--block" target="_blank" rel="noopener" href="@GetClinicWhatsAppLink()"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-chat"></use></svg>Message on WhatsApp</a> }
+                </div>
+            </div>
+        </div>
+    }
+    else if (activeTab == "diet")
+    {
+        <!-- ═════════ DIET PLAN ═════════ -->
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">My diet plan</h1>
+                <span class="pt-ov-sub">Set by your dietician</span>
+            </div>
+        </div>
+        @if (string.IsNullOrWhiteSpace(userProfile.DietPlan) && dietPlanDocument == null)
+        {
+            <div class="pt-card"><p class="pt-ov-empty">No diet plan has been assigned yet. Please contact your clinic.</p></div>
+        }
+        else
+        {
+            <div class="pt-split pt-split--client">
+                <div class="pt-card">
+                    <div class="pt-card-head"><h3>Your plan</h3></div>
+                    @if (!string.IsNullOrWhiteSpace(userProfile.DietPlan)) { <div class="pt-diet-text">@userProfile.DietPlan</div> }
+                    else { <p class="pt-ov-empty">See the attached document.</p> }
+                </div>
+                <div class="pt-stack">
+                    @if (dietPlanDocument != null)
+                    {
+                        <div class="pt-card">
+                            <div class="pt-card-head"><h3>Plan document</h3></div>
+                            <div class="pt-doc">
+                                <span class="pt-doc-icon"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-file"></use></svg></span>
+                                <div><strong>@dietPlanDocument.OriginalFileName</strong><small>Uploaded @dietPlanDocument.UploadedAtUtc.ToLocalTime().ToString("dd MMM yyyy")</small></div>
+                            </div>
+                            <a class="pt-btn pt-btn--pri pt-btn--block pt-mt" href="/diet-plan-documents/@dietPlanDocument.Id/download" download><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-download"></use></svg>Download plan</a>
+                        </div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(userProfile.DoctorNotes))
+                    {
+                        <div class="pt-card"><div class="pt-card-head"><h3>Doctor's notes</h3></div><p class="pt-note-text">@userProfile.DoctorNotes</p></div>
+                    }
+                    <div class="pt-card">
+                        <div class="pt-card-head"><h3>Questions?</h3></div>
+                        @if (currentUser != null) { <a class="pt-btn pt-btn--block" target="_blank" rel="noopener" href="@GetClinicWhatsAppLink()"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-chat"></use></svg>Ask on WhatsApp</a> }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else if (activeTab == "history")
+    {
+        <!-- ═════════ MY HISTORY ═════════ -->
+        var visitMonthsH = VisitsByMonth(6);
+        <div class="pt-ov-head">
+            <div>
+                <h1 class="pt-ov-title">My history</h1>
+                <span class="pt-ov-sub">Weight, visits and treatments</span>
+            </div>
+        </div>
+        <div class="pt-kpis pt-kpis--client">
+            <div class="pt-kpi"><b>@attendanceRecords.Count</b><span>Clinic visits</span></div>
+            <div class="pt-kpi"><b>@dailyLogs.Count</b><span>Weight logs</span></div>
+            <div class="pt-kpi pt-kpi--ok"><b>@(kgLost >= 0 ? "−" : "+")@Math.Abs(kgLost).ToString("0.0") kg</b><span>Since you started</span></div>
+        </div>
+        <div class="pt-split pt-split--client">
+            <div class="pt-card">
+                <div class="pt-card-head"><h3>Visits and treatments</h3></div>
+                @if (!attendanceRecords.Any()) { <p class="pt-ov-empty">No clinic visits recorded yet.</p> }
+                <div class="pt-timeline">
+                    @foreach (var visit in attendanceRecords)
+                    {
+                        <div class="pt-tl-item">
+                            <span class="pt-tl-date">@visit.CheckInTime.ToLocalTime().ToString("d MMM")<small>@visit.CheckInTime.ToLocalTime().ToString("yyyy")</small></span>
+                            <span class="pt-tl-dot pt-tl-dot--@(visit.Status == "Absent" ? "bad" : visit.Status == "Checked In" ? "wait" : "ok")"></span>
+                            <div class="pt-tl-body">
+                                <strong>@visit.TreatmentReceived</strong>
+                                <small>@visit.Therapist · @visit.CheckInTime.ToLocalTime().ToString("h:mm tt")@(visit.CheckOutTime.HasValue ? $" to {visit.CheckOutTime.Value.ToLocalTime():h:mm tt}" : "")</small>
+                                @if (!string.IsNullOrEmpty(visit.Notes)) { <small>@visit.Notes</small> }
+                            </div>
+                            <span class="pt-ov-status pt-ov-status--@(visit.Status == "Absent" ? "bad" : visit.Status == "Checked In" ? "wait" : "ok")">@visit.Status</span>
                         </div>
                     }
                 </div>
             </div>
+            <div class="pt-stack">
+                <div class="pt-card">
+                    <div class="pt-card-head"><h3>Visits per month</h3></div>
+                    @if (visitMonthsH.Sum(x => x.Value) == 0) { <p class="pt-ov-empty">No visits yet.</p> }
+                    else { @MonthChart(visitMonthsH) }
+                </div>
+                <div class="pt-card">
+                    <div class="pt-card-head"><h3>Weight logs</h3><span class="pt-ov-pill">latest</span></div>
+                    @if (!dailyLogs.Any()) { <p class="pt-ov-empty">Nothing logged yet.</p> }
+                    <ul class="pt-rows">
+                        @for (int i = 0; i < Math.Min(dailyLogs.Count, 8); i++)
+                        {
+                            var delta = i + 1 < dailyLogs.Count ? dailyLogs[i].Weight - dailyLogs[i + 1].Weight : (double?)null;
+                            <li class="pt-row">
+                                <span class="pt-row-main"><strong>@dailyLogs[i].LogDate.ToString("d MMM")</strong></span>
+                                <b class="pt-num">@dailyLogs[i].Weight.ToString("0.0") kg</b>
+                                @if (delta.HasValue) { <span class="pt-ov-status pt-ov-status--@(delta < 0 ? "ok" : delta > 0 ? "bad" : "info")">@(delta > 0 ? "+" : "")@delta.Value.ToString("0.0")</span> }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
         </div>
+    }
     </div>
 }
 
@@ -925,6 +795,84 @@ else
     }
 
     public record ChartPoint(double X, double Y, string Label, double Weight);
+
+    // ── Pages (tabs) ────────────────────────────────────────────────────────
+    private string activeTab = "overview";
+
+    [SupplyParameterFromQuery(Name = "tab")]
+    public string? TabQuery { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        activeTab = TabQuery is "checkin" or "appointments" or "diet" or "history" ? TabQuery : "overview";
+    }
+
+    // Times are stored as UTC. Entities booked in this session can carry Kind=Local, which
+    // ConvertTimeFromUtc rejects, so always stamp them as UTC first.
+    private static DateTime ToIst(DateTime d) =>
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(d, DateTimeKind.Utc), GetClientIst());
+
+    private void GoTab(string tab) =>
+        NavManager.NavigateTo(tab == "overview" ? "/client-dashboard" : $"/client-dashboard?tab={tab}");
+
+    // True for each of the last N days (oldest first, today last) that has a weight log.
+    private bool[] LoggedLastDays(int days)
+    {
+        var logged = new HashSet<DateTime>((dailyLogs ?? new()).Select(l => l.LogDate.Date));
+        var result = new bool[days];
+        for (int i = 0; i < days; i++) result[i] = logged.Contains(DateTime.Today.AddDays(-(days - 1 - i)));
+        return result;
+    }
+
+    // Consecutive days with a log, counting back from today (or from yesterday if today is not logged yet).
+    private int LogStreak()
+    {
+        var logged = new HashSet<DateTime>((dailyLogs ?? new()).Select(l => l.LogDate.Date));
+        var day = logged.Contains(DateTime.Today) ? DateTime.Today : DateTime.Today.AddDays(-1);
+        int count = 0;
+        while (logged.Contains(day)) { count++; day = day.AddDays(-1); }
+        return count;
+    }
+
+    // Weight over time with a dashed target line, drawn to one scale.
+    private static MarkupString ProgressChart(List<DailyLog> logs, double target)
+    {
+        const int w = 520, h = 210, left = 36, right = 12, top = 16, bottom = 26;
+        var points = logs.Where(l => l.Weight > 0).ToList();
+        if (points.Count < 2) return new MarkupString("");
+        double min = Math.Min(points.Min(l => l.Weight), target > 0 ? target : double.MaxValue);
+        double max = points.Max(l => l.Weight);
+        min = Math.Floor(min - 1); max = Math.Ceiling(max + 1);
+        double plotW = w - left - right, plotH = h - top - bottom;
+        double X(int i) => left + plotW * i / (points.Count - 1);
+        double Y(double kg) => top + plotH - plotH * (kg - min) / (max - min);
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"<svg class=\"pt-chart\" viewBox=\"0 0 {w} {h}\" role=\"img\" aria-label=\"Weight progress\">");
+        foreach (var tick in new[] { min, (min + max) / 2, max })
+        {
+            sb.Append($"<line x1=\"{left}\" x2=\"{w - right}\" y1=\"{Y(tick):F1}\" y2=\"{Y(tick):F1}\" class=\"pt-chart-grid\"/>");
+            sb.Append($"<text x=\"{left - 6}\" y=\"{Y(tick) + 3:F1}\" text-anchor=\"end\" class=\"pt-chart-text\">{tick:0}</text>");
+        }
+        if (target >= min && target <= max)
+        {
+            sb.Append($"<line x1=\"{left}\" x2=\"{w - right}\" y1=\"{Y(target):F1}\" y2=\"{Y(target):F1}\" stroke=\"#7c1b68\" stroke-dasharray=\"4 3\" stroke-width=\"1.2\"/>");
+            sb.Append($"<text x=\"{w - right}\" y=\"{Y(target) - 4:F1}\" text-anchor=\"end\" class=\"pt-chart-text\" fill=\"#7c1b68\">Target {target:0.#} kg</text>");
+        }
+        var path = new System.Text.StringBuilder();
+        for (int i = 0; i < points.Count; i++) path.Append($"{X(i):F1},{Y(points[i].Weight):F1} ");
+        sb.Append($"<polygon points=\"{X(0):F1},{top + plotH:F1} {path}{X(points.Count - 1):F1},{top + plotH:F1}\" fill=\"#008d36\" opacity=\"0.08\"/>");
+        sb.Append($"<polyline fill=\"none\" stroke=\"#008d36\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" points=\"{path}\"/>");
+        for (int i = 0; i < points.Count; i++)
+        {
+            bool last = i == points.Count - 1;
+            sb.Append($"<circle cx=\"{X(i):F1}\" cy=\"{Y(points[i].Weight):F1}\" r=\"{(last ? 4.5 : 3)}\" fill=\"#008d36\"><title>{points[i].LogDate:d MMM}: {points[i].Weight:0.#} kg</title></circle>");
+        }
+        sb.Append($"<text x=\"{left}\" y=\"{h - 7}\" class=\"pt-chart-text\">{points.First().LogDate:d MMM}</text>");
+        sb.Append($"<text x=\"{w - right}\" y=\"{h - 7}\" text-anchor=\"end\" class=\"pt-chart-text\">{points.Last().LogDate:d MMM}</text>");
+        sb.Append("</svg>");
+        return new MarkupString(sb.ToString());
+    }
+
 
     // ── Graphs ──────────────────────────────────────────────────────────────
     private List<KeyValuePair<string, double>> WeightChanges(int take)
