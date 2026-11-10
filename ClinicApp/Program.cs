@@ -240,6 +240,34 @@ app.MapGet("/diet-plan-documents/{id:guid}/download", async (
 })
     .RequireAuthorization();
 
+// PDF diet plans can also be opened in the browser instead of downloaded.
+app.MapGet("/diet-plan-documents/{id:guid}/view", async (
+    Guid id,
+    ClaimsPrincipal user,
+    ApplicationDbContext db,
+    ClinicApp.Services.DietPlanDocumentService documents) =>
+{
+    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrWhiteSpace(userId) || !(user.IsInRole("Admin") || user.IsInRole("Client")))
+        return Results.Forbid();
+
+    var document = await db.DietPlanDocuments.AsNoTracking()
+        .FirstOrDefaultAsync(item => item.Id == id);
+    if (document == null || (!user.IsInRole("Admin") && document.ClientUserId != userId))
+        return Results.NotFound();
+
+    // Only PDFs can be shown in the browser. Word files are downloaded.
+    if (!document.OriginalFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        return Results.Redirect($"/diet-plan-documents/{id}/download");
+
+    var path = documents.GetDownloadPath(document);
+    if (path == null)
+        return Results.NotFound();
+
+    return Results.File(path, "application/pdf", enableRangeProcessing: true);
+})
+    .RequireAuthorization();
+
 // Health endpoint — lets Render know the app is alive (avoids cold-start sleep)
 app.MapGet("/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }));
 

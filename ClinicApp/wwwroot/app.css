@@ -7731,3 +7731,6 @@ textarea.pt-input { resize: vertical; line-height: 1.45; }
 /* The page fade-in used "forwards", which leaves an identity transform on the content area and makes
    position: fixed children (the phone action buttons) position against it instead of the screen. */
 .dashboard-theme article.content { animation-fill-mode: backwards; }
+
+.pt-doc-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 12px; }
+.pt-split--single { grid-template-columns: minmax(0, 560px) !important; }

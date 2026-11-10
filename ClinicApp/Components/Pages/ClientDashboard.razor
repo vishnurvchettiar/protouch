@@ -366,12 +366,14 @@ else
         }
         else
         {
-            <div class="pt-split pt-split--client">
-                <div class="pt-card">
-                    <div class="pt-card-head"><h3>Your plan</h3></div>
-                    @if (!string.IsNullOrWhiteSpace(userProfile.DietPlan)) { <div class="pt-diet-text">@userProfile.DietPlan</div> }
-                    else { <p class="pt-ov-empty">See the attached document.</p> }
-                </div>
+            <div class="pt-split pt-split--client @(string.IsNullOrWhiteSpace(userProfile.DietPlan) ? "pt-split--single" : "")">
+                @if (!string.IsNullOrWhiteSpace(userProfile.DietPlan))
+                {
+                    <div class="pt-card">
+                        <div class="pt-card-head"><h3>Your plan</h3></div>
+                        <div class="pt-diet-text">@userProfile.DietPlan</div>
+                    </div>
+                }
                 <div class="pt-stack">
                     @if (dietPlanDocument != null)
                     {
@@ -381,7 +383,13 @@ else
                                 <span class="pt-doc-icon"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-file"></use></svg></span>
                                 <div><strong>@dietPlanDocument.OriginalFileName</strong><small>Uploaded @dietPlanDocument.UploadedAtUtc.ToLocalTime().ToString("dd MMM yyyy")</small></div>
                             </div>
-                            <a class="pt-btn pt-btn--pri pt-btn--block pt-mt" href="/diet-plan-documents/@dietPlanDocument.Id/download" download><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-download"></use></svg>Download plan</a>
+                            <div class="pt-doc-actions">
+                                @if (dietPlanDocument.OriginalFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <a class="pt-btn pt-btn--pri" href="/diet-plan-documents/@dietPlanDocument.Id/view" target="_blank" rel="noopener"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-file"></use></svg>View plan</a>
+                                }
+                                <a class="pt-btn @(dietPlanDocument.OriginalFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? "" : "pt-btn--pri")" href="/diet-plan-documents/@dietPlanDocument.Id/download" download><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-download"></use></svg>Download</a>
+                            </div>
                         </div>
                     }
                     @if (!string.IsNullOrWhiteSpace(userProfile.DoctorNotes))
