@@ -224,19 +224,17 @@ else
         <!-- Stat Row -->
         <div class="dashboard-grid">
             <!-- Current Weight Card -->
-            <div class="glass-panel stat-card">
+            <div class="pt-card stat-card">
                 <div class="stat-info">
                     <h4>Current Weight</h4>
                     <p>@(latestWeight > 0 ? $"{latestWeight:F1} kg" : "N/A")</p>
                     <span class="text-secondary small">Target: @userProfile.TargetWeight kg</span>
                 </div>
-                <div class="stat-icon">
-                    ⚖️
-                </div>
+                <div class="stat-icon pt-client-stat-icon" style="--c:#008d36"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-grid"></use></svg></div>
             </div>
 
             <!-- Weight Loss Progress Card -->
-            <div class="glass-panel stat-card">
+            <div class="pt-card stat-card">
                 <div class="stat-info">
                     <h4>Weight Loss Journey</h4>
                     @{
@@ -247,21 +245,53 @@ else
                     <p>@($"{diff:F1} kg lost")</p>
                     <span class="text-secondary small">@percentage% of target achieved</span>
                 </div>
-                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--accent-success);">
-                    📈
-                </div>
+                <div class="stat-icon pt-client-stat-icon" style="--c:#0a8f5a"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-trend"></use></svg></div>
             </div>
 
             <!-- Attendance Counter Card -->
-            <div class="glass-panel stat-card">
+            <div class="pt-card stat-card">
                 <div class="stat-info">
                     <h4>Total Clinic Visits</h4>
                     <p>@attendanceRecords.Count</p>
                     <span class="text-secondary small">Active Check-ins: @(attendanceRecords.Any(ar => ar.Status == "Checked In") ? "1" : "0")</span>
                 </div>
-                <div class="stat-icon" style="background: rgba(127, 0, 255, 0.1); color: var(--accent-purple);">
-                    🏃
+                <div class="stat-icon pt-client-stat-icon" style="--c:#7c1b68"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-pulse"></use></svg></div>
+            </div>
+        </div>
+
+        <!-- Graphs -->
+        @{
+            var weightChanges = WeightChanges(8);
+            var visitMonths = VisitsByMonth(6);
+        }
+        <div class="pt-ov-charts mb-4">
+            <div class="pt-card pt-ov-chart">
+                <div class="pt-ov-card-head">
+                    <h3>Weight change per log</h3>
+                    <span class="pt-ov-pill">kg vs previous</span>
                 </div>
+                @if (weightChanges.Count == 0)
+                {
+                    <p class="pt-ov-empty">Log your weight on two different days to see your change.</p>
+                }
+                else
+                {
+                    @ChangeChart(weightChanges)
+                }
+            </div>
+            <div class="pt-card pt-ov-chart">
+                <div class="pt-ov-card-head">
+                    <h3>Clinic visits, last 6 months</h3>
+                    <span class="pt-ov-pill">@visitMonths.Sum(x => x.Value) total</span>
+                </div>
+                @if (visitMonths.Sum(x => x.Value) == 0)
+                {
+                    <p class="pt-ov-empty">No clinic visits recorded yet.</p>
+                }
+                else
+                {
+                    @MonthChart(visitMonths)
+                }
             </div>
         </div>
 
@@ -269,7 +299,7 @@ else
             <!-- Left Side: Weight Chart and Logging Tools -->
             <div class="col-lg-8">
                 <!-- Weight Trend Chart -->
-                <div class="glass-panel p-4 mb-4">
+                <div class="pt-card p-4 mb-4">
                     <h3 class="mb-3">Weight Progress Chart</h3>
                     @if (dailyLogs == null || dailyLogs.Count < 2)
                     {
@@ -309,7 +339,7 @@ else
                                 @foreach (var pt in chartPoints)
                                 {
                                     <circle cx="@pt.X" cy="@pt.Y" r="5" class="chart-point" />
-                                    @((MarkupString)$"<text x='{pt.X}' y='{pt.Y - 10}' fill='#fff' font-size='10' text-anchor='middle' font-weight='700'>{pt.Weight}</text>")
+                                    @((MarkupString)$"<text x='{pt.X}' y='{pt.Y - 10}' fill='var(--text-primary)' font-size='10' text-anchor='middle' font-weight='700'>{pt.Weight}</text>")
                                     @((MarkupString)$"<text x='{pt.X}' y='188' fill='var(--text-secondary)' font-size='9' text-anchor='middle'>{pt.Label}</text>")
                                 }
 
@@ -329,7 +359,7 @@ else
                 </div>
 
                 <!-- Daily Checking Form -->
-        <div id="checkin" class="glass-panel p-4 mb-4 dashboard-anchor-target">
+        <div id="checkin" class="pt-card p-4 mb-4 dashboard-anchor-target">
             <div class="section-heading"><div><span class="eyebrow">DAILY CHECK-IN</span><h3>Weight & Meal Update</h3></div>
                 <div class="d-flex gap-2">
                     <button class="btn-clinic-secondary @(portalView == "log" ? "active" : "")" @onclick='() => portalView = "log"'>Log Entry</button>
@@ -450,7 +480,7 @@ else
 
         <div id="appointments" class="row g-4 mb-4 dashboard-anchor-target">
             <div class="col-lg-7">
-                <div class="glass-panel p-4 h-100">
+                <div class="pt-card p-4 h-100">
                     <div class="section-heading"><div><span class="eyebrow">APPOINTMENTS</span><h3>Book a Clinic Visit</h3></div><span class="soft-pill">Quick booking</span></div>
                     <EditForm Model="apptModel" OnValidSubmit="HandleAppointmentBooking">
                         <div class="row g-3">
@@ -471,7 +501,7 @@ else
                 </div>
             </div>
             <div class="col-lg-5">
-                <div class="glass-panel p-4 h-100">
+                <div class="pt-card p-4 h-100">
                     <span class="eyebrow">DIRECT COMMUNICATION</span><h3>Talk to the Clinic</h3>
                     <p class="text-secondary">For diet changes, fee questions, appointment changes or treatment concerns, WhatsApp is the primary communication channel.</p>
                     @if (currentUser != null)
@@ -482,7 +512,7 @@ else
         </div>
 
         <!-- My Diet Plan Section — Requirements 12.1, 12.2, 12.3, 12.4 -->
-        <div id="diet" class="glass-panel p-4 mb-4 dashboard-anchor-target">
+        <div id="diet" class="pt-card p-4 mb-4 dashboard-anchor-target">
             <span class="eyebrow">NUTRITION GUIDANCE</span>
             <h3 class="mb-3">My Diet Plan</h3>
             @if (!string.IsNullOrWhiteSpace(userProfile?.DietPlan))
@@ -510,7 +540,7 @@ else
         </div>
 
         <!-- Clinic Visits & Treatments History -->
-                <div id="history" class="glass-panel p-4 dashboard-anchor-target">
+                <div id="history" class="pt-card p-4 dashboard-anchor-target">
                     <h3 class="mb-3">Clinic Attendance & Treatments</h3>
                     <p class="text-secondary small mb-3">Record of physical check-in logs and treatments received at the center.</p>
 
@@ -523,7 +553,7 @@ else
                         <div style="max-height: 400px; overflow-y: auto; padding-right: 4px;">
                             @foreach (var visit in attendanceRecords)
                             {
-                                <div class="glass-panel p-3 mb-3 border-0" style="background: rgba(255,255,255,0.02); border-left: 3px solid @(visit.Status == "Checked In" ? "var(--accent-warning)" : "var(--accent-success)") !important;">
+                                <div class="pt-card p-3 mb-3 border-0" style="background: rgba(255,255,255,0.02); border-left: 3px solid @(visit.Status == "Checked In" ? "var(--accent-warning)" : "var(--accent-success)") !important;">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <span class="text-white small font-weight-bold">@visit.TreatmentReceived</span>
                                         <span class="badge-clinic @(visit.Status == "Checked In" ? "badge-pending" : "badge-active") text-xs" style="font-size: 0.65rem;">
@@ -895,6 +925,93 @@ else
     }
 
     public record ChartPoint(double X, double Y, string Label, double Weight);
+
+    // ── Graphs ──────────────────────────────────────────────────────────────
+    private List<KeyValuePair<string, double>> WeightChanges(int take)
+    {
+        var logs = (dailyLogs ?? new()).Where(l => l.Weight > 0).OrderBy(l => l.LogDate).ToList();
+        var result = new List<KeyValuePair<string, double>>();
+        for (int i = 1; i < logs.Count; i++)
+            result.Add(new(logs[i].LogDate.ToString("d MMM"), Math.Round(logs[i].Weight - logs[i - 1].Weight, 1)));
+        return result.Skip(Math.Max(0, result.Count - take)).ToList();
+    }
+
+    private List<KeyValuePair<string, int>> VisitsByMonth(int months)
+    {
+        var ist = GetClientIst();
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ist);
+        var first = new DateTime(now.Year, now.Month, 1).AddMonths(-(months - 1));
+        var counts = (attendanceRecords ?? new())
+            .Select(a => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(a.CheckInTime, DateTimeKind.Utc), ist))
+            .GroupBy(d => new DateTime(d.Year, d.Month, 1))
+            .ToDictionary(g => g.Key, g => g.Count());
+        var result = new List<KeyValuePair<string, int>>();
+        for (int i = 0; i < months; i++)
+        {
+            var m = first.AddMonths(i);
+            result.Add(new(m.ToString("MMM"), counts.TryGetValue(m, out var n) ? n : 0));
+        }
+        return result;
+    }
+
+    // Diverging bars around a zero line: green is weight lost, red is weight gained.
+    private static MarkupString ChangeChart(List<KeyValuePair<string, double>> data)
+    {
+        const int w = 520, h = 190, left = 34, right = 8, top = 14, bottom = 26;
+        double max = Math.Max(0.5, Math.Ceiling(data.Max(d => Math.Abs(d.Value)) * 2) / 2);
+        double plotW = w - left - right, plotH = h - top - bottom, mid = top + plotH / 2;
+        double slot = plotW / data.Count, barW = Math.Min(34, slot * 0.58);
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"<svg class=\"pt-chart\" viewBox=\"0 0 {w} {h}\" role=\"img\" aria-label=\"Weight change per log\">");
+        foreach (var tick in new[] { -max, 0, max })
+        {
+            double y = mid - (plotH / 2) * tick / max;
+            sb.Append($"<line x1=\"{left}\" x2=\"{w - right}\" y1=\"{y:F1}\" y2=\"{y:F1}\" class=\"pt-chart-grid\"/>");
+            sb.Append($"<text x=\"{left - 6}\" y=\"{y + 3:F1}\" text-anchor=\"end\" class=\"pt-chart-text\">{(tick > 0 ? "+" : "")}{tick:0.#}</text>");
+        }
+        for (int i = 0; i < data.Count; i++)
+        {
+            double cx = left + slot * i + slot / 2;
+            double v = data[i].Value;
+            double bh = (plotH / 2) * Math.Abs(v) / max;
+            double y = v <= 0 ? mid : mid - bh;
+            string colour = v <= 0 ? "#008d36" : "#d6343b";
+            sb.Append($"<rect x=\"{cx - barW / 2:F1}\" y=\"{y:F1}\" width=\"{barW:F1}\" height=\"{Math.Max(bh, v != 0 ? 2 : 0):F1}\" rx=\"4\" fill=\"{colour}\"><title>{data[i].Key}: {v:+0.0;-0.0;0.0} kg</title></rect>");
+            double ty = v <= 0 ? y + bh + 11 : y - 4;
+            sb.Append($"<text x=\"{cx:F1}\" y=\"{ty:F1}\" text-anchor=\"middle\" class=\"pt-chart-value\">{v:+0.0;-0.0;0.0}</text>");
+            sb.Append($"<text x=\"{cx:F1}\" y=\"{h - 8}\" text-anchor=\"middle\" class=\"pt-chart-text\">{data[i].Key}</text>");
+        }
+        sb.Append("</svg>");
+        return new MarkupString(sb.ToString());
+    }
+
+    private static MarkupString MonthChart(List<KeyValuePair<string, int>> data)
+    {
+        const int w = 520, h = 190, left = 30, right = 8, top = 14, bottom = 26;
+        int max = Math.Max(4, data.Max(d => d.Value));
+        if (max % 2 == 1) max++;
+        double plotW = w - left - right, plotH = h - top - bottom;
+        double slot = plotW / data.Count, barW = Math.Min(40, slot * 0.58);
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"<svg class=\"pt-chart\" viewBox=\"0 0 {w} {h}\" role=\"img\" aria-label=\"Clinic visits per month\">");
+        foreach (var tick in new[] { 0, max / 2, max })
+        {
+            double y = top + plotH - plotH * tick / max;
+            sb.Append($"<line x1=\"{left}\" x2=\"{w - right}\" y1=\"{y:F1}\" y2=\"{y:F1}\" class=\"pt-chart-grid\"/>");
+            sb.Append($"<text x=\"{left - 6}\" y=\"{y + 3:F1}\" text-anchor=\"end\" class=\"pt-chart-text\">{tick}</text>");
+        }
+        for (int i = 0; i < data.Count; i++)
+        {
+            double cx = left + slot * i + slot / 2;
+            double bh = plotH * data[i].Value / max;
+            sb.Append($"<rect x=\"{cx - barW / 2:F1}\" y=\"{top + plotH - bh:F1}\" width=\"{barW:F1}\" height=\"{Math.Max(bh, data[i].Value > 0 ? 2 : 0):F1}\" rx=\"4\" fill=\"#7c1b68\" opacity=\"{(i == data.Count - 1 ? "1" : "0.6")}\"><title>{data[i].Key}: {data[i].Value}</title></rect>");
+            if (data[i].Value > 0)
+                sb.Append($"<text x=\"{cx:F1}\" y=\"{top + plotH - bh - 4:F1}\" text-anchor=\"middle\" class=\"pt-chart-value\">{data[i].Value}</text>");
+            sb.Append($"<text x=\"{cx:F1}\" y=\"{h - 8}\" text-anchor=\"middle\" class=\"pt-chart-text\">{data[i].Key}</text>");
+        }
+        sb.Append("</svg>");
+        return new MarkupString(sb.ToString());
+    }
 
     private List<ChartPoint> GetClientChartPoints()
     {
