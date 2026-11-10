@@ -731,7 +731,47 @@ window.scheduleDeferredInit_home = function () {
         var t = e.target;
         if (t && t.matches && t.matches('[data-pt-field="email"] input')) checkEmail(t);
     });
+    // The login form starts empty every time. Browsers restore typed values on reload and Back,
+    // and password managers fill saved logins; both are cleared here. Staying signed in is what
+    // "Keep me signed in" is for. The fields are read-only until touched so autofill skips them.
+    function unlock(input) { input.removeAttribute('readonly'); }
+    function navType() {
+        try { var n = performance.getEntriesByType('navigation')[0]; return n ? n.type : 'navigate'; } catch (err) { return 'navigate'; }
+    }
+    function clearLogin(force) {
+        var inputs = document.querySelectorAll('input[data-pt-clear]');
+        if (!inputs.length) return;
+        var restored = force || navType() === 'reload' || navType() === 'back_forward';
+        inputs.forEach(function (input) {
+            if (restored) input.value = '';
+            if (document.activeElement === input) { unlock(input); return; }
+            if (!input.value) input.setAttribute('readonly', 'readonly');
+            if (!input.dataset.ptUnlock) {
+                input.dataset.ptUnlock = '1';
+                ['focus', 'pointerdown', 'keydown', 'touchstart'].forEach(function (t) {
+                    input.addEventListener(t, function () { unlock(input); }, { once: true });
+                });
+            }
+        });
+        // Autofill can arrive just after load; clear anything that was filled without the person typing.
+        [150, 600].forEach(function (ms) {
+            setTimeout(function () {
+                inputs.forEach(function (input) {
+                    if (input.value && !input.dataset.ptTyped && document.activeElement !== input && !document.querySelector('.pt-auth-error-alert')) input.value = '';
+                    var wrap = input.closest('[data-pt-field="email"]');
+                    if (wrap) checkEmail(input);
+                });
+            }, ms);
+        });
+    }
+    document.addEventListener('input', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('input[data-pt-clear]') && e.isTrusted && e.inputType) t.dataset.ptTyped = '1';
+    });
+    window.addEventListener('pageshow', function (e) { if (e.persisted) clearLogin(true); });
+
     function initLogin() {
+        clearLogin(false);
         var email = document.querySelector('[data-pt-field="email"] input');
         if (email) checkEmail(email);
     }

@@ -7874,3 +7874,50 @@ textarea.pt-input { resize: vertical; line-height: 1.45; }
     .pt-auth-split-page .pt-auth-alert--error, .pt-auth-hint { animation: none; }
     .pt-auth-valid { transition: none; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGIN — design A refinements
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pt-auth-split-page .pt-auth-form-inner { max-width: 410px; }
+.pt-auth-split-page .pt-auth-form-logo { margin-bottom: 22px; }
+.pt-auth-split-page .pt-auth-heading { font-size: 2.1rem; letter-spacing: -0.015em; line-height: 1.1; }
+.pt-auth-split-page .pt-auth-subheading { margin-bottom: 26px; font-size: 0.95rem; }
+
+/* Fields arrive one after another */
+.pt-auth-split-page .pt-auth-field,
+.pt-auth-split-page .pt-auth-remember,
+.pt-auth-split-page .pt-auth-button {
+    animation: ptAuthRise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pt-auth-split-page .pt-auth-field:nth-of-type(1) { animation-delay: 0.08s; }
+.pt-auth-split-page .pt-auth-field:nth-of-type(2) { animation-delay: 0.14s; }
+.pt-auth-split-page .pt-auth-remember { animation-delay: 0.2s; }
+.pt-auth-split-page .pt-auth-button { animation-delay: 0.26s; }
+@keyframes ptAuthRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.pt-auth-split-page .pt-auth-remember { flex-wrap: wrap; row-gap: 2px; margin-bottom: 1.35rem; }
+.pt-auth-remember-hint { flex-basis: 100%; margin-left: 50px; font-size: 0.76rem; color: #6a8576; }
+.pt-auth-split-page .pt-auth-form-footer { flex-wrap: wrap; row-gap: 4px; gap: 8px; }
+.pt-auth-footer-sep { color: #b4c5bb; }
+.pt-auth-split-page .pt-auth-link--quiet { font-weight: 600; color: #5f7a6c; }
+.pt-auth-split-page .pt-auth-link--quiet:hover { color: #14281d; }
+.pt-auth-split-page .pt-auth-input[readonly] { cursor: text; }
+
+/* Brand panel: a little more depth and a clearer hierarchy */
+.pt-auth-split-page .pt-auth-visual-panel::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #008d36, #2fd072 40%, #7c1b68);
+    z-index: 2;
+}
+.pt-auth-split-page .pt-auth-visual-title { letter-spacing: -0.01em; }
+.pt-auth-split-page .pt-auth-stat-num { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+    .pt-auth-split-page .pt-auth-field,
+    .pt-auth-split-page .pt-auth-remember,
+    .pt-auth-split-page .pt-auth-button { animation: none; }
+}

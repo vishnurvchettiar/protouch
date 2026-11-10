@@ -47,7 +47,7 @@
                 </div>
             }
 
-            <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+            <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login" autocomplete="off">
                 <DataAnnotationsValidator />
                 <ValidationSummary class="pt-auth-validation-summary" role="alert" />
 
@@ -60,7 +60,8 @@
                                    id="Input.Email"
                                    class="pt-auth-input"
                                    type="email"
-                                   autocomplete="username"
+                                   autocomplete="off"
+                                   data-pt-clear
                                    autocapitalize="none"
                                    spellcheck="false"
                                    inputmode="email"
@@ -84,7 +85,8 @@
                                    @bind-Value="Input.Password"
                                    id="Input.Password"
                                    class="pt-auth-input"
-                                   autocomplete="current-password"
+                                   autocomplete="new-password"
+                                   data-pt-clear
                                    aria-required="true"
                                    placeholder="Your password" />
                         <button type="button"
@@ -111,6 +113,7 @@
                         </span>
                         <span class="pt-auth-toggle-label">Keep me signed in</span>
                     </label>
+                    <small class="pt-auth-remember-hint">Leave this off on a shared computer.</small>
                 </div>
 
                 <!-- Submit -->
@@ -131,8 +134,10 @@
 
             <!-- Footer -->
             <div class="pt-auth-form-footer">
-                <span>Need access?</span>
-                <a class="pt-auth-link" href="/">← Back to website</a>
+                <span>New here?</span>
+                <a class="pt-auth-link" href="/Account/Register">Create an account</a>
+                <span class="pt-auth-footer-sep" aria-hidden="true">·</span>
+                <a class="pt-auth-link pt-auth-link--quiet" href="/">Back to website</a>
             </div>
 
         </div>
@@ -249,6 +254,7 @@
         else
         {
             errorMessage = "Invalid email or password. Please try again.";
+            Input.Password = "";
             _submitting = false;
         }
     }
