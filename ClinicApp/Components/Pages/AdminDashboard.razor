@@ -15,24 +15,9 @@
 <PageTitle>PROTOUCH | Admin Control Center</PageTitle>
 
 <div class="container-fluid py-4 admin-shell">
-    <!-- Tab Bar -->
-    <div class="glass-panel p-2 mb-4 d-flex flex-wrap gap-2">
-        <button class="btn @(activeTab == "overview" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "overview"'>Overview</button>
-        <button class="btn @(activeTab == "clients" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "clients"'>Clients</button>
-        <button class="btn @(activeTab == "add" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "add"'>Add user</button>
-        <button class="btn @(activeTab == "visits" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "visits"'>Visits</button>
-        <button class="btn @(activeTab == "appointments" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "appointments"'>Appointments</button>
-        <button class="btn @(activeTab == "mealreview" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => SwitchToMealReview()'>Meal Review</button>
-        <button class="btn @(activeTab == "bookings" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => SwitchToBookings()'>Bookings @(pendingBookingsCount > 0 ? $"({pendingBookingsCount})" : "")</button>
-        <button class="btn @(activeTab == "whatsapp" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "whatsapp"'>WhatsApp Center</button>
-        <button class="btn @(activeTab == "feedback" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => SwitchToFeedback()'>Feedback</button>
-        <button class="btn @(activeTab == "settings" ? "btn-clinic" : "btn-clinic-secondary")" @onclick='() => activeTab = "settings"'>Settings</button>
-    </div>
-
-    <!-- OVERVIEW TAB (tasks 4.5, 4.6) -->
+    <!-- OVERVIEW TAB -->
     @if (activeTab == "overview")
     {
-        <!-- Error banner -->
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <div class="clinic-alert clinic-alert-danger mb-4">
@@ -41,101 +26,181 @@
             </div>
         }
 
-        <!-- Greeting bar -->
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <!-- Page title + quick actions -->
+        <div class="pt-ov-head">
             <div>
-                <p class="eyebrow mb-1">PROTOUCH PHYSIO — ADMIN OVERVIEW</p>
-                <h1 class="gradient-text display-5 mb-1">@GetGreeting(), @adminName 👋</h1>
-                <p class="text-secondary mb-0 small">
-                    @TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, GetIst()).ToString("dddd, dd MMMM yyyy")
-                </p>
+                <h1 class="pt-ov-title">Overview</h1>
+                <span class="pt-ov-sub">@TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, GetIst()).ToString("dddd, dd MMMM yyyy")</span>
             </div>
-            <button class="btn-clinic-secondary" @onclick="LoadAdminDataAsync">↻ Refresh</button>
+            <div class="pt-ov-actions">
+                <button type="button" class="pt-ov-act pt-ov-act--primary" @onclick='() => NavigateToTab("add")'>
+                    <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-user-plus"></use></svg>Add client
+                </button>
+                <button type="button" class="pt-ov-act" @onclick='() => NavigateToTab("visits")'>
+                    <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-pulse"></use></svg>Log a visit
+                </button>
+                <button type="button" class="pt-ov-act" @onclick='() => NavigateToTab("bookings")'>
+                    <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-cal"></use></svg>Bookings
+                </button>
+                <button type="button" class="pt-ov-act" @onclick='() => NavigateToTab("whatsapp")'>
+                    <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-chat"></use></svg>WhatsApp
+                </button>
+                <button type="button" class="pt-ov-act pt-ov-act--icon" title="Refresh" aria-label="Refresh" @onclick="LoadAdminDataAsync">
+                    <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-refresh"></use></svg>
+                </button>
+            </div>
         </div>
 
-        <!-- 5 Stat cards -->
-        <div class="dashboard-grid mb-4">
+        <!-- Stat tiles -->
+        <div class="pt-ov-stats">
             @foreach (var card in BuildStatCards())
             {
-                <button class="glass-panel pt-stat-card text-start border-0"
-                        style="--accent-colour: @card.AccentColour"
+                <button type="button" class="pt-card pt-ov-stat" style="--c: @card.AccentColour"
                         @onclick='() => NavigateToTab(card.TabTarget)'>
-                    <div>
-                        <span class="text-secondary small">@card.Label</span>
-                        <div class="stat-number">@card.Value</div>
-                        <span class="stat-trend neutral">@card.Trend</span>
-                    </div>
-                    <div class="stat-icon">@card.Icon</div>
+                    <span class="pt-ov-stat-icon"><svg class="pt-i" aria-hidden="true"><use href="#pt-ico-@card.Icon"></use></svg></span>
+                    <span class="pt-ov-stat-value">@card.Value</span>
+                    <span class="pt-ov-stat-label">@card.Label</span>
                 </button>
             }
         </div>
 
-        <!-- Quick Actions -->
-        <div class="pt-quick-actions">
-            <button class="pt-quick-btn" @onclick='() => NavigateToTab("add")'>➕ Add Client</button>
-            <button class="pt-quick-btn" @onclick='() => NavigateToTab("visits")'>🏥 Log a Visit</button>
-            <button class="pt-quick-btn" @onclick='() => NavigateToTab("bookings")'>📅 View Bookings</button>
-            <button class="pt-quick-btn" @onclick='() => NavigateToTab("whatsapp")'>💬 Send WhatsApp</button>
-        </div>
-
-        <div class="row g-4">
-            <!-- Recent Activity Feed -->
-            <div class="col-lg-6">
-                <div class="glass-panel p-4 h-100">
-                    <div class="section-heading mb-3">
-                        <div><span class="eyebrow">ACTIVITY</span><h3>Recent Activity</h3></div>
-                    </div>
-                    @if (!recentActivity.Any())
-                    {
-                        <p class="text-secondary">No recent activity.</p>
-                    }
-                    else
-                    {
-                        <div class="pt-activity-feed">
-                            @foreach (var item in recentActivity)
-                            {
-                                <div class="pt-activity-item">
-                                    <div class="pt-activity-dot @item.Kind"></div>
-                                    <div class="pt-activity-content">
-                                        <div class="pt-activity-title">@item.Title</div>
-                                        <div class="pt-activity-sub">@item.SubText</div>
-                                    </div>
-                                    <span class="pt-activity-time">@TimeAgo(item.Timestamp)</span>
-                                </div>
-                            }
-                        </div>
-                    }
+        <!-- Graphs -->
+        var visitDays = VisitsByDay(14);
+        var apptStatus = AppointmentStatusCounts();
+        var apptTotal = apptStatus.Sum(x => x.Count);
+        var topTreatments = TopTreatments(5);
+        var bookingStatus = BookingStatusCounts();
+        <div class="pt-ov-charts">
+            <div class="pt-card pt-ov-chart pt-ov-chart--wide">
+                <div class="pt-ov-card-head">
+                    <h3>Visits, last 14 days</h3>
+                    <span class="pt-ov-pill">@visitDays.Sum(x => x.Value) total</span>
                 </div>
+                @if (visitDays.Sum(x => x.Value) == 0)
+                {
+                    <p class="pt-ov-empty">No visits logged in the last 14 days.</p>
+                }
+                else
+                {
+                    @BarChart(visitDays, "#008d36")
+                }
             </div>
 
-            <!-- Today's Appointments Strip -->
-            <div class="col-lg-6">
-                <div class="glass-panel p-4 h-100">
-                    <div class="section-heading mb-3">
-                        <div><span class="eyebrow">TODAY</span><h3>Today's Appointments</h3></div>
-                        <span class="soft-pill">@todayAppointments.Count scheduled</span>
-                    </div>
-                    @if (!todayAppointments.Any())
-                    {
-                        <p class="text-secondary">No appointments today.</p>
-                    }
-                    else
-                    {
-                        <div class="pt-appt-strip">
-                            @foreach (var appt in todayAppointments)
-                            {
-                                <div class="pt-appt-chip">
-                                    <div class="chip-time">
-                                        @TimeZoneInfo.ConvertTimeFromUtc(appt.AppointmentDate, GetIst()).ToString("h:mm tt")
-                                    </div>
-                                    <div class="chip-service">@appt.TreatmentType</div>
-                                    <div class="chip-service small">@(appt.User?.FullName ?? "—")</div>
-                                    <div class="chip-status">@appt.Status</div>
-                                </div>
-                            }
-                        </div>
-                    }
+            <div class="pt-card pt-ov-chart">
+                <div class="pt-ov-card-head">
+                    <h3>Appointments this month</h3>
+                    <span class="pt-ov-pill">@apptTotal total</span>
                 </div>
+                @if (apptTotal == 0)
+                {
+                    <p class="pt-ov-empty">No appointments this month.</p>
+                }
+                else
+                {
+                    <div class="pt-ov-donut-wrap">
+                        @Donut(apptStatus, apptTotal)
+                        <ul class="pt-ov-legend">
+                            @foreach (var seg in apptStatus)
+                            {
+                                <li><i style="background:@seg.Colour"></i><span>@seg.Label</span><b>@seg.Count</b></li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+
+            <div class="pt-card pt-ov-chart">
+                <div class="pt-ov-card-head">
+                    <h3>Popular treatments</h3>
+                    <span class="pt-ov-pill">this month</span>
+                </div>
+                @if (!topTreatments.Any())
+                {
+                    <p class="pt-ov-empty">No treatments booked this month.</p>
+                }
+                else
+                {
+                    <ul class="pt-ov-hbars">
+                        @foreach (var t in topTreatments)
+                        {
+                            <li>
+                                <div class="pt-ov-hbar-top"><span>@t.Label</span><b>@t.Count</b></div>
+                                <div class="pt-ov-hbar-track"><div class="pt-ov-hbar-fill" style="width:@(topTreatments.Max(x => x.Count) == 0 ? 0 : (int)Math.Round(100.0 * t.Count / topTreatments.Max(x => x.Count)))%"></div></div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+            <div class="pt-card pt-ov-chart">
+                <div class="pt-ov-card-head">
+                    <h3>Booking requests</h3>
+                    <span class="pt-ov-pill">@bookingStatus.Sum(x => x.Count) total</span>
+                </div>
+                @if (!bookingStatus.Any())
+                {
+                    <p class="pt-ov-empty">No booking requests yet.</p>
+                }
+                else
+                {
+                    <ul class="pt-ov-hbars">
+                        @foreach (var b in bookingStatus)
+                        {
+                            <li>
+                                <div class="pt-ov-hbar-top"><span>@b.Label</span><b>@b.Count</b></div>
+                                <div class="pt-ov-hbar-track"><div class="pt-ov-hbar-fill" style="background:@b.Colour;width:@(bookingStatus.Max(x => x.Count) == 0 ? 0 : (int)Math.Round(100.0 * b.Count / bookingStatus.Max(x => x.Count)))%"></div></div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <!-- Appointments + activity -->
+        <div class="pt-ov-cols">
+            <div class="pt-card pt-ov-panel">
+                <div class="pt-ov-card-head">
+                    <h3>Today's appointments</h3>
+                    <span class="pt-ov-pill">@todayAppointments.Count scheduled</span>
+                </div>
+                @if (!todayAppointments.Any())
+                {
+                    <p class="pt-ov-empty">No appointments today.</p>
+                }
+                else
+                {
+                    <ul class="pt-ov-list">
+                        @foreach (var appt in todayAppointments)
+                        {
+                            <li>
+                                <span class="pt-ov-time">@TimeZoneInfo.ConvertTimeFromUtc(appt.AppointmentDate, GetIst()).ToString("h:mm tt")</span>
+                                <div class="pt-ov-who">@(appt.User?.FullName ?? "—")<small>@appt.TreatmentType</small></div>
+                                <span class="pt-ov-status pt-ov-status--@StatusClass(appt.Status)">@appt.Status</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+            <div class="pt-card pt-ov-panel">
+                <div class="pt-ov-card-head"><h3>Recent activity</h3></div>
+                @if (!recentActivity.Any())
+                {
+                    <p class="pt-ov-empty">No recent activity.</p>
+                }
+                else
+                {
+                    <ul class="pt-ov-feed">
+                        @foreach (var item in recentActivity)
+                        {
+                            <li>
+                                <i style="background:@(item.Kind == "booking" ? "#b58900" : "#008d36")"></i>
+                                <div>@item.Title<small>@item.SubText</small></div>
+                                <time>@TimeAgo(item.Timestamp)</time>
+                            </li>
+                        }
+                    </ul>
+                }
             </div>
         </div>
     }
@@ -145,7 +210,7 @@
     {
         <div class="row g-4">
             <div class="col-xl-8">
-                <div class="glass-panel p-4">
+                <div class="pt-card p-4">
                     <div class="section-heading"><div><span class="eyebrow">USER ACCESS</span><h3>@(editingUserId == null ? "Add user & assign role" : "Edit existing user")</h3></div>
                     @if (editingUserId != null) { <button class="btn-clinic-secondary" @onclick="CancelEditUser">Cancel edit</button> }
                     </div>
@@ -170,7 +235,7 @@
                 </div>
             </div>
             <div class="col-xl-4">
-                <div class="glass-panel p-4 h-100">
+                <div class="pt-card p-4 h-100">
                     <span class="eyebrow">ACCESS POLICY</span><h3>Roles are explicit</h3>
                     <p class="text-secondary">Admins manage clinic records. Clients can access only their own portal for logs, booking and guidance.</p>
                     @if (!string.IsNullOrWhiteSpace(lastCreatedEmail)) {
@@ -185,7 +250,7 @@
     }
     else if (activeTab == "visits")
     {
-        <div class="glass-panel p-4">
+        <div class="pt-card p-4">
             <div class="section-heading"><div><span class="eyebrow">TREATMENT REGISTER</span><h3>Log a visit</h3></div><span class="soft-pill">@todayAttendanceCount today</span></div>
             <div class="row g-3 mb-4">
                 <div class="col-md-4"><label class="clinic-label">Client</label><select class="clinic-input" @bind="visitUserId"><option value="">Select client</option>@foreach (var c in clients) { <option value="@c.UserId">@c.User?.FullName</option> }</select></div>
@@ -202,7 +267,7 @@
             {
                 @if (editingVisitId == visit.Id)
                 {
-                    <div class="glass-panel p-3 mb-3 border-0" style="background: rgba(0,242,254,0.03);">
+                    <div class="pt-card p-3 mb-3 border-0" style="background: rgba(0,242,254,0.03);">
                         <div class="row g-2">
                             <div class="col-md-4"><label class="clinic-label">Treatment</label><input class="clinic-input" @bind="editVisit.TreatmentReceived" /></div>
                             <div class="col-md-4"><label class="clinic-label">Therapist</label><input class="clinic-input" @bind="editVisit.Therapist" /></div>
@@ -245,7 +310,7 @@
     }
     else if (activeTab == "appointments")
     {
-        <div class="glass-panel p-4">
+        <div class="pt-card p-4">
             <div class="section-heading"><div><span class="eyebrow">APPOINTMENTS</span><h3>All Appointments</h3></div></div>
             @if (!allAppointments.Any()) { <div class="empty-state">No appointments found.</div> }
             else {
@@ -293,7 +358,7 @@
     }
     else if (activeTab == "mealreview")
     {
-        <div class="glass-panel p-4">
+        <div class="pt-card p-4">
             <div class="section-heading"><div><span class="eyebrow">MEAL REVIEW</span><h3>Client Meal Photos</h3></div><span class="soft-pill">Page @mealPage</span></div>
             @if (!mealLogs.Any()) { <div class="empty-state">No meal photos uploaded yet.</div> }
             else {
@@ -301,7 +366,7 @@
                     @foreach (var log in mealLogs)
                     {
                         <div class="col-md-6 col-lg-4">
-                            <div class="glass-panel p-3 h-100">
+                            <div class="pt-card p-3 h-100">
                                 <div class="d-flex gap-3 mb-2">
                                     @if (!string.IsNullOrWhiteSpace(log.MealPhotoUrl)) { <img src="@log.MealPhotoUrl" class="meal-thumb" alt="Meal" /> }
                                     <div><strong>@log.User?.FullName</strong><div class="text-secondary small">@log.LogDate.ToString("dd MMM yyyy")</div></div>
@@ -330,7 +395,7 @@
     }
     else if (activeTab == "bookings")
     {
-        <div class="glass-panel p-4">
+        <div class="pt-card p-4">
             <div class="section-heading"><div><span class="eyebrow">BOOKING REQUESTS</span><h3>All Booking Requests</h3></div><span class="soft-pill">@pendingBookingsCount pending</span></div>
             @if (!allBookings.Any()) { <div class="empty-state">No booking requests yet. They will appear here after visitors submit the /book form.</div> }
             else {
@@ -386,7 +451,7 @@
         </div>
         <div class="row g-4">
             <div class="col-xl-5">
-                <div class="glass-panel p-4">
+                <div class="pt-card p-4">
                     <span class="eyebrow">CSV BROADCAST</span><h3>Bulk WhatsApp Campaign</h3>
                     <p class="text-secondary small">Upload a CSV with <strong>Name</strong> and <strong>Phone</strong> columns. Use <code>{{Name}}</code> in your message to personalise it.</p>
                     <label class="clinic-label">CSV recipients</label>
@@ -414,7 +479,7 @@
                 <!-- Task 11.2: Preview panel -->
                 @if (campaignPreviews.Any())
                 {
-                    <div class="glass-panel p-4 mb-4" style="max-height: 400px; overflow-y: auto;">
+                    <div class="pt-card p-4 mb-4" style="max-height: 400px; overflow-y: auto;">
                         <div class="section-heading"><div><span class="eyebrow">MESSAGE PREVIEW</span><h3>@campaignPreviews.Count personalised messages</h3></div></div>
                         @foreach (var preview in campaignPreviews.Take(500))
                         {
@@ -422,12 +487,12 @@
                         }
                     </div>
                 }
-                <div class="glass-panel p-4">
+                <div class="pt-card p-4">
                     <div class="section-heading"><div><span class="eyebrow">RECIPIENT PREVIEW</span><h3>@csvRecipients.Count CSV recipients</h3></div></div>
                     @if (!csvRecipients.Any()) { <div class="empty-state">Choose a CSV file to preview recipients.</div> }
                     else { @foreach (var recipient in csvRecipients.Take(30)) { <div class="message-row"><div><strong>@recipient.Name</strong><div class="text-secondary small">@recipient.Phone</div></div><span class="soft-pill">Ready</span></div> } }
                 </div>
-                <div class="glass-panel p-4 mt-4">
+                <div class="pt-card p-4 mt-4">
                     <h4>Recent activity</h4>
                     @foreach (var log in whatsappLogs.Take(8)) {
                         <!-- Task 11.4: Parse LogDetail for per-recipient status -->
@@ -460,7 +525,7 @@
     }
     else if (activeTab == "feedback")
     {
-        <div class="glass-panel p-4">
+        <div class="pt-card p-4">
             <div class="section-heading">
                 <div><span class="eyebrow">PATIENT FEEDBACK</span><h3>Feedback Management</h3></div>
             </div>
@@ -552,7 +617,7 @@
     }
     else if (activeTab == "settings")
     {
-        <div class="glass-panel p-4">
+        <div class="pt-card p-4">
             <div class="section-heading"><div><span class="eyebrow">CONFIGURATION</span><h3>WhatsApp Settings</h3></div></div>
             <div class="mb-4">
                 <label class="clinic-label">WhatsApp Mode</label>
@@ -604,7 +669,7 @@
             <!-- Twilio Setup Guide (Req 5.3) -->
             <details>
                 <summary class="clinic-label" style="cursor:pointer;">📖 Twilio Setup Guide (click to expand)</summary>
-                <div class="glass-panel p-3 mt-2">
+                <div class="pt-card p-3 mt-2">
                     <ol class="text-secondary small" style="line-height: 2;">
                         <li>Create a free Twilio account at <a href="https://twilio.com" target="_blank" rel="noopener" style="color: var(--accent-teal);">twilio.com</a></li>
                         <li>From the Twilio Console dashboard, copy your <strong>Account SID</strong> and <strong>Auth Token</strong></li>
@@ -622,7 +687,7 @@
     {
         <div class="row g-4">
             <div class="col-xl-4">
-                <div class="glass-panel p-4 sticky-xl-top" style="top:20px">
+                <div class="pt-card p-4 sticky-xl-top" style="top:20px">
                     <div class="section-heading"><div><span class="eyebrow">DIRECTORY</span><h3>Clients</h3></div><button class="btn-icon" @onclick='() => { activeTab = "add"; editingUserId = null; }'>+</button></div>
                     <input class="clinic-input mb-3" placeholder="Search clients..." @bind="searchQuery" @bind:event="oninput" />
                     <div class="client-list">
@@ -637,9 +702,9 @@
             </div>
             <div class="col-xl-8">
                 @if (selectedClient == null) {
-                    <div class="glass-panel p-5 text-center"><h2>Select a client</h2><p class="text-secondary">Select a profile to review treatment history, weight trend, measurements and billing.</p></div>
+                    <div class="pt-card p-5 text-center"><h2>Select a client</h2><p class="text-secondary">Select a profile to review treatment history, weight trend, measurements and billing.</p></div>
                 } else {
-                    <div class="glass-panel p-4">
+                    <div class="pt-card p-4">
                         <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
                             <div><span class="eyebrow">CLIENT PROFILE</span><h2>@selectedClient.User?.FullName</h2><span class="text-secondary">@selectedClient.User?.Email • @selectedClient.User?.PhoneNumber</span></div>
                             <div class="d-flex gap-2 flex-wrap">
@@ -702,20 +767,20 @@
                         </div>
                         <div class="row g-4 mt-1">
                             <div class="col-md-6">
-                                <div class="glass-panel p-3 h-100"><h4>Weight trend</h4>
+                                <div class="pt-card p-3 h-100"><h4>Weight trend</h4>
                                     @if (selectedClientLogs.Any()) { @foreach (var log in selectedClientLogs.Take(7).OrderBy(x => x.LogDate)) { <div class="message-row"><span>@log.LogDate.ToString("dd MMM")</span><strong>@log.Weight.ToString("F1") kg</strong></div> } }
                                     else { <span class="text-secondary">No weight logs yet.</span> }
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="glass-panel p-3 h-100">
+                                <div class="pt-card p-3 h-100">
                                     <div class="d-flex justify-content-between"><h4>Billing</h4><span class="soft-pill">@selectedClientPayments.Count(x => !x.IsPaid) pending</span></div>
                                     <div class="d-flex gap-2 mb-2"><input class="clinic-input" placeholder="Fee description" @bind="newInvoiceDesc" /><input class="clinic-input" type="number" step="0.01" min="1" placeholder="Amount ₹" @bind="newInvoiceAmount" /><button class="btn-clinic" @onclick="CreateClientInvoice">Add</button></div>
                                     @foreach (var invoice in selectedClientPayments) { <div class="message-row"><div><strong>₹@invoice.Amount</strong><div class="text-secondary small">@invoice.Description</div></div>@if (!invoice.IsPaid) { <button class="btn-clinic-secondary btn-sm" @onclick="() => MarkPaid(invoice.Id)">Settle</button> } else { <span class="soft-pill">Paid</span> }</div> }
                                 </div>
                             </div>
                             <div class="col-12">
-                                <div class="glass-panel p-3"><h4>Treatment history</h4>
+                                <div class="pt-card p-3"><h4>Treatment history</h4>
                                     @if (!selectedClientVisits.Any()) { <span class="text-secondary">No visits recorded yet.</span> }
                                     else { @foreach (var visit in selectedClientVisits.Take(8)) { <div class="message-row"><div><strong>@visit.TreatmentReceived</strong><div class="text-secondary small">@visit.Therapist • @visit.CheckInTime.ToLocalTime().ToString("dd MMM yyyy")</div><div class="text-muted small">@visit.Notes</div></div><span class="soft-pill">@visit.Status</span></div> } }
                                 </div>
@@ -730,7 +795,7 @@
 
                         @if (showDietPanel && selectedClient != null)
                         {
-                            <div class="glass-panel p-4 mt-3">
+                            <div class="pt-card p-4 mt-3">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h5 class="mb-0">Diet Plan for @selectedClientName</h5>
                                     <button class="btn-clinic-secondary" @onclick="CloseDietPanel">✕ Close</button>
@@ -1428,11 +1493,11 @@
     {
         return new List<StatCardModel>
         {
-            new("Active Clients",    clients.Count(c => c.IsActive).ToString(),         "👥", "#008d36", "—", "clients"),
-            new("Today's Visits",    todayAttendanceCount.ToString(),                    "🏥", "#7c1b68", "—", "visits"),
-            new("Pending Bookings",  pendingBookingsCount.ToString(),                    "📅", "#ffeb00", "—", "bookings"),
-            new("Pending Fees",      $"₹{pendingInvoicesCount}",                        "₹",  "#ef4444", "—", "clients"),
-            new("WhatsApp Sent",     whatsappLogs.Count.ToString(),                      "💬", "#3b82f6", "—", "whatsapp"),
+            new("Active Clients",    clients.Count(c => c.IsActive).ToString(),         "users", "#008d36", "—", "clients"),
+            new("Today's Visits",    todayAttendanceCount.ToString(),                    "pulse", "#7c1b68", "—", "visits"),
+            new("Pending Bookings",  pendingBookingsCount.ToString(),                    "cal", "#b58900", "—", "bookings"),
+            new("Pending Fees",      $"₹{pendingInvoicesCount}",                        "rupee", "#d6343b", "—", "clients"),
+            new("WhatsApp Sent",     whatsappLogs.Count.ToString(),                      "chat", "#2563eb", "—", "whatsapp"),
         };
     }
 
@@ -1461,6 +1526,145 @@
             .Take(8)
             .ToList();
     }
+
+    // ── Overview charts ─────────────────────────────────────────────────────
+    private record ChartSlice(string Label, int Count, string Colour);
+
+    private DateTime IstToday() => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, GetIst()).Date;
+
+    private List<KeyValuePair<string, int>> VisitsByDay(int days)
+    {
+        var tz = GetIst();
+        var today = IstToday();
+        var counts = attendanceLogs
+            .GroupBy(a => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(a.CheckInTime, DateTimeKind.Utc), tz).Date)
+            .ToDictionary(g => g.Key, g => g.Count());
+        var result = new List<KeyValuePair<string, int>>();
+        for (int i = days - 1; i >= 0; i--)
+        {
+            var d = today.AddDays(-i);
+            result.Add(new(d.ToString("d MMM"), counts.TryGetValue(d, out var c) ? c : 0));
+        }
+        return result;
+    }
+
+    private List<ChartSlice> AppointmentStatusCounts()
+    {
+        var tz = GetIst();
+        var today = IstToday();
+        var monthStart = new DateTime(today.Year, today.Month, 1);
+        var thisMonth = allAppointments
+            .Where(a => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(a.AppointmentDate, DateTimeKind.Utc), tz) >= monthStart
+                     && TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(a.AppointmentDate, DateTimeKind.Utc), tz) < monthStart.AddMonths(1))
+            .ToList();
+        return new List<ChartSlice>
+        {
+            new("Scheduled", thisMonth.Count(a => a.Status == "Scheduled"), "#7c1b68"),
+            new("Completed", thisMonth.Count(a => a.Status == "Completed"), "#008d36"),
+            new("Cancelled", thisMonth.Count(a => a.Status == "Cancelled"), "#d6343b"),
+        };
+    }
+
+    private List<ChartSlice> TopTreatments(int take)
+    {
+        var tz = GetIst();
+        var today = IstToday();
+        var monthStart = new DateTime(today.Year, today.Month, 1);
+        return allAppointments
+            .Where(a => !string.IsNullOrWhiteSpace(a.TreatmentType)
+                     && TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(a.AppointmentDate, DateTimeKind.Utc), tz) >= monthStart)
+            .GroupBy(a => a.TreatmentType)
+            .Select(g => new ChartSlice(g.Key, g.Count(), "#008d36"))
+            .OrderByDescending(x => x.Count)
+            .Take(take)
+            .ToList();
+    }
+
+    private List<ChartSlice> BookingStatusCounts()
+    {
+        return allBookings
+            .GroupBy(b => string.IsNullOrWhiteSpace(b.Status) ? "Pending" : b.Status)
+            .Select(g => new ChartSlice(g.Key, g.Count(),
+                g.Key == "Pending" ? "#b58900" : g.Key == "Confirmed" || g.Key == "Approved" ? "#008d36" : g.Key == "Rejected" || g.Key == "Cancelled" ? "#d6343b" : "#7c1b68"))
+            .OrderByDescending(x => x.Count)
+            .ToList();
+    }
+
+    private static string StatusClass(string? status) => status switch
+    {
+        "Completed" => "ok",
+        "Cancelled" => "bad",
+        _ => "info"
+    };
+
+    // Bar chart: one bar per day, drawn to a single scale (0 .. nice maximum).
+    private static MarkupString BarChart(List<KeyValuePair<string, int>> data, string colour)
+    {
+        const int w = 640, h = 200, left = 30, right = 8, top = 12, bottom = 26;
+        int max = Math.Max(4, data.Max(d => d.Value));
+        if (max % 2 == 1) max++;
+        double plotW = w - left - right, plotH = h - top - bottom;
+        double slot = plotW / data.Count, barW = Math.Min(26, slot * 0.58);
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"<svg class=\"pt-chart\" viewBox=\"0 0 {w} {h}\" role=\"img\" aria-label=\"Visits per day\">");
+        foreach (var tick in new[] { 0, max / 2, max })
+        {
+            double y = top + plotH - plotH * tick / max;
+            sb.Append($"<line x1=\"{left}\" x2=\"{w - right}\" y1=\"{y:F1}\" y2=\"{y:F1}\" class=\"pt-chart-grid\"/>");
+            sb.Append($"<text x=\"{left - 6}\" y=\"{y + 3:F1}\" text-anchor=\"end\" class=\"pt-chart-text\">{tick}</text>");
+        }
+        for (int i = 0; i < data.Count; i++)
+        {
+            double cx = left + slot * i + slot / 2;
+            double bh = plotH * data[i].Value / max;
+            bool last = i == data.Count - 1;
+            sb.Append($"<rect x=\"{cx - barW / 2:F1}\" y=\"{top + plotH - bh:F1}\" width=\"{barW:F1}\" height=\"{Math.Max(bh, data[i].Value > 0 ? 2 : 0):F1}\" rx=\"4\" fill=\"{colour}\" opacity=\"{(last ? "1" : "0.55")}\"><title>{data[i].Key}: {data[i].Value}</title></rect>");
+            if (data[i].Value > 0)
+                sb.Append($"<text x=\"{cx:F1}\" y=\"{top + plotH - bh - 4:F1}\" text-anchor=\"middle\" class=\"pt-chart-value\">{data[i].Value}</text>");
+            if (i % 2 == data.Count % 2 || last)
+                sb.Append($"<text x=\"{cx:F1}\" y=\"{h - 8}\" text-anchor=\"middle\" class=\"pt-chart-text\">{data[i].Key}</text>");
+        }
+        sb.Append("</svg>");
+        return new MarkupString(sb.ToString());
+    }
+
+    // Donut chart: segments share one circle, so they always add up to 100%.
+    private static MarkupString Donut(List<ChartSlice> slices, int total)
+    {
+        const double r = 42, c = 2 * Math.PI * r;
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<svg class=\"pt-donut\" viewBox=\"0 0 120 120\" role=\"img\" aria-label=\"Appointments by status\">");
+        sb.Append($"<circle cx=\"60\" cy=\"60\" r=\"{r}\" fill=\"none\" class=\"pt-donut-track\" stroke-width=\"14\"/>");
+        double offset = 0;
+        foreach (var s in slices.Where(x => x.Count > 0))
+        {
+            double len = c * s.Count / total;
+            sb.Append($"<circle cx=\"60\" cy=\"60\" r=\"{r}\" fill=\"none\" stroke=\"{s.Colour}\" stroke-width=\"14\" stroke-dasharray=\"{Math.Max(len - 2, 0.5):F2} {c:F2}\" stroke-dashoffset=\"{-offset:F2}\" transform=\"rotate(-90 60 60)\"><title>{s.Label}: {s.Count}</title></circle>");
+            offset += len;
+        }
+        sb.Append($"<text x=\"60\" y=\"58\" text-anchor=\"middle\" class=\"pt-donut-num\">{total}</text>");
+        sb.Append("<text x=\"60\" y=\"73\" text-anchor=\"middle\" class=\"pt-chart-text\">appointments</text>");
+        sb.Append("</svg>");
+        return new MarkupString(sb.ToString());
+    }
+
+    // The sidebar links to /admin-dashboard?tab=..., so react when the query string changes.
+    [SupplyParameterFromQuery(Name = "tab")]
+    public string? TabQuery { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var wanted = string.IsNullOrWhiteSpace(TabQuery) ? "overview" : TabQuery!;
+        if (wanted == activeTab) return;
+        switch (wanted)
+        {
+            case "mealreview": await SwitchToMealReview(); break;
+            case "bookings": await SwitchToBookings(); break;
+            case "feedback": await SwitchToFeedback(); break;
+            default: activeTab = wanted; break;
+        }
+    }
+
 
     private void NavigateToTab(string tab)
     {
