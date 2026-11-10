@@ -23,6 +23,9 @@
         <symbol id="pt-ico-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol>
         <symbol id="pt-ico-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
         <symbol id="pt-ico-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
+        <symbol id="pt-ico-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6"/></symbol>
+        <symbol id="pt-ico-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/></symbol>
+        <symbol id="pt-ico-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol>
         <symbol id="pt-ico-chevrons" viewBox="0 0 24 24"><path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/></symbol>
     </defs>
 </svg>
@@ -90,6 +93,16 @@
                         }
                     }
                 </ul>
+            
+                <nav class="pt-bottom-nav" aria-label="Client pages">
+                    @foreach (var item in clientNavGroups[0].Items)
+                    {
+                        <a class="pt-bottom-link @(IsNavItemActive(item) ? "on" : "")" href="@item.Href" aria-current="@(IsNavItemActive(item) ? "page" : null)">
+                            <svg class="pt-i" aria-hidden="true"><use href="#pt-ico-@item.Icon"></use></svg>
+                            <span>@BottomLabel(item.Label)</span>
+                        </a>
+                    }
+                </nav>
             </AuthorizeView>
 
             <!-- Signed-in user + Logout -->
@@ -161,12 +174,22 @@
     {
         new(null, new NavItem[]
         {
-            new("/client-dashboard",                  "grid",  "Overview"),
-            new("/client-dashboard#checkin",          "check", "Check-In"),
-            new("/client-dashboard#appointments",     "clip",  "Appointments"),
-            new("/client-dashboard#diet",             "leaf",  "Diet Plan"),
-            new("/client-dashboard#history",          "trend", "My History"),
+            new("/client-dashboard",                      "grid",  "Overview"),
+            new("/client-dashboard?tab=checkin",          "check", "Check-In"),
+            new("/client-dashboard?tab=appointments",     "cal",   "Appointments"),
+            new("/client-dashboard?tab=diet",             "leaf",  "Diet Plan"),
+            new("/client-dashboard?tab=history",          "trend", "My History"),
         }),
+    };
+
+    private static string BottomLabel(string label) => label switch
+    {
+        "Overview" => "Home",
+        "Check-In" => "Check-in",
+        "Appointments" => "Visits",
+        "Diet Plan" => "Diet",
+        "My History" => "History",
+        _ => label
     };
 
     private static string UserInitial(string? name) =>

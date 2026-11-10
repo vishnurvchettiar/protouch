@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthState
 
-<div class="page dashboard-theme">
+<div class="page dashboard-theme @pageClass">
     <div class="sidebar">
         <NavMenu />
     </div>
@@ -56,5 +57,18 @@
         var name = (identityName ?? "").Split('@')[0].Trim();
         if (string.IsNullOrEmpty(name)) return "Account";
         return char.ToUpperInvariant(name[0]) + name.Substring(1);
+    }
+}
+
+@code {
+    // Clients get a bottom tab bar on phones instead of the sidebar, so the layout needs to know the role.
+    private string pageClass = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var user = state.User;
+        if (user.Identity?.IsAuthenticated == true && user.IsInRole("Client") && !user.IsInRole("Admin"))
+            pageClass = "pt-client-layout";
     }
 }
