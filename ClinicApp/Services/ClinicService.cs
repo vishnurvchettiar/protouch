@@ -84,14 +84,44 @@ public class ClinicService
 
     private (string Sid, string Token, string From) GetTwilioConfig()
     {
-        // Prefer DB settings
-        var sid = _db.Settings.FirstOrDefault(s => s.Key == "WhatsApp:Twilio:AccountSid")?.Value
-                  ?? _config["WhatsApp:Twilio:AccountSid"];
-        var token = _db.Settings.FirstOrDefault(s => s.Key == "WhatsApp:Twilio:AuthToken")?.Value
-                    ?? _config["WhatsApp:Twilio:AuthToken"];
-        var from = _db.Settings.FirstOrDefault(s => s.Key == "WhatsApp:Twilio:From")?.Value
-                   ?? _config["WhatsApp:Twilio:From"] ?? "whatsapp:+14155238886";
-        return (sid ?? string.Empty, token ?? string.Empty, from);
+        // Saved settings win, but a blank saved value must not hide a good appsettings value.
+        string Pick(string key)
+        {
+            var saved = _db.Settings.FirstOrDefault(s => s.Key == key)?.Value;
+            return (!string.IsNullOrWhiteSpace(saved) ? saved : _config[key] ?? string.Empty).Trim();
+        }
+        var from = Pick("WhatsApp:Twilio:From");
+        if (from.Length == 0) from = "whatsapp:+14155238886";
+        return (Pick("WhatsApp:Twilio:AccountSid"), Pick("WhatsApp:Twilio:AuthToken"), from);
+    }
+
+    /// <summary>Turns a Twilio failure into a sentence the clinic can act on.</summary>
+    public static string DescribeTwilioError(Exception ex)
+    {
+        if (ex is Twilio.Exceptions.AuthenticationException)
+            return "Twilio rejected the Account SID or Auth token (error 20003). Re-enter both from the Twilio Console, with no spaces.";
+        if (ex is Twilio.Exceptions.ApiException api)
+        {
+            var hint = api.Code switch
+            {
+                20003 => "The Account SID or Auth token is wrong. Re-enter both from the Twilio Console.",
+                20404 => "Twilio could not find that account or number. Check the Account SID and the sending number.",
+                21211 or 21614 => "That phone number is not valid for WhatsApp. Use a full number such as +919028027888.",
+                21408 => "This Twilio account is not allowed to message that country yet. Enable India in Twilio Messaging, Geo permissions.",
+                21608 => "A trial Twilio account can only message verified numbers. Verify the number in Twilio, or upgrade the account.",
+                21612 or 21606 => "The sending number cannot send WhatsApp messages. Use your WhatsApp sender in the form whatsapp:+14155238886.",
+                63007 => "The sending number is not set up as a WhatsApp sender. Check the Sending number in settings (it must start with whatsapp:).",
+                63015 => "The Twilio sandbox only reaches phones that joined it. Send the join code from that WhatsApp number first, then try again.",
+                63016 => "WhatsApp only allows free-text messages within 24 hours of the person's last message. Use an approved template, or ask them to message the clinic first.",
+                63003 => "Twilio could not find that WhatsApp number. Check the number and that WhatsApp is installed on it.",
+                63018 => "Twilio's WhatsApp rate limit was hit. Wait a minute and send fewer messages at a time.",
+                63024 => "That number is not a valid WhatsApp user.",
+                63038 => "The Twilio account reached its daily WhatsApp message limit.",
+                _ => api.Message
+            };
+            return $"{hint} (Twilio error {api.Code})";
+        }
+        return ex.Message;
     }
 
     // ==========================================
@@ -1014,8 +1044,8 @@ public class ClinicService
                 TwilioClient.Init(cfg.Sid, cfg.Token);
                 var msg = MessageResource.Create(
                     body: $"Your ProTouch verification code is: {code}",
-                    from: new Twilio.Types.PhoneNumber(cfg.From),
-                    to: new Twilio.Types.PhoneNumber(phone)
+                    from: new Twilio.Types.PhoneNumber(cfg.From.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? cfg.From : "whatsapp:" + cfg.From),
+                    to: new Twilio.Types.PhoneNumber(ToWhatsAppAddress(phone) ?? phone)
                 );
                 _db.WhatsAppLogs.Add(new WhatsAppLog
                 {
@@ -1157,7 +1187,17 @@ public class ClinicService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Could not send a verification code to {Phone}", MaskPhone(canon));
+                _logger.LogError(ex, "Could not send a verification code to {Phone}: {Reason}", MaskPhone(canon), DescribeTwilioError(ex));
+                _db.WhatsAppLogs.Add(new WhatsAppLog
+                {
+                    TargetAudience = "Verification code",
+                    MessageTemplate = $"Verification code to {MaskPhone(canon)} failed",
+                    RecipientCount = 1,
+                    SentAt = now,
+                    Status = "Failed",
+                    LogDetail = JsonSerializer.Serialize(new[] { new { Phone = MaskPhone(canon), Status = "Failed", Reason = DescribeTwilioError(ex) } })
+                });
+                await _db.SaveChangesAsync();
                 return new OtpSendResult(false, "We could not send the code just now. Please try again in a minute.", 0, null);
             }
         }
@@ -1229,18 +1269,28 @@ public class ClinicService
         if (mode == "Twilio")
         {
             var cfg = GetTwilioConfig();
-            if (!string.IsNullOrEmpty(cfg.Sid) && !string.IsNullOrEmpty(cfg.Token))
+            if (string.IsNullOrEmpty(cfg.Sid) || string.IsNullOrEmpty(cfg.Token))
+                throw new InvalidOperationException("WhatsApp is set to Twilio (live) but the Account SID or Auth token is missing. Add both in Settings, or switch to Test mode.");
             {
                 var toAddress = ToWhatsAppAddress(toPhone)
                     ?? throw new ArgumentException($"'{toPhone}' is not a valid phone number.", nameof(toPhone));
                 var fromAddress = cfg.From.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? cfg.From : "whatsapp:" + cfg.From;
 
-                TwilioClient.Init(cfg.Sid, cfg.Token);
-                var msg = await MessageResource.CreateAsync(
-                    body: messageText,
-                    from: new Twilio.Types.PhoneNumber(fromAddress),
-                    to: new Twilio.Types.PhoneNumber(toAddress)
-                );
+                MessageResource msg;
+                try
+                {
+                    TwilioClient.Init(cfg.Sid, cfg.Token);
+                    msg = await MessageResource.CreateAsync(
+                        body: messageText,
+                        from: new Twilio.Types.PhoneNumber(fromAddress),
+                        to: new Twilio.Types.PhoneNumber(toAddress)
+                    );
+                }
+                catch (Exception ex) when (ex is Twilio.Exceptions.TwilioException)
+                {
+                    _logger.LogError(ex, "Twilio could not send a WhatsApp message to {Phone}", MaskPhone(NormalisePhone(toPhone)));
+                    throw new InvalidOperationException(DescribeTwilioError(ex), ex);
+                }
 
                 var log = new WhatsAppLog
                 {
@@ -1315,7 +1365,7 @@ public class ClinicService
             {
                 failed++;
                 _logger.LogError(ex, "Failed to send bulk WhatsApp to {Phone}", user.PhoneNumber);
-                dispatchDetails.Add(new { Name = user.FullName, Phone = user.PhoneNumber, Status = "Failed" });
+                dispatchDetails.Add(new { Name = user.FullName, Phone = user.PhoneNumber, Status = "Failed", Reason = ex is InvalidOperationException or ArgumentException ? ex.Message : DescribeTwilioError(ex) });
             }
 
             progress?.Report((sent, failed, total));
