@@ -324,6 +324,9 @@ namespace ClinicApp.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("BLOB");
+
                     b.Property<string>("OriginalFileName")
                         .IsRequired()
                         .HasMaxLength(180)
@@ -449,6 +452,37 @@ namespace ClinicApp.Migrations
                     b.ToTable("SiteFeedbacks");
                 });
 
+            modelBuilder.Entity("ClinicApp.Data.StoredFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Path")
+                        .IsUnique();
+
+                    b.ToTable("StoredFiles");
+                });
+
             modelBuilder.Entity("ClinicApp.Data.WhatsAppLog", b =>
                 {
                     b.Property<int>("Id")
@@ -480,6 +514,23 @@ namespace ClinicApp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WhatsAppLogs");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

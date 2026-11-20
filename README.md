@@ -28,13 +28,38 @@ The public pages (home, services, service detail, booking) use one design system
 
 ## Where data is saved
 
-The database is SQLite. Everything the clinic saves lives in the folder that holds the database file
-(`/var/data` on Render, set by the Dockerfile): the database itself, uploaded meal and profile photos
-(`uploads/`), diet plan documents (`diet-plan-documents/`) and the keys that keep people signed in (`keys/`).
+Everything the clinic saves is kept in the database: clients, check-ins, meal reviews, diet plans, settings,
+bookings, feedback, uploaded meal and profile photos, diet plan documents and the keys that keep people signed in.
 
-On Render, attach a **Disk** to the web service and mount it at `/var/data`. Without a disk the folder is
-wiped on every deploy and settings, meal reviews, diet plans and clients are lost. The log line
-"Saved data ... is kept in ..." at startup shows the folder in use.
+- **PostgreSQL (use this on Render).** Set the `DATABASE_URL` environment variable and the app uses PostgreSQL.
+  Data lives on the database server, so redeploying or restarting the web service never loses anything.
+- **SQLite (local development).** With no `DATABASE_URL` the app uses the SQLite file `Data/app.db`, as before.
+
+### Moving to PostgreSQL on Render
+
+1. In Render create a **PostgreSQL** database. Use a paid instance: Render's free PostgreSQL is deleted after 30 days.
+   Turn on the backups your plan offers.
+2. Open the database page and copy its **Internal Database URL**.
+3. Open the web service, Environment, and add `DATABASE_URL` with that value. Save and deploy.
+4. **Keep the old Disk attached for this first deploy.** On start-up the app copies the existing SQLite data
+   (`/var/data/app.db`) and any photo or diet plan files into PostgreSQL, checks that every table has the same
+   number of rows, and only then commits. The old file is never changed or deleted. The log shows
+   "Imported N rows from SQLite into PostgreSQL". The import runs once, only into an empty PostgreSQL database.
+5. After you have checked the site, the Disk is no longer needed.
+
+If the import finds a problem it rolls everything back and the app refuses to start, so the previous
+working deployment stays live and nothing is half-copied. To import a SQLite file from somewhere else, set
+`IMPORT_SQLITE_PATH` to its path.
+
+### Changing the database model
+
+There are two migration sets, one per database: `Data/Migrations` (SQLite) and `Data/MigrationsPg` (PostgreSQL).
+After changing a model, add a migration to both (tests fail if one is missing):
+
+```bash
+dotnet ef migrations add Name --context ApplicationDbContext   --output-dir Data/Migrations
+dotnet ef migrations add Name --context PgApplicationDbContext --output-dir Data/MigrationsPg
+```
 
 ## Demo credentials
 

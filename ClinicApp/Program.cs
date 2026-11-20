@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -87,18 +88,42 @@ if (rawConnStr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
     }
 }
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+// Which database? PostgreSQL when the host gives us a DATABASE_URL (Render does), otherwise SQLite as before.
+// PostgreSQL keeps its data on the database server, so nothing is lost when the web service is redeployed.
+var postgresConnection = ClinicApp.Services.DatabaseConnection.PostgresFromEnvironment(
+    Environment.GetEnvironmentVariable("DATABASE_URL"),
+    builder.Configuration.GetConnectionString("Postgres"));
+var usePostgres = postgresConnection != null;
 
-// Everything the clinic saves lives next to the database, so one persistent disk keeps it all:
-// uploaded photos, diet plan documents and the keys that keep people signed in.
-var storageRoot = ClinicApp.Services.AppStorage.FolderFromConnectionString(connectionString, builder.Environment.ContentRootPath)
+if (usePostgres)
+{
+    // Keep DateTime behaving as it always has here (stored exactly as given, no time zone conversion).
+    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+    AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+    builder.Services.AddDbContext<ApplicationDbContext, PgApplicationDbContext>(options =>
+        options.UseNpgsql(postgresConnection!, npgsql =>
+        {
+            npgsql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null);
+            npgsql.CommandTimeout(60);
+        }));
+}
+else
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
+
+// Files that may still exist from before photos and documents moved into the database.
+// They are read once at startup and copied into the database; nothing new is written there.
+var legacyRoot = ClinicApp.Services.AppStorage.FolderFromConnectionString(connectionString, builder.Environment.ContentRootPath)
     ?? System.IO.Path.Combine(builder.Environment.ContentRootPath, "Data");
-var appStorage = new ClinicApp.Services.AppStorage(storageRoot);
+var appStorage = new ClinicApp.Services.AppStorage(legacyRoot);
 builder.Services.AddSingleton(appStorage);
+
+// Sign-in keys live in the database, so a deploy or restart never logs people out.
 builder.Services.AddDataProtection()
     .SetApplicationName("ProTouch")
-    .PersistKeysToFileSystem(new DirectoryInfo(appStorage.KeysRoot));
+    .PersistKeysToDbContext<ApplicationDbContext>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<ClinicApp.Services.ClinicService>();
@@ -182,7 +207,7 @@ app.UseWebSockets(new WebSocketOptions
     KeepAliveInterval = TimeSpan.FromSeconds(30)
 });
 
-app.Logger.LogInformation("Saved data (database, photos, diet plans, login keys) is kept in {Folder}. On Render this must be a mounted Disk or it is lost on every deploy.", appStorage.Root);
+app.Logger.LogInformation("Database: {Provider}. Photos, diet plan documents and sign-in keys are stored in the database.", usePostgres ? "PostgreSQL" : "SQLite (local file)");
 
 // Seed database
 await ClinicApp.Data.DbInitializer.SeedDataAsync(app.Services);
@@ -211,13 +236,6 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 // Task 8.4: Cache-Control for static images (max-age 1 year, immutable)
-// Uploaded photos are served from the persistent folder first (older files in wwwroot/uploads still work).
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(appStorage.UploadsRoot),
-    RequestPath = "/uploads",
-    OnPrepareResponse = ctx => ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable"
-});
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
@@ -252,11 +270,11 @@ app.MapGet("/diet-plan-documents/{id:guid}/download", async (
     if (document == null || (!user.IsInRole("Admin") && document.ClientUserId != userId))
         return Results.NotFound();
 
-    var path = documents.GetDownloadPath(document);
-    if (path == null)
+    var content = await documents.ReadContentAsync(document);
+    if (content == null)
         return Results.NotFound();
 
-    return Results.File(path, "application/octet-stream", document.OriginalFileName);
+    return Results.File(content, "application/octet-stream", document.OriginalFileName);
 })
     .RequireAuthorization();
 
@@ -280,13 +298,27 @@ app.MapGet("/diet-plan-documents/{id:guid}/view", async (
     if (!document.OriginalFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
         return Results.Redirect($"/diet-plan-documents/{id}/download");
 
-    var path = documents.GetDownloadPath(document);
-    if (path == null)
+    var content = await documents.ReadContentAsync(document);
+    if (content == null)
         return Results.NotFound();
 
-    return Results.File(path, "application/pdf", enableRangeProcessing: true);
+    return Results.File(content, "application/pdf", enableRangeProcessing: true);
 })
     .RequireAuthorization();
+
+// Uploaded photos (meals, profiles) are stored in the database and served from here.
+app.MapGet("/uploads/{folder}/{name}", async (string folder, string name, ApplicationDbContext db, HttpContext http) =>
+{
+    var path = $"uploads/{folder}/{name}";
+    var file = await db.StoredFiles.AsNoTracking()
+        .Where(f => f.Path == path)
+        .Select(f => new { f.ContentType, f.Data })
+        .FirstOrDefaultAsync();
+    if (file == null)
+        return Results.NotFound();
+    http.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
+    return Results.File(file.Data, file.ContentType);
+});
 
 // Health endpoint — lets Render know the app is alive (avoids cold-start sleep)
 app.MapGet("/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }));

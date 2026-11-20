@@ -50,6 +50,30 @@ public class DietPlanDocument
     public string OriginalFileName { get; set; } = string.Empty;
 
     public DateTime UploadedAtUtc { get; set; } = DateTime.UtcNow;
+
+    /// <summary>The document itself, kept in the database so it survives redeploys. Null only for older rows whose file is still on disk.</summary>
+    public byte[]? Content { get; set; }
+}
+
+/// <summary>An uploaded photo (meal or profile picture) kept in the database, served at its Path.</summary>
+public class StoredFile
+{
+    [Key]
+    public int Id { get; set; }
+
+    /// <summary>Public path without the leading slash, for example "uploads/meals/abc.jpg".</summary>
+    [Required]
+    [MaxLength(300)]
+    public string Path { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(100)]
+    public string ContentType { get; set; } = "application/octet-stream";
+
+    [Required]
+    public byte[] Data { get; set; } = Array.Empty<byte>();
+
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
 public class DailyLog
