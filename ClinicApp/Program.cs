@@ -103,6 +103,7 @@ var usePostgres = postgresConnection != null;
 
 if (useMongo)
 {
+    mongoConnection = ClinicApp.Services.MongoConnectionString.Normalize(mongoConnection!);
     var mongoClient = new MongoClient(mongoConnection);
     var mongoDatabase = mongoClient.GetDatabase(mongoDatabaseName);
     builder.Services.AddSingleton<IMongoClient>(mongoClient);
