@@ -19,7 +19,11 @@
     var G = window.gsap, ST = window.ScrollTrigger;
     var anim = !!(G && ST) && !reduce;
     if (!anim) { html.classList.remove('px-js'); html.classList.remove('px-first'); html.classList.remove('px-cv'); }
-    if (anim) G.registerPlugin(ST);
+    if (anim) {
+        G.registerPlugin(ST);
+        /* fewer callbacks per scroll, and no re-measure when a phone's address bar shows or hides */
+        ST.config({ limitCallbacks: true, ignoreMobileResize: true });
+    }
 
     var heroDelay = 0;
 
@@ -52,18 +56,35 @@
     /* ---------------------------------------------------------------- chrome (runs once) */
     function chrome() {
         var pg = $('#px-pg'), nav = $('#px-nav'), btt = $('.px .btt'), lastY = 0;
+        var maxScroll = 1, ticking = false, navHidden = false, bttShown = false, lastScrollAt = 0;
 
-        function onScroll() {
-            var y = window.pageYOffset || 0, d = document.documentElement;
-            if (pg) pg.style.transform = 'scaleX(' + (y / Math.max(1, d.scrollHeight - window.innerHeight)) + ')';
+        /* The page height is measured on load/resize/content changes, never inside the scroll handler:
+           reading scrollHeight there forces a layout on every scroll event. */
+        function measure() { maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight); }
+        function frame() {
+            ticking = false;
+            var y = window.pageYOffset || 0;
+            if (pg) pg.style.transform = 'scaleX(' + Math.min(1, y / maxScroll).toFixed(4) + ')';
             if (nav) {
-                if (y > 260 && y > lastY + 4) nav.classList.add('hid');
-                else if (y < lastY - 4 || y < 260) nav.classList.remove('hid');
+                var hide = navHidden;
+                if (y > 260 && y > lastY + 4) hide = true;
+                else if (y < lastY - 4 || y < 260) hide = false;
+                if (hide !== navHidden) { navHidden = hide; nav.classList.toggle('hid', hide); }
             }
-            if (btt) btt.classList.toggle('show', y > 900);
+            if (btt) {
+                var show = y > 900;
+                if (show !== bttShown) { bttShown = show; btt.classList.toggle('show', show); }
+            }
             lastY = y;
         }
+        function onScroll() {
+            lastScrollAt = Date.now();
+            if (!ticking) { ticking = true; requestAnimationFrame(frame); }
+        }
         window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', function () { measure(); onScroll(); });
+        window.addEventListener('load', measure);
+        measure();
         onScroll();
 
         /* mobile menu, back to top, lightbox, page curtain: one delegated handler */
@@ -143,8 +164,16 @@
         });
         /* page height changes (BMI result, gallery "load more") */
         if (anim && window.ResizeObserver) {
-            var main = $('.px .px-main'), t;
-            if (main) new ResizeObserver(function () { clearTimeout(t); t = setTimeout(function () { ST.refresh(); }, 250); }).observe(main);
+            var main = $('.px .px-main'), t, lastH = main ? main.offsetHeight : 0;
+            /* lazy images change the page height as they load. Re-measure only when the height really changed,
+               and never while the visitor is actively scrolling (a refresh mid-scroll is what makes it stutter). */
+            var settle = function () {
+                if (Date.now() - lastScrollAt < 200) { t = setTimeout(settle, 250); return; }
+                var h = main.offsetHeight;
+                if (Math.abs(h - lastH) < 30) return;
+                lastH = h; measure(); ST.refresh();
+            };
+            if (main) new ResizeObserver(function () { clearTimeout(t); t = setTimeout(settle, 400); }).observe(main);
         }
     }
 
@@ -246,13 +275,22 @@
             c.style.strokeDasharray = L;
             G.fromTo(c, { strokeDashoffset: L }, { strokeDashoffset: L * (1 - p), duration: 2.2, ease: 'power3.out', scrollTrigger: trig(c, 'top 92%') });
         });
+        /* marquee: runs only while on screen, and speeds up with scroll speed through one shared ticker
+           (no new tweens are created while scrolling) */
+        var mqTweens = [], mqTarget = 1, mqNow = 1;
         $$('.mq .tr', root).forEach(function (t) {
-            var tw = G.to(t, { xPercent: -50, duration: 34, ease: 'none', repeat: -1 });
-            ST.create({ onUpdate: function (s) {
-                G.to(tw, { timeScale: Math.min(6, 1 + Math.abs(s.getVelocity()) / 260), duration: .2, overwrite: true });
-                G.to(tw, { timeScale: 1, duration: 1, delay: .2 });
-            } });
+            var tw = G.to(t, { xPercent: -50, duration: 34, ease: 'none', repeat: -1, paused: true });
+            mqTweens.push(tw);
+            ST.create({ trigger: t.parentNode, start: 'top bottom', end: 'bottom top', onToggle: function (s) { if (s.isActive) tw.play(); else tw.pause(); } });
         });
+        if (mqTweens.length) {
+            ST.create({ onUpdate: function (s) { mqTarget = Math.min(4, 1 + Math.abs(s.getVelocity()) / 500); } });
+            G.ticker.add(function () {
+                mqTarget += (1 - mqTarget) * .04;
+                mqNow += (mqTarget - mqNow) * .12;
+                for (var i = 0; i < mqTweens.length; i++) if (!mqTweens[i].paused()) mqTweens[i].timeScale(mqNow);
+            });
+        }
         $$('.bl', root).forEach(function (b, i) {
             G.to(b, { borderRadius: '40% 60% 42% 58%/58% 40% 60% 42%', rotate: 30, duration: 9 + i * 2, ease: 'sine.inOut', yoyo: true, repeat: -1 });
         });
@@ -305,35 +343,60 @@
     function home(root) {
         var zh = $('.zh', root), mm = G.matchMedia();
         var w1 = $('.hw1', zh), w2 = $('.hw2', zh), fr = $('.frame', zh), ov = $('.ov', zh), sd = $('.side', zh), ht = $('.hint', zh), tp = $('.top', zh), fi = $('.frame img', zh);
+        /* The photo is always full size; a crop mask (clip-path) opens from an arch to the whole screen.
+           Animating width/height instead forces a re-layout and re-draw of a huge image on every scroll step. */
+        var FULL = 'inset(0px 0px 0px 0px round 0px 0px 0px 0px)';
+        function archMask() {
+            var W = zh.clientWidth, H = zh.clientHeight;
+            var cw = Math.min(380, Math.max(180, .24 * window.innerWidth));
+            var ch = Math.min(520, Math.max(240, .52 * window.innerHeight));
+            var ix = Math.round((W - cw) / 2), iy = Math.round((H - ch) / 2);
+            return 'inset(' + iy + 'px ' + ix + 'px ' + iy + 'px ' + ix + 'px round 200px 200px 24px 24px)';
+        }
+        /* At the start the whole photo is scaled down so the arch shows the same crop as before
+           (face centred); it then scales up to fill the screen as the mask opens. */
+        function s0() { return Math.min(1, Math.max(240, Math.min(520, .52 * window.innerHeight)) / zh.clientHeight); }
+        function shift() { return Math.round(zh.clientWidth * s0() * .14); }
+        G.set(fr, { clipPath: archMask() });
+        G.set(fi, { x: shift(), scale: s0() });
         mm.add('(min-width: 821px)', function () {
-            G.timeline({ scrollTrigger: { trigger: zh, start: 'top top', end: '+=170%', scrub: .7, pin: true, anticipatePin: 1 } })
+            G.timeline({ scrollTrigger: { trigger: zh, start: 'top top', end: '+=170%', scrub: .5, pin: true, anticipatePin: 1, invalidateOnRefresh: true } })
                 .to(w1, { xPercent: -80, opacity: 0, ease: 'power2.in', duration: 1 }, 0)
                 .to(w2, { xPercent: 80, opacity: 0, ease: 'power2.in', duration: 1 }, 0)
-                .to(fr, { width: '100vw', height: '100vh', borderRadius: 0, ease: 'power2.inOut', duration: 1.2 }, 0)
+                .fromTo(fr, { clipPath: archMask }, { clipPath: FULL, ease: 'power2.inOut', duration: 1.2 }, 0)
                 .to([sd, ht, tp], { opacity: 0, duration: .3 }, 0)
-                .to(fi, { objectPosition: '50% 40%', scale: 1.08, duration: 1.2 }, 0)
+                .fromTo(fi, { x: shift, scale: s0 }, { x: 0, scale: 1.06, duration: 1.2 }, 0)
                 .to(ov, { opacity: 1, duration: .6 }, .9)
                 .from($$('h1, p, .prow', ov), { y: 50, opacity: 0, stagger: .12, duration: .6 }, .9);
         });
         mm.add('(max-width: 820px)', function () {
-            G.timeline({ scrollTrigger: { trigger: zh, start: 'top top', end: '+=130%', scrub: .7, pin: true } })
+            G.timeline({ scrollTrigger: { trigger: zh, start: 'top top', end: '+=130%', scrub: .5, pin: true, invalidateOnRefresh: true } })
                 .to(w1, { yPercent: -60, opacity: 0, duration: 1 }, 0)
                 .to(w2, { yPercent: 60, opacity: 0, duration: 1 }, 0)
-                .to(fr, { width: '100vw', height: '100vh', borderRadius: 0, duration: 1.2 }, 0)
+                .fromTo(fr, { clipPath: archMask }, { clipPath: FULL, duration: 1.2 }, 0)
+                .fromTo(fi, { x: shift, scale: s0 }, { x: 0, scale: 1.04, duration: 1.2 }, 0)
                 .to([ht, tp], { opacity: 0, duration: .3 }, 0)
                 .to(ov, { opacity: 1, duration: .6 }, .9);
         });
         G.from(w1, { xPercent: -30, opacity: 0, duration: 1.4, ease: 'power4.out', delay: heroDelay });
         G.from(w2, { xPercent: 30, opacity: 0, duration: 1.4, ease: 'power4.out', delay: heroDelay + .1 });
-        G.from(fr, { scale: .7, opacity: 0, duration: 1.4, ease: 'power4.out', delay: heroDelay + .2 });
+        G.from(fr, { opacity: 0, duration: 1.4, ease: 'power4.out', delay: heroDelay + .2 });
         G.from([tp, sd], { opacity: 0, y: 20, delay: heroDelay + .9, duration: 1 });
 
         /* stacked service cards */
         var cs = $$('.sc', root);
         mm.add('(min-width: 821px)', function () {
+            /* dimming uses an overlay's opacity (cheap); animating a CSS filter re-draws the whole card each frame */
             cs.forEach(function (c, i) {
                 if (i === cs.length - 1) return;
-                G.to(c, { scale: .94 - (cs.length - i) * .005, filter: 'brightness(.55)', ease: 'none', scrollTrigger: { trigger: cs[i + 1], start: 'top 75%', end: 'top 22%', scrub: true } });
+                $$('.dim', c).forEach(function (d) { d.remove(); });
+                var dim = document.createElement('i');
+                dim.className = 'dim';
+                dim.setAttribute('aria-hidden', 'true');
+                c.appendChild(dim);
+                var st = { trigger: cs[i + 1], start: 'top 75%', end: 'top 22%', scrub: true };
+                G.to(c, { scale: .94 - (cs.length - i) * .005, ease: 'none', scrollTrigger: st });
+                G.to(dim, { opacity: .5, ease: 'none', scrollTrigger: st });
             });
             cs.forEach(function (c) {
                 var im = $('img', c);
@@ -345,7 +408,7 @@
         var dp = $('.dp', root);
         if (dp) {
             var mk = $('.m', dp), q = $('.qt', dp), dq = $('q', dp);
-            G.timeline({ scrollTrigger: { trigger: dp, start: 'top top', end: 'bottom bottom', scrub: .8 } })
+            G.timeline({ scrollTrigger: { trigger: dp, start: 'top top', end: 'bottom bottom', scrub: .5 } })
                 .fromTo(mk, { scale: .6, opacity: 0 }, { scale: 1.1, opacity: 1, ease: 'none' }, 0)
                 .fromTo(q, { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: .35 }, 0)
                 .to(q, { y: -60, opacity: .2, duration: .25 }, .75);
