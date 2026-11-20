@@ -725,7 +725,7 @@
                 <div class="pt-grid2">
                     <div class="pt-field"><label for="s-sid">Account SID</label><input id="s-sid" class="pt-input" type="password" autocomplete="off" @bind="settingsSid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" /></div>
                     <div class="pt-field"><label for="s-token">Auth token</label><input id="s-token" class="pt-input" type="password" autocomplete="off" @bind="settingsToken" placeholder="Your Twilio auth token" /></div>
-                    <div class="pt-field"><label for="s-from">Sending number</label><input id="s-from" class="pt-input" @bind="settingsFrom" placeholder="whatsapp:+14155238886" /></div>
+                    <div class="pt-field"><label for="s-from">Sending number</label><input id="s-from" class="pt-input" @bind="settingsFrom" placeholder="whatsapp:+1xxxxxxxxxx (your Twilio sandbox number)" /></div>
                     <div class="pt-field"><label for="s-clinic">Clinic number for alerts</label><input id="s-clinic" class="pt-input" @bind="settingsClinicNum" placeholder="+919028027888" /></div>
                 </div>
             </div>
@@ -742,7 +742,8 @@
                     <li>Create a free Twilio account at <a href="https://twilio.com" target="_blank" rel="noopener">twilio.com</a>.</li>
                     <li>From the Twilio Console dashboard, copy your <strong>Account SID</strong> and <strong>Auth Token</strong>.</li>
                     <li>Go to <strong>Messaging, Senders, WhatsApp Senders</strong> and join the Twilio Sandbox by sending the join code from your WhatsApp.</li>
-                    <li>The sandbox sending number is <code>whatsapp:+14155238886</code>.</li>
+                    <li>Twilio shows your own sandbox number and join phrase on that page (for example <code>+1 737 250 8034</code> and <code>join twilio-trial</code>). Enter it in <strong>Sending number</strong> as <code>whatsapp:+</code> followed by that number, with no spaces. It must not be the clinic's own phone number.</li>
+                    <li>Every phone that should receive messages must send the join phrase to that number once.</li>
                     <li>Enter the clinic's WhatsApp number, for example <code>+919028027888</code>, in the alerts field.</li>
                     <li>Set the mode to <strong>Twilio (live)</strong> and save.</li>
                     <li>Use <strong>Send test message</strong> to check delivery.</li>
