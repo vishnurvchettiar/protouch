@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +19,39 @@ public static class DbInitializer
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DataSafety");
+
         // Apply migrations if pending
         if ((await db.Database.GetPendingMigrationsAsync()).Any())
         {
             await db.Database.MigrateAsync();
+        }
+
+        var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+        var storage = scope.ServiceProvider.GetService<ClinicApp.Services.AppStorage>();
+
+        // Moving to PostgreSQL: copy any existing SQLite data across once, before anything is seeded.
+        if (db is PgApplicationDbContext)
+        {
+            var candidates = new[]
+            {
+                Environment.GetEnvironmentVariable("IMPORT_SQLITE_PATH"),
+                storage != null ? Path.Combine(storage.Root, "app.db") : null,
+                Path.Combine(env.ContentRootPath, "Data", "app.db")
+            };
+            var imported = await SqliteImporter.ImportIfNeededAsync(db, candidates, logger);
+            logger.LogInformation("SQLite import: {Reason}.", imported.Reason);
+        }
+
+        // Photos and documents that only exist as files are copied into the database (never deleted from disk).
+        try
+        {
+            await LegacyFileBackfill.RunAsync(db, env, storage, logger);
+            await scope.ServiceProvider.GetRequiredService<ClinicApp.Services.DietPlanDocumentService>().BackfillFromDiskAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Could not copy older files into the database. They remain on disk and will be tried again next start.");
         }
 
         // 1. Seed Roles
