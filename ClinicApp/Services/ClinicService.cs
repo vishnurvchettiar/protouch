@@ -95,6 +95,20 @@ public class ClinicService
         return (Pick("WhatsApp:Twilio:AccountSid"), Pick("WhatsApp:Twilio:AuthToken"), from);
     }
 
+    /// <summary>
+    /// Returns the Twilio "from" address, or explains why it cannot work. The sending number must be a
+    /// Twilio WhatsApp sender (for example the sandbox whatsapp:+14155238886), not the clinic's own phone number.
+    /// </summary>
+    public static string ToWhatsAppSender(string? raw)
+    {
+        var from = (raw ?? string.Empty).Trim();
+        var number = from.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? from["whatsapp:".Length..].Trim() : from;
+        var digits = new string(number.Where(char.IsDigit).ToArray());
+        if (!number.StartsWith("+") || digits.Length < 11)
+            throw new InvalidOperationException("The Sending number must be a Twilio WhatsApp sender in full international format, for example whatsapp:+14155238886 (the Twilio sandbox). It cannot be the clinic's own 10-digit phone number.");
+        return "whatsapp:" + number;
+    }
+
     /// <summary>Turns a Twilio failure into a sentence the clinic can act on.</summary>
     public static string DescribeTwilioError(Exception ex)
     {
@@ -108,6 +122,7 @@ public class ClinicService
                 20404 => "Twilio could not find that account or number. Check the Account SID and the sending number.",
                 21211 or 21614 => "That phone number is not valid for WhatsApp. Use a full number such as +919028027888.",
                 21408 => "This Twilio account is not allowed to message that country yet. Enable India in Twilio Messaging, Geo permissions.",
+                572002 => "This Twilio account is a trial, and a trial can only message numbers you have verified. Add the recipient number in Twilio Console, Phone Numbers, Verified Caller IDs, or upgrade the account.",
                 21608 => "A trial Twilio account can only message verified numbers. Verify the number in Twilio, or upgrade the account.",
                 21612 or 21606 => "The sending number cannot send WhatsApp messages. Use your WhatsApp sender in the form whatsapp:+14155238886.",
                 63007 => "The sending number is not set up as a WhatsApp sender. Check the Sending number in settings (it must start with whatsapp:).",
@@ -1044,7 +1059,7 @@ public class ClinicService
                 TwilioClient.Init(cfg.Sid, cfg.Token);
                 var msg = MessageResource.Create(
                     body: $"Your ProTouch verification code is: {code}",
-                    from: new Twilio.Types.PhoneNumber(cfg.From.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? cfg.From : "whatsapp:" + cfg.From),
+                    from: new Twilio.Types.PhoneNumber(ToWhatsAppSender(cfg.From)),
                     to: new Twilio.Types.PhoneNumber(ToWhatsAppAddress(phone) ?? phone)
                 );
                 _db.WhatsAppLogs.Add(new WhatsAppLog
@@ -1179,7 +1194,7 @@ public class ClinicService
             {
                 var cfg = GetTwilioConfig();
                 var to = ToWhatsAppAddress("+" + canon)!;
-                var from = cfg.From.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? cfg.From : "whatsapp:" + cfg.From;
+                var from = ToWhatsAppSender(cfg.From);
                 TwilioClient.Init(cfg.Sid, cfg.Token);
                 var msg = await MessageResource.CreateAsync(body: message,
                     from: new Twilio.Types.PhoneNumber(from), to: new Twilio.Types.PhoneNumber(to));
@@ -1274,7 +1289,7 @@ public class ClinicService
             {
                 var toAddress = ToWhatsAppAddress(toPhone)
                     ?? throw new ArgumentException($"'{toPhone}' is not a valid phone number.", nameof(toPhone));
-                var fromAddress = cfg.From.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? cfg.From : "whatsapp:" + cfg.From;
+                var fromAddress = ToWhatsAppSender(cfg.From);
 
                 MessageResource msg;
                 try
