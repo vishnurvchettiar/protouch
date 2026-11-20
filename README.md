@@ -31,35 +31,9 @@ The public pages (home, services, service detail, booking) use one design system
 Everything the clinic saves is kept in the database: clients, check-ins, meal reviews, diet plans, settings,
 bookings, feedback, uploaded meal and profile photos, diet plan documents and the keys that keep people signed in.
 
-- **PostgreSQL (use this on Render).** Set the `DATABASE_URL` environment variable and the app uses PostgreSQL.
-  Data lives on the database server, so redeploying or restarting the web service never loses anything.
-- **SQLite (local development).** With no `DATABASE_URL` the app uses the SQLite file `Data/app.db`, as before.
-
-### Moving to PostgreSQL on Render
-
-1. In Render create a **PostgreSQL** database. Use a paid instance: Render's free PostgreSQL is deleted after 30 days.
-   Turn on the backups your plan offers.
-2. Open the database page and copy its **Internal Database URL**.
-3. Open the web service, Environment, and add `DATABASE_URL` with that value. Save and deploy.
-4. **Keep the old Disk attached for this first deploy.** On start-up the app copies the existing SQLite data
-   (`/var/data/app.db`) and any photo or diet plan files into PostgreSQL, checks that every table has the same
-   number of rows, and only then commits. The old file is never changed or deleted. The log shows
-   "Imported N rows from SQLite into PostgreSQL". The import runs once, only into an empty PostgreSQL database.
-5. After you have checked the site, the Disk is no longer needed.
-
-If the import finds a problem it rolls everything back and the app refuses to start, so the previous
-working deployment stays live and nothing is half-copied. To import a SQLite file from somewhere else, set
-`IMPORT_SQLITE_PATH` to its path.
-
-### Changing the database model
-
-There are two migration sets, one per database: `Data/Migrations` (SQLite) and `Data/MigrationsPg` (PostgreSQL).
-After changing a model, add a migration to both (tests fail if one is missing):
-
-```bash
-dotnet ef migrations add Name --context ApplicationDbContext   --output-dir Data/Migrations
-dotnet ef migrations add Name --context PgApplicationDbContext --output-dir Data/MigrationsPg
-```
+- **MongoDB Atlas (production).** Set `MONGODB_URI` in Render. Data stays in Atlas when Render restarts or deploys.
+- **PostgreSQL.** `DATABASE_URL` remains supported for services already using PostgreSQL.
+- **SQLite (development only).** The local app uses `Data/app.db`; production will not silently fall back to Render's temporary filesystem.
 
 ## Demo credentials
 
@@ -96,4 +70,31 @@ dotnet build ProTouch.sln
 dotnet run --project ClinicApp\ClinicApp.csproj
 ```
 
-The supplied environment used for this preparation does not have the .NET SDK installed, so the final build should be run on the Windows development machine with the .NET 9 SDK installed.
+Local development uses SQLite by default. Production requires MongoDB Atlas or a configured PostgreSQL database; it will fail at startup rather than silently saving to Render's temporary filesystem.
+
+## MongoDB Atlas and Render
+
+Create an Atlas database user with read/write access only to the `protouch` database. In Render, add these environment variables to the web service:
+
+| Variable | Value |
+| --- | --- |
+| `MONGODB_URI` | The Atlas `mongodb+srv://...` connection string (keep it in Render, never in Git) |
+| `MongoDb__DatabaseName` | Optional; defaults to `protouch` |
+| `BootstrapAdmin__Email` | Optional first admin email, used only when the database has no matching account |
+| `BootstrapAdmin__Password` | Optional first admin password; choose a strong secret and store it only in Render |
+
+Allow the Render service to connect in Atlas **Network Access**. If you use a broad `0.0.0.0/0` entry because Render's outbound IP can change, keep a strong database-user password and the database user's role limited to this database. Atlas warns when a `/0` address is allowed.
+
+The app stores clinic records, uploaded photos, diet-plan documents, and Identity accounts in MongoDB collections. Private upload routes check that the requester owns the file or is an admin.
+
+### Import existing SQLite data once
+
+If you have a SQLite backup with records you want to keep, configure `MONGODB_URI` locally using .NET user-secrets or your shell, then run the import from the app's project directory:
+
+```powershell
+dotnet run --project ClinicApp\ClinicApp.csproj -- --migrate-sqlite "C:\path\to\app.db"
+```
+
+The importer makes a temporary copy of SQLite, applies pending SQLite migrations to that copy, and imports Identity, clinic, booking, feedback, settings, and uploaded file records while preserving IDs. The source database is not modified. The Atlas target must be empty; the importer stops if it finds existing documents so it cannot overwrite live data. Render's free service does not provide shell access or persistent disks, so make a verified SQLite backup before switching a live service to MongoDB.
+
+After deploying, verify that MongoDB Atlas shows the expected collections and that a test record still exists after a Render redeploy. The Atlas free cluster has a 0.5 GB storage cap; backups for free clusters are a separate optional feature and may not be available to every project. Since these records are important clinic and client data, keep a separate backup or use an Atlas tier with managed backups before relying on it for production. [Atlas free-cluster limits](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/) · [Atlas backup options](https://www.mongodb.com/docs/atlas/backup-restore-cluster/)

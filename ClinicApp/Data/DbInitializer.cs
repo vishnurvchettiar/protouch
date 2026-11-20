@@ -18,14 +18,18 @@ public static class DbInitializer
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DataSafety");
 
-        // Apply migrations if pending
-        if ((await db.Database.GetPendingMigrationsAsync()).Any())
+        if (db.Database.IsRelational())
         {
-            await db.Database.MigrateAsync();
+            if ((await db.Database.GetPendingMigrationsAsync()).Any())
+                await db.Database.MigrateAsync();
         }
+        else
+            await db.Database.EnsureCreatedAsync();
 
         var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
         var storage = scope.ServiceProvider.GetService<ClinicApp.Services.AppStorage>();
@@ -62,6 +66,23 @@ public static class DbInitializer
             {
                 await roleManager.CreateAsync(new IdentityRole(role));
             }
+        }
+
+        // Production starts with roles only. An administrator is created only when explicitly configured.
+        if (!environment.IsDevelopment())
+        {
+            var email = configuration["BootstrapAdmin:Email"];
+            var password = configuration["BootstrapAdmin:Password"];
+            if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password)
+                && await userManager.FindByEmailAsync(email) == null)
+            {
+                var admin = new ApplicationUser { UserName = email, Email = email, EmailConfirmed = true, FullName = "Clinic Administrator" };
+                var created = await userManager.CreateAsync(admin, password);
+                if (!created.Succeeded)
+                    throw new InvalidOperationException("Could not create the configured bootstrap admin: " + string.Join("; ", created.Errors.Select(error => error.Description)));
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+            return;
         }
 
         // 2. Seed Admin User

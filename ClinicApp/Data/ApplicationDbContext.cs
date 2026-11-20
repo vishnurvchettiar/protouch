@@ -1,12 +1,20 @@
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace ClinicApp.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataProtectionKeyContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    private readonly IMongoDatabase? _mongoDatabase;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IMongoDatabase? mongoDatabase = null) : base(options)
+    {
+        _mongoDatabase = mongoDatabase;
+    }
 
     /// <summary>Used by provider-specific contexts (see PgApplicationDbContext).</summary>
     protected ApplicationDbContext(DbContextOptions options) : base(options) { }
@@ -54,6 +62,51 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataPro
         builder.Entity<StoredFile>()
             .HasIndex(file => file.Path)
             .IsUnique();
+        builder.Entity<ApplicationUser>().HasIndex(user => user.NormalizedUserName).IsUnique();
+        builder.Entity<IdentityRole>().HasIndex(role => role.NormalizedName).IsUnique();
+
+        if (Database.ProviderName?.Contains("Mongo", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            foreach (var entity in builder.Model.GetEntityTypes())
+            {
+                var id = entity.FindProperty("Id");
+                if (id?.ClrType == typeof(int))
+                    builder.Entity(entity.ClrType).Property("Id").ValueGeneratedNever();
+            }
+        }
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        AssignMongoIdsAsync(CancellationToken.None).GetAwaiter().GetResult();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
+        SaveChangesAsync(true, cancellationToken);
+
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        await AssignMongoIdsAsync(cancellationToken);
+        return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private async Task AssignMongoIdsAsync(CancellationToken cancellationToken)
+    {
+        if (_mongoDatabase == null || Database.ProviderName?.Contains("Mongo", StringComparison.OrdinalIgnoreCase) != true) return;
+        var added = ChangeTracker.Entries().Where(entry => entry.State == EntityState.Added)
+            .Select(entry => new { Entry = entry, Id = entry.Metadata.FindProperty("Id") })
+            .Where(item => item.Id?.ClrType == typeof(int) && Equals(item.Entry.Property("Id").CurrentValue, 0)).ToList();
+        if (added.Count == 0) return;
+        var counters = _mongoDatabase.GetCollection<BsonDocument>("__protouch_sequences");
+        foreach (var item in added)
+        {
+            var name = item.Entry.Metadata.ClrType.FullName ?? item.Entry.Metadata.ClrType.Name;
+            var result = await counters.FindOneAndUpdateAsync(Builders<BsonDocument>.Filter.Eq("_id", name),
+                Builders<BsonDocument>.Update.Inc("value", 1), new FindOneAndUpdateOptions<BsonDocument>
+                { IsUpsert = true, ReturnDocument = ReturnDocument.After }, cancellationToken);
+            item.Entry.Property("Id").CurrentValue = result["value"].ToInt32();
+        }
     }
 }
 

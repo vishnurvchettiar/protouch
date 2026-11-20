@@ -29,6 +29,7 @@ public class ClinicService
 {
     private readonly ApplicationDbContext _db;
     private readonly IConfiguration _config;
+    private readonly IFileStorage? _fileStorage;
     private readonly ILogger<ClinicService> _logger;
 
     // ==========================================
@@ -41,11 +42,12 @@ public class ClinicService
         catch { return TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"); }
     }
 
-    public ClinicService(ApplicationDbContext db, IConfiguration config, ILogger<ClinicService> logger)
+    public ClinicService(ApplicationDbContext db, IConfiguration config, ILogger<ClinicService> logger, IFileStorage? fileStorage = null)
     {
         _db = db;
         _config = config;
         _logger = logger;
+        _fileStorage = fileStorage;
     }
 
     // New: read runtime setting from DB; fallback to configuration
@@ -145,15 +147,18 @@ public class ClinicService
     public async Task<List<ClientProfile>> GetAllClientsAsync()
     {
         var profiles = await _db.ClientProfiles
-            .Include(cp => cp.User)
-            .OrderBy(cp => cp.User != null ? cp.User.FullName : "")
             .ToListAsync();
+        var users = await LoadUsersAsync(profiles.Select(profile => profile.UserId));
+        foreach (var profile in profiles)
+            profile.User = users.GetValueOrDefault(profile.UserId);
+        profiles = profiles.OrderBy(profile => profile.User?.FullName ?? string.Empty).ToList();
 
         var userIds = profiles.Select(p => p.UserId).ToList();
         var photoKeys = userIds.Select(id => $"ClientPhoto:{id}").ToList();
-        var photoSettings = await _db.Settings
+        var photoSettings = (await _db.Settings
             .Where(s => photoKeys.Contains(s.Key))
-            .ToDictionaryAsync(s => s.Key, s => s.Value);
+            .ToListAsync())
+            .ToDictionary(setting => setting.Key, setting => setting.Value);
 
         foreach (var profile in profiles)
         {
@@ -166,9 +171,12 @@ public class ClinicService
     public async Task<ClientProfile?> GetClientProfileByUserIdAsync(string userId)
     {
         var profile = await _db.ClientProfiles
-            .Include(cp => cp.User)
             .FirstOrDefaultAsync(cp => cp.UserId == userId);
-        if (profile != null) profile.ProfilePhotoUrl = await GetClientPhotoAsync(userId) ?? string.Empty;
+        if (profile != null)
+        {
+            profile.User = await _db.Users.FindAsync(userId);
+            profile.ProfilePhotoUrl = await GetClientPhotoAsync(userId) ?? string.Empty;
+        }
         return profile;
     }
 
@@ -468,10 +476,12 @@ public class ClinicService
 
     public async Task<List<AttendanceRecord>> GetAllAttendanceAsync()
     {
-        return await _db.AttendanceRecords
-            .Include(ar => ar.User)
+        var records = await _db.AttendanceRecords
             .OrderByDescending(ar => ar.CheckInTime)
             .ToListAsync();
+        var users = await LoadUsersAsync(records.Select(record => record.UserId));
+        foreach (var record in records) record.User = users.GetValueOrDefault(record.UserId);
+        return records;
     }
 
     public async Task LogCheckInAsync(string userId, string treatment, string therapist, string notes, DateTime? nextAppointmentDate = null, DateTime? visitDate = null)
@@ -564,10 +574,12 @@ public class ClinicService
 
     public async Task<List<Appointment>> GetAllAppointmentsAsync()
     {
-        return await _db.Appointments
-            .Include(ap => ap.User)
+        var appointments = await _db.Appointments
             .OrderByDescending(ap => ap.AppointmentDate)
             .ToListAsync();
+        var users = await LoadUsersAsync(appointments.Select(appointment => appointment.UserId));
+        foreach (var appointment in appointments) appointment.User = users.GetValueOrDefault(appointment.UserId);
+        return appointments;
     }
 
     public async Task BookAppointmentAsync(Appointment appointment)
@@ -627,14 +639,16 @@ public class ClinicService
         var windowStart = now.AddHours(23);
         var windowEnd = now.AddHours(25);
 
-        return await _db.Appointments
-            .Include(a => a.User)
+        var appointments = await _db.Appointments
             .Where(a =>
                 (a.Status == "Scheduled" || a.Status == "Confirmed") &&
                 !a.ReminderSent &&
                 a.AppointmentDate >= windowStart &&
                 a.AppointmentDate <= windowEnd)
             .ToListAsync();
+        var users = await LoadUsersAsync(appointments.Select(appointment => appointment.UserId));
+        foreach (var appointment in appointments) appointment.User = users.GetValueOrDefault(appointment.UserId);
+        return appointments;
     }
 
     // ==========================================
@@ -768,10 +782,12 @@ public class ClinicService
 
     public async Task<List<PaymentNotification>> GetAllPaymentsAsync()
     {
-        return await _db.PaymentNotifications
-            .Include(pn => pn.User)
+        var payments = await _db.PaymentNotifications
             .OrderByDescending(pn => pn.BillingDate)
             .ToListAsync();
+        var users = await LoadUsersAsync(payments.Select(payment => payment.UserId));
+        foreach (var payment in payments) payment.User = users.GetValueOrDefault(payment.UserId);
+        return payments;
     }
 
     public async Task CreateInvoiceAsync(string userId, decimal amount, string description)
@@ -792,11 +808,11 @@ public class ClinicService
     public async Task TriggerPaymentAlertAsync(int invoiceId)
     {
         var invoice = await _db.PaymentNotifications
-            .Include(i => i.User)
             .FirstOrDefaultAsync(i => i.Id == invoiceId);
 
         if (invoice != null)
         {
+            invoice.User = await _db.Users.FindAsync(invoice.UserId);
             invoice.IsTriggered = true;
             invoice.TriggeredAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
@@ -849,11 +865,26 @@ public class ClinicService
         var profiles = _db.ClientProfiles.Where(c => c.UserId == userId);
         _db.ClientProfiles.RemoveRange(profiles);
 
+        var documents = _db.DietPlanDocuments.Where(document => document.ClientUserId == userId);
+        _db.DietPlanDocuments.RemoveRange(documents);
+
+        // MongoDB does not enforce relational cascade deletes, so remove the
+        // Identity child documents explicitly when a client account is deleted.
+        _db.UserClaims.RemoveRange(_db.UserClaims.Where(claim => claim.UserId == userId));
+        _db.UserLogins.RemoveRange(_db.UserLogins.Where(login => login.UserId == userId));
+        _db.UserTokens.RemoveRange(_db.UserTokens.Where(token => token.UserId == userId));
+        _db.UserRoles.RemoveRange(_db.UserRoles.Where(role => role.UserId == userId));
+
         var photoKey = $"ClientPhoto:{userId}";
         var photoSetting = await _db.Settings.FirstOrDefaultAsync(s => s.Key == photoKey);
         if (photoSetting != null) _db.Settings.Remove(photoSetting);
 
+        var uploadedFiles = await _db.StoredFiles.Where(file => file.Path.Contains(userId)).ToListAsync();
+        _db.StoredFiles.RemoveRange(uploadedFiles);
+
         await _db.SaveChangesAsync();
+        if (_fileStorage != null)
+            await _fileStorage.DeleteOwnerAsync(userId);
     }
 
     public async Task<List<WhatsAppLog>> GetWhatsAppLogsAsync()
@@ -1451,5 +1482,13 @@ public class ClinicService
             throw new KeyNotFoundException($"SiteFeedback with Id {id} was not found.");
         _db.SiteFeedbacks.Remove(entity);
         await _db.SaveChangesAsync();
+    }
+
+    private async Task<Dictionary<string, ApplicationUser>> LoadUsersAsync(IEnumerable<string> userIds)
+    {
+        var ids = userIds.Distinct().ToList();
+        if (ids.Count == 0) return new Dictionary<string, ApplicationUser>();
+        var users = await _db.Users.Where(user => ids.Contains(user.Id)).ToListAsync();
+        return users.ToDictionary(user => user.Id);
     }
 }

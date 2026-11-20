@@ -5,5 +5,7 @@
 **/obj
 **/*.user
 **/*.suo
-**/Data/app.db
+**/Data/app.db*
+**/wwwroot/uploads
+**/App_Data/diet-plan-documents
 README.md

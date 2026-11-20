@@ -5,13 +5,15 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 using System.Threading.RateLimiting;
 using System.Security.Claims;
 using ClinicApp.Components;
 using ClinicApp.Components.Account;
 using ClinicApp.Data;
 
-var builder = WebApplication.CreateBuilder(args);
+var sqliteMigrationPath = args.Length == 2 && args[0] == "--migrate-sqlite" ? args[1] : null;
+var builder = WebApplication.CreateBuilder(sqliteMigrationPath == null ? args : []);
 
 // Required for Render/proxy deployment - forward headers from reverse proxy
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -88,14 +90,26 @@ if (rawConnStr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
     }
 }
 
-// Which database? PostgreSQL when the host gives us a DATABASE_URL (Render does), otherwise SQLite as before.
-// PostgreSQL keeps its data on the database server, so nothing is lost when the web service is redeployed.
+// Prefer Atlas when configured; keep PostgreSQL support for services that still use it.
+var mongoConnection = builder.Configuration["ConnectionStrings:MongoDb"]
+    ?? Environment.GetEnvironmentVariable("MONGODB_URI");
+var mongoDatabaseName = builder.Configuration["MongoDb:DatabaseName"] ?? "protouch";
+var useMongo = !string.IsNullOrWhiteSpace(mongoConnection);
+
 var postgresConnection = ClinicApp.Services.DatabaseConnection.PostgresFromEnvironment(
     Environment.GetEnvironmentVariable("DATABASE_URL"),
     builder.Configuration.GetConnectionString("Postgres"));
 var usePostgres = postgresConnection != null;
 
-if (usePostgres)
+if (useMongo)
+{
+    var mongoClient = new MongoClient(mongoConnection);
+    var mongoDatabase = mongoClient.GetDatabase(mongoDatabaseName);
+    builder.Services.AddSingleton<IMongoClient>(mongoClient);
+    builder.Services.AddSingleton(mongoDatabase);
+    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseMongoDB(mongoClient, mongoDatabaseName));
+}
+else if (usePostgres)
 {
     // Keep DateTime behaving as it always has here (stored exactly as given, no time zone conversion).
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -109,6 +123,8 @@ if (usePostgres)
 }
 else
 {
+    if (!builder.Environment.IsDevelopment())
+        throw new InvalidOperationException("Production requires MONGODB_URI or DATABASE_URL. Configure MONGODB_URI in Render to use MongoDB Atlas.");
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlite(connectionString));
 }
@@ -166,6 +182,9 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+if (useMongo)
+    builder.Services.AddScoped<IUserStore<ApplicationUser>, MongoCompatibleUserStore>();
+
 // Email sender selection
 if (!string.IsNullOrEmpty(builder.Configuration["Smtp:Host"]))
 {
@@ -177,6 +196,12 @@ else
 }
 
 var app = builder.Build();
+
+if (sqliteMigrationPath != null)
+{
+    await ClinicApp.Data.MongoDataMigrator.MigrateAsync(app.Services, sqliteMigrationPath, app.Environment.ContentRootPath);
+    return;
+}
 
 app.UseForwardedHeaders();
 
@@ -207,7 +232,7 @@ app.UseWebSockets(new WebSocketOptions
     KeepAliveInterval = TimeSpan.FromSeconds(30)
 });
 
-app.Logger.LogInformation("Database: {Provider}. Photos, diet plan documents and sign-in keys are stored in the database.", usePostgres ? "PostgreSQL" : "SQLite (local file)");
+app.Logger.LogInformation("Database: {Provider}. Clinic records, uploads, and sign-in keys are stored durably.", useMongo ? $"MongoDB Atlas ({mongoDatabaseName})" : usePostgres ? "PostgreSQL" : "SQLite (local development)");
 
 // Seed database
 await ClinicApp.Data.DbInitializer.SeedDataAsync(app.Services);
@@ -306,9 +331,14 @@ app.MapGet("/diet-plan-documents/{id:guid}/view", async (
 })
     .RequireAuthorization();
 
-// Uploaded photos (meals, profiles) are stored in the database and served from here.
-app.MapGet("/uploads/{folder}/{name}", async (string folder, string name, ApplicationDbContext db, HttpContext http) =>
+// Uploaded photos (meals, profiles) are stored durably and served from here.
+app.MapGet("/uploads/{folder}/{name}", async (string folder, string name, ClaimsPrincipal user, ApplicationDbContext db, HttpContext http) =>
 {
+    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrWhiteSpace(userId) || (!user.IsInRole("Admin") &&
+        !string.Equals(userId, folder, StringComparison.Ordinal) && !name.StartsWith(userId + "_", StringComparison.Ordinal)))
+        return Results.Forbid();
+
     var path = $"uploads/{folder}/{name}";
     var file = await db.StoredFiles.AsNoTracking()
         .Where(f => f.Path == path)
@@ -316,9 +346,9 @@ app.MapGet("/uploads/{folder}/{name}", async (string folder, string name, Applic
         .FirstOrDefaultAsync();
     if (file == null)
         return Results.NotFound();
-    http.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
+    http.Response.Headers["Cache-Control"] = "private, max-age=300";
     return Results.File(file.Data, file.ContentType);
-});
+}).RequireAuthorization();
 
 // Health endpoint — lets Render know the app is alive (avoids cold-start sleep)
 app.MapGet("/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }));
