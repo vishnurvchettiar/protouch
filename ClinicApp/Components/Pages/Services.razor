@@ -1,0 +1,64 @@
+@page "/services"
+@layout PublicLayout
+
+<PageTitle>Our Services | ProTouch Physio - Slimming Clinic</PageTitle>
+
+<div class="ppage" data-ptx="services">
+
+    <section class="ih dk">
+        <span class="bl" style="width:560px;height:560px;right:-160px;top:-160px;background:radial-gradient(circle at 30% 30%,rgba(22,99,92,.5),transparent 70%)"></span>
+        <div class="c">
+            <div class="crumb"><a href="/">Home</a> / <b>Services</b></div>
+            <h1 data-split data-now>Expert programmes, <em>all under one roof.</em></h1>
+            <p class="plead" data-hero style="margin-top:24px">Weight loss, physiotherapy, yoga and specialised care. Choose a service to see every treatment, condition and what to expect.</p>
+        </div>
+    </section>
+    <Wave Kind="dl" />
+
+    <section class="lt" style="padding-block:20px 80px">
+        <div class="c">
+            @{ var k = 0; }
+            @foreach (var id in PublicCatalog.Order)
+            {
+                var s = PublicCatalog.Services[id];
+                var x = PublicCatalog.Extras[id];
+                <div class="sr @(k % 2 == 1 ? "rev" : "")">
+                    <div class="im" data-clip data-round data-par>
+                        <img src="@x.Image" alt="@s.Name" loading="@(k == 0 ? "eager" : "lazy")" />
+                    </div>
+                    <div>
+                        <div class="eb" data-rv><i></i>@((k + 1).ToString("00")) · @x.Short</div>
+                        <h3 data-split>@s.Name</h3>
+                        <p data-rv>@s.Tagline</p>
+                        <div class="tags" data-st>
+                            @foreach (var sub in s.SubServices.Take(6))
+                            {
+                                <span>@sub</span>
+                            }
+                        </div>
+                        <a class="pbtn" href="/services/@id" data-magnet><span>See all treatments <b class="ar">→</b></span></a>
+                    </div>
+                </div>
+                k++;
+            }
+        </div>
+    </section>
+
+    <div class="mq" aria-hidden="true">
+        <div class="tr">
+            @for (var r = 0; r < 2; r++)
+            {
+                foreach (var g in guarantees)
+                {
+                    <span>@g</span>
+                }
+            }
+        </div>
+    </div>
+
+    <PtxCta />
+</div>
+
+@code {
+    private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"];
+}

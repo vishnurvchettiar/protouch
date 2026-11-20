@@ -1,0 +1,188 @@
+@using ClinicApp.Data
+@using ClinicApp.Services
+@inject ClinicService ClinicService
+@* Booking form for the /book page. Interactive island. Validation and saving are unchanged. *@
+
+@if (bookingSuccess)
+{
+    <div class="okp" role="status">
+        <div class="tick"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 19l8 8 15-17" /></svg></div>
+        <h2>Booking request received!</h2>
+        <p>Thank you, <strong>@submittedName</strong>. We've received your appointment request for <strong>@submittedService</strong> on <strong>@submittedDate</strong>. The clinic team will contact you on <strong>@submittedPhone</strong> to confirm.</p>
+        <div class="acts">
+            <a class="pbtn" href="/"><span>Back to home</span></a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="bk">
+        <div>
+            <h2>Request a consultation</h2>
+            <p class="sub">Choose a service and fill in your details. Our team will confirm your appointment shortly.</p>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(submitError))
+        {
+            <div class="alert" role="alert">@submitError</div>
+        }
+
+        <div class="fld">
+            <label>Select a service</label>
+            @if (!serviceCategories.Any())
+            {
+                <p class="sub">Service categories are currently unavailable. Please call us directly.</p>
+            }
+            else
+            {
+                <div class="svsel">
+                    @foreach (var svc in serviceCategories)
+                    {
+                        <button class="svo @(selectedService == svc.Name ? "on" : "")" type="button"
+                                aria-pressed="@(selectedService == svc.Name ? "true" : "false")"
+                                @onclick="() => SelectService(svc.Name)">
+                            <b>@svc.Name</b>
+                            <span>@svc.Description</span>
+                        </button>
+                    }
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(serviceError)) { <span class="err">@serviceError</span> }
+        </div>
+
+        <div class="grid2">
+            <div class="fld">
+                <label for="bk-name">Full name *</label>
+                <input id="bk-name" type="text" @bind="fullName" @bind:event="oninput" placeholder="Your full name" maxlength="100"
+                       class="@(string.IsNullOrWhiteSpace(nameError) ? "" : "bad")" />
+                @if (!string.IsNullOrWhiteSpace(nameError)) { <span class="err">@nameError</span> }
+            </div>
+            <div class="fld">
+                <label for="bk-phone">Mobile number (India) *</label>
+                <input id="bk-phone" type="tel" @bind="phoneNumber" @bind:event="oninput" placeholder="10-digit mobile number" maxlength="15"
+                       class="@(string.IsNullOrWhiteSpace(phoneError) ? "" : "bad")" />
+                @if (!string.IsNullOrWhiteSpace(phoneError)) { <span class="err">@phoneError</span> }
+            </div>
+            <div class="fld wide">
+                <label for="bk-date">Preferred date &amp; time *</label>
+                <input id="bk-date" type="datetime-local" @bind="preferredDate"
+                       class="@(string.IsNullOrWhiteSpace(dateError) ? "" : "bad")" />
+                @if (!string.IsNullOrWhiteSpace(dateError)) { <span class="err">@dateError</span> }
+            </div>
+            <div class="fld wide">
+                <label for="bk-notes">Additional notes (optional)</label>
+                <textarea id="bk-notes" rows="3" @bind="notes" maxlength="1000"
+                          placeholder="Any specific concerns, preferred time slots, or health information..."></textarea>
+            </div>
+        </div>
+
+        <div class="foot">
+            <span>* Required fields</span>
+            <button class="pbtn" type="button" @onclick="HandleSubmit" disabled="@(submitting || !serviceCategories.Any())">
+                <span>@(submitting ? "Submitting..." : "Request appointment") <b class="ar">→</b></span>
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>Optional service name to pre-select (from the ?service= link on a service page).</summary>
+    [Parameter] public string? Preselect { get; set; }
+
+    private string fullName = "";
+    private string phoneNumber = "";
+    private DateTime preferredDate = DateTime.Today.AddDays(1).AddHours(10);
+    private string notes = "";
+    private string selectedService = "";
+
+    private string nameError = "";
+    private string phoneError = "";
+    private string dateError = "";
+    private string serviceError = "";
+    private string submitError = "";
+
+    private bool bookingSuccess = false;
+    private bool submitting = false;
+    private string submittedName = "";
+    private string submittedService = "";
+    private string submittedDate = "";
+    private string submittedPhone = "";
+
+    private List<ServiceInfo> serviceCategories = new();
+
+    private record ServiceInfo(string Name, string Description);
+
+    protected override void OnInitialized()
+    {
+        serviceCategories = new List<ServiceInfo>
+        {
+            new("Weight Loss & Slimming", "Figure correction, body shaping, inch loss and skin tightening."),
+            new("Physiotherapy & Rehabilitation", "Back, neck, knee pain, arthritis, paralysis and injury care."),
+            new("Yoga & Holistic Wellness", "Diabetes, blood pressure, thyroid, hormonal and lifestyle support."),
+            new("Specialised Programs", "Height increase, pre & post-natal, and specialised health plans."),
+        };
+        if (!string.IsNullOrWhiteSpace(Preselect) && serviceCategories.Any(s => s.Name == Preselect))
+            selectedService = Preselect;
+    }
+
+    private void SelectService(string name)
+    {
+        selectedService = selectedService == name ? "" : name;
+        serviceError = "";
+    }
+
+    private async Task HandleSubmit()
+    {
+        nameError = phoneError = dateError = serviceError = submitError = "";
+
+        var valid = true;
+
+        var trimmedName = (fullName ?? "").Trim();
+        if (trimmedName.Length < 2 || trimmedName.Length > 100) { nameError = "Full name must be between 2 and 100 characters."; valid = false; }
+
+        var phoneDigits = new string((phoneNumber ?? "").Where(char.IsDigit).ToArray());
+        if (phoneDigits.Length != 10 || phoneDigits[0] < '6') { phoneError = "Please enter a valid 10-digit Indian mobile number (starts with 6–9)."; valid = false; }
+
+        if (string.IsNullOrWhiteSpace(selectedService)) { serviceError = "Please select a service."; valid = false; }
+
+        var now = DateTime.UtcNow;
+        var preferredUtc = preferredDate.ToUniversalTime();
+        if (preferredUtc < now.AddHours(1)) { dateError = "Please select a date and time at least 1 hour in the future."; valid = false; }
+        else if (preferredUtc > now.AddDays(90)) { dateError = "Preferred date must be within the next 90 days."; valid = false; }
+
+        if (!valid) return;
+
+        submitting = true;
+        try
+        {
+            var request = new BookingRequest
+            {
+                FullName = trimmedName,
+                PhoneNumber = phoneDigits,
+                ServiceType = selectedService,
+                PreferredDate = preferredUtc,
+                Notes = (notes ?? "").Trim()
+            };
+
+            await ClinicService.SubmitBookingRequestAsync(request);
+
+            submittedName = trimmedName;
+            submittedService = selectedService;
+            submittedDate = preferredDate.ToString("dd MMM yyyy, hh:mm tt");
+            submittedPhone = phoneNumber ?? "";
+            bookingSuccess = true;
+        }
+        catch (ArgumentException ex)
+        {
+            submitError = ex.Message;
+        }
+        catch (Exception)
+        {
+            submitError = "We could not submit your request at this time. Please try calling us directly.";
+        }
+        finally
+        {
+            submitting = false;
+        }
+    }
+}

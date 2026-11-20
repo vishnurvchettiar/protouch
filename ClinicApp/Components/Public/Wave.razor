@@ -1,0 +1,6 @@
+@* Wave divider between a dark and a light band. Kind: "dl" = dark above, light below; "ld" = light above, dark below. *@
+<svg class="wave @Kind" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true" style="transform:scaleY(-1)"><path d="M0 100V40C240 0 480 90 720 50s480-50 720 0v50z" /></svg>
+
+@code {
+    [Parameter] public string Kind { get; set; } = "dl";
+}

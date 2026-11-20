@@ -1,3 +1,43 @@
 @inherits LayoutComponentBase
 
-@Body
+@* Shell for every public page. Navigation is deliberately not "enhanced" so each page loads fresh
+   and the animation layer (wwwroot/ptx.js) always starts on a clean document. *@
+<div class="px" data-enhance-nav="false">
+
+    <div id="px-ld" aria-hidden="true">
+        <div>
+            <b id="px-ldn">0</b>
+            <span>ProTouch · Physio &amp; Slimming</span>
+            <div class="bar"><i id="px-ldb"></i></div>
+        </div>
+    </div>
+    <div id="px-cv" aria-hidden="true"></div>
+    <div id="px-pg" aria-hidden="true"></div>
+
+    <div id="px-lb" role="dialog" aria-modal="true" aria-label="Image viewer">
+        <button class="x" type="button" aria-label="Close">✕</button>
+        <button class="pv" type="button" aria-label="Previous image">‹</button>
+        <img alt="" />
+        <button class="nx" type="button" aria-label="Next image">›</button>
+    </div>
+
+    <PtxNav />
+
+    <main class="px-main">
+        @Body
+    </main>
+
+    <PtxFooter />
+
+    <div class="fcta" role="complementary" aria-label="Quick actions">
+        <a class="wa" href="https://wa.me/919028027888" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp us">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.7-5.2A8.5 8.5 0 1 1 21 11.5z" /><path d="M9 9.5c.5 2.5 2.5 4.5 5 5l1.2-1.2-2-1-.8.8c-1-.4-1.8-1.2-2.2-2.2l.8-.8-1-2z" /></svg>
+        </a>
+        <a href="/book" aria-label="Book an appointment">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M8 3v4M16 3v4M3 10h18" /></svg>
+        </a>
+        <button class="btt" type="button" aria-label="Back to top">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+        </button>
+    </div>
+</div>

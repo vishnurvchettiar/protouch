@@ -17,6 +17,15 @@
         <link rel="stylesheet"
               href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800&display=swap" />
     </noscript>
+    <!-- Public site fonts: Fraunces (headings) + Manrope (body) -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap"
+          media="print"
+          onload="this.media='all'" />
+    <noscript>
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" />
+    </noscript>
     <!-- Security: prevent clickjacking and MIME sniffing -->
     <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
@@ -26,6 +35,7 @@
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["ClinicApp.styles.css"]" />
     <link rel="stylesheet" href="@Assets["home-medic4.css"]" />
+    <link rel="stylesheet" href="@Assets["ptx.css"]" />
     <ImportMap />
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/images/protouch-logo.svg" />
@@ -33,6 +43,18 @@
     <meta name="theme-color" content="#008d36" />
     <meta http-equiv="Permissions-Policy" content="unload=()" />
     <meta name="robots" content="noindex, nofollow" />
+    <!-- Public site animation mode, decided before first paint. ptx.js removes these again if GSAP is unavailable. -->
+    <script>
+        (function () {
+            try {
+                var d = document.documentElement;
+                if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                d.classList.add('px-js');
+                if (location.pathname === '/' && !sessionStorage.getItem('pxSeen')) d.classList.add('px-first');
+                else if (sessionStorage.getItem('pxCv')) d.classList.add('px-cv');
+            } catch (e) { }
+        })();
+    </script>
     <!-- Restore the sidebar hide/show state before first paint (no flash) -->
     <script>
         try { if (localStorage.getItem('pt-sidebar-collapsed') === '1') document.documentElement.classList.add('pt-sb-collapsed'); } catch (e) { }
@@ -44,6 +66,9 @@
     <Routes />
     <script src="_framework/blazor.web.js"></script>
     <script src="site.js" defer></script>
+    <script src="@Assets["lib/gsap/gsap.min.js"]" defer></script>
+    <script src="@Assets["lib/gsap/ScrollTrigger.min.js"]" defer></script>
+    <script src="@Assets["ptx.js"]" defer></script>
     <!-- Code Protection: Disable right-click and DevTools shortcuts -->
     <script>
         (function () {
