@@ -3,13 +3,17 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
+using MongoDB.EntityFrameworkCore.Extensions;
 using System.Threading.RateLimiting;
 using System.Security.Claims;
 using ClinicApp.Components;
 using ClinicApp.Components.Account;
 using ClinicApp.Data;
 
-var builder = WebApplication.CreateBuilder(args);
+var sqliteMigrationPath = args.Length == 2 && args[0] == "--migrate-sqlite" ? args[1] : null;
+var builder = WebApplication.CreateBuilder(sqliteMigrationPath == null ? args : []);
 
 // Required for Render/proxy deployment - forward headers from reverse proxy
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -66,28 +70,46 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-// Use absolute DB path so the database survives Render restarts/cold starts
-var rawConnStr = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-// Make the SQLite path absolute, relative to ContentRootPath (not CWD)
-var connectionString = rawConnStr;
-if (rawConnStr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+// Production must use durable Atlas storage. SQLite remains available for local
+// development and automated tests, but must never silently back a Render deploy.
+var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDb");
+if (!string.IsNullOrWhiteSpace(mongoConnectionString))
 {
-    var dbRelative = rawConnStr.Substring("Data Source=".Length);
-    if (!System.IO.Path.IsPathRooted(dbRelative))
-    {
-        var dbAbsolute = System.IO.Path.Combine(
-            builder.Environment.ContentRootPath, dbRelative);
-        // Ensure the directory exists
-        var dbDir = System.IO.Path.GetDirectoryName(dbAbsolute)!;
-        System.IO.Directory.CreateDirectory(dbDir);
-        connectionString = $"Data Source={dbAbsolute}";
-    }
-}
+    var databaseName = builder.Configuration["MongoDb:DatabaseName"];
+    if (string.IsNullOrWhiteSpace(databaseName))
+        throw new InvalidOperationException("MongoDb:DatabaseName must be configured when MongoDb is enabled.");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+    var mongoClient = new MongoClient(mongoConnectionString);
+    var mongoDatabase = mongoClient.GetDatabase(databaseName);
+    builder.Services.AddSingleton<IMongoClient>(mongoClient);
+    builder.Services.AddSingleton(mongoDatabase);
+    builder.Services.AddSingleton(new GridFSBucket(mongoDatabase, new GridFSBucketOptions { BucketName = "protouch_files" }));
+    builder.Services.AddSingleton<ClinicApp.Services.IFileStorage, ClinicApp.Services.MongoFileStorage>();
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseMongoDB(mongoClient, databaseName));
+}
+else
+{
+    if (!builder.Environment.IsDevelopment())
+        throw new InvalidOperationException("Production requires the MongoDb connection string. Set ConnectionStrings__MongoDb in Render.");
+
+    var rawConnStr = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Data Source=Data/app.db";
+    var connectionString = rawConnStr;
+    if (rawConnStr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+    {
+        var dbRelative = rawConnStr.Substring("Data Source=".Length);
+        if (!Path.IsPathRooted(dbRelative))
+        {
+            var dbAbsolute = Path.Combine(builder.Environment.ContentRootPath, dbRelative);
+            Directory.CreateDirectory(Path.GetDirectoryName(dbAbsolute)!);
+            connectionString = $"Data Source={dbAbsolute}";
+        }
+    }
+
+    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connectionString));
+    builder.Services.AddSingleton<ClinicApp.Services.IFileStorage, ClinicApp.Services.LocalFileStorage>();
+}
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<ClinicApp.Services.ClinicService>();
@@ -130,6 +152,9 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+if (!string.IsNullOrWhiteSpace(mongoConnectionString))
+    builder.Services.AddScoped<IUserStore<ApplicationUser>, MongoCompatibleUserStore>();
+
 // Email sender selection
 if (!string.IsNullOrEmpty(builder.Configuration["Smtp:Host"]))
 {
@@ -141,6 +166,14 @@ else
 }
 
 var app = builder.Build();
+
+if (sqliteMigrationPath != null)
+{
+    if (string.IsNullOrWhiteSpace(mongoConnectionString))
+        throw new InvalidOperationException("SQLite import requires a configured MongoDB Atlas connection string.");
+    await ClinicApp.Data.MongoDataMigrator.MigrateAsync(app.Services, sqliteMigrationPath, app.Environment.ContentRootPath);
+    return;
+}
 
 app.UseForwardedHeaders();
 
@@ -232,11 +265,38 @@ app.MapGet("/diet-plan-documents/{id:guid}/download", async (
     if (document == null || (!user.IsInRole("Admin") && document.ClientUserId != userId))
         return Results.NotFound();
 
-    var path = documents.GetDownloadPath(document);
-    if (path == null)
+    var file = await documents.OpenReadAsync(document);
+    if (file == null)
         return Results.NotFound();
 
-    return Results.File(path, "application/octet-stream", document.OriginalFileName);
+    return Results.File(file.Content, "application/octet-stream", document.OriginalFileName);
+})
+    .RequireAuthorization();
+
+// Uploaded profile and meal photos are stored in GridFS in production and are
+// only readable by their owner or a clinic administrator.
+app.MapGet("/uploads/{ownerId}/{fileId}", async (
+    string ownerId,
+    string fileId,
+    ClaimsPrincipal user,
+    ClinicApp.Services.IFileStorage files,
+    CancellationToken cancellationToken) =>
+{
+    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrWhiteSpace(userId) || (!user.IsInRole("Admin") && userId != ownerId))
+        return Results.Forbid();
+
+    var file = await files.OpenReadAsync(fileId, ownerId, cancellationToken);
+    if (file == null)
+        return Results.NotFound();
+
+    if (file.ContentType is not ("image/jpeg" or "image/png" or "image/webp"))
+    {
+        await file.DisposeAsync();
+        return Results.NotFound();
+    }
+
+    return Results.Stream(file.Content, file.ContentType, enableRangeProcessing: true);
 })
     .RequireAuthorization();
 

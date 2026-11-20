@@ -1,8 +1,5 @@
 using System;
-using System.IO;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace ClinicApp.Services;
@@ -23,12 +20,12 @@ public class FileUploadService
 
     private const long MaxFileSizeBytes = 8 * 1024 * 1024; // 8 MB
 
-    private readonly IWebHostEnvironment _env;
+    private readonly IFileStorage _storage;
     private readonly ILogger<FileUploadService> _logger;
 
-    public FileUploadService(IWebHostEnvironment env, ILogger<FileUploadService> logger)
+    public FileUploadService(IFileStorage storage, ILogger<FileUploadService> logger)
     {
-        _env = env;
+        _storage = storage;
         _logger = logger;
     }
 
@@ -73,16 +70,10 @@ public class FileUploadService
             return (null, "File must be 8 MB or smaller.");
         }
 
-        var directory = Path.Combine(_env.WebRootPath, "uploads", folder);
-        Directory.CreateDirectory(directory);
-        var fileName = $"{prefix}_{Guid.NewGuid():N}{extension}";
-        var physicalPath = Path.Combine(directory, fileName);
-
         await using var source = file.OpenReadStream(MaxFileSizeBytes);
-        await using var target = File.Create(physicalPath);
-        await source.CopyToAsync(target);
-
-        return ($"/uploads/{folder}/{fileName}", null);
+        var storedName = $"{Guid.NewGuid():N}{extension}";
+        var fileId = await _storage.SaveAsync(source, storedName, prefix, folder, contentType);
+        return ($"/uploads/{Uri.EscapeDataString(prefix)}/{fileId}", null);
     }
 
     /// <summary>

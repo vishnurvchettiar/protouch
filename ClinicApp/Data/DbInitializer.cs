@@ -16,12 +16,16 @@ public static class DbInitializer
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        // Apply migrations if pending
-        if ((await db.Database.GetPendingMigrationsAsync()).Any())
+        if (db.Database.IsRelational())
         {
-            await db.Database.MigrateAsync();
+            if ((await db.Database.GetPendingMigrationsAsync()).Any())
+                await db.Database.MigrateAsync();
         }
+        else
+            await db.Database.EnsureCreatedAsync();
 
         // 1. Seed Roles
         string[] roles = { "Admin", "Client" };
@@ -33,6 +37,33 @@ public static class DbInitializer
             }
         }
 
+        // Production databases never receive fake patients, appointments, or
+        // health records. A real production admin can be bootstrapped explicitly
+        // with BootstrapAdmin__Email and BootstrapAdmin__Password.
+        if (!environment.IsDevelopment())
+        {
+            var bootstrapEmail = configuration["BootstrapAdmin:Email"];
+            var bootstrapPassword = configuration["BootstrapAdmin:Password"];
+            if (!string.IsNullOrWhiteSpace(bootstrapEmail) && !string.IsNullOrWhiteSpace(bootstrapPassword)
+                && await userManager.FindByEmailAsync(bootstrapEmail) == null)
+            {
+                var admin = new ApplicationUser
+                {
+                    UserName = bootstrapEmail,
+                    Email = bootstrapEmail,
+                    EmailConfirmed = true,
+                    FullName = "Clinic Administrator"
+                };
+                var result = await userManager.CreateAsync(admin, bootstrapPassword);
+                if (!result.Succeeded)
+                    throw new InvalidOperationException("Could not create the configured bootstrap admin: " +
+                        string.Join("; ", result.Errors.Select(error => error.Description)));
+                await userManager.AddToRoleAsync(admin, "Admin");
+            }
+            return;
+        }
+
+        // Development-only sample accounts and health records.
         // 2. Seed Admin User
         var adminEmail = "admin@clinic.com";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);

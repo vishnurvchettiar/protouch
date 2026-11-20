@@ -16,11 +16,7 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 # Render containers can have a low inotify watcher limit. Polling avoids a
 # startup crash when ASP.NET Core monitors configuration files.
 ENV DOTNET_USE_POLLING_FILE_WATCHER=true
-# Render persistent disks can be mounted at /var/data. This default also lets
-# the app start before a managed PostgreSQL database is configured.
-ENV ConnectionStrings__DefaultConnection="Data Source=/var/data/app.db"
 EXPOSE 10000
 
 COPY --from=build /app/publish .
-RUN mkdir -p /var/data
 ENTRYPOINT ["dotnet", "ClinicApp.dll"]

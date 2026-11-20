@@ -1,8 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using ClinicApp.Data;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicApp.Services;
@@ -13,16 +10,16 @@ public sealed class DietPlanDocumentService
 
     private static readonly HashSet<string> AllowedExtensions = [".pdf", ".doc", ".docx"];
     private readonly ApplicationDbContext _db;
-    private readonly string _storageRoot;
+    private readonly IFileStorage _storage;
     private readonly ILogger<DietPlanDocumentService> _logger;
 
     public DietPlanDocumentService(
         ApplicationDbContext db,
-        IWebHostEnvironment environment,
+        IFileStorage storage,
         ILogger<DietPlanDocumentService> logger)
     {
         _db = db;
-        _storageRoot = Path.Combine(environment.ContentRootPath, "App_Data", "diet-plan-documents");
+        _storage = storage;
         _logger = logger;
     }
 
@@ -40,24 +37,19 @@ public sealed class DietPlanDocumentService
         if (file.Size <= 0 || file.Size > MaxFileSizeBytes)
             return (null, "The document must be between 1 byte and 15 MB.");
 
-        var clientDirectory = GetClientDirectory(clientUserId);
-        Directory.CreateDirectory(clientDirectory);
         var storageName = $"{Guid.NewGuid():N}{extension}";
-        var physicalPath = Path.Combine(clientDirectory, storageName);
+        string? storedId = null;
 
         try
         {
-            await using (var input = file.OpenReadStream(MaxFileSizeBytes))
-            await using (var output = new FileStream(physicalPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            {
-                await input.CopyToAsync(output);
-            }
-
-            if (!HasExpectedSignature(physicalPath, extension))
-            {
-                File.Delete(physicalPath);
+            await using var input = new MemoryStream();
+            await using (var source = file.OpenReadStream(MaxFileSizeBytes))
+                await source.CopyToAsync(input);
+            if (!HasExpectedSignature(input, extension))
                 return (null, "The selected file does not match its PDF, DOC, or DOCX extension.");
-            }
+
+            input.Position = 0;
+            storedId = await _storage.SaveAsync(input, storageName, clientUserId, "diet-plan", "application/octet-stream");
 
             var oldDocument = await _db.DietPlanDocuments
                 .FirstOrDefaultAsync(document => document.ClientUserId == clientUserId);
@@ -65,7 +57,7 @@ public sealed class DietPlanDocumentService
             var document = new DietPlanDocument
             {
                 ClientUserId = clientUserId,
-                StoredFileName = storageName,
+                StoredFileName = storedId,
                 OriginalFileName = SanitizeFileName(file.Name),
                 UploadedAtUtc = DateTime.UtcNow
             };
@@ -80,36 +72,25 @@ public sealed class DietPlanDocumentService
 
             await _db.SaveChangesAsync();
 
-            if (oldStoredFileName != null && !string.Equals(oldStoredFileName, storageName, StringComparison.Ordinal))
-                TryDeleteStoredFile(clientUserId, oldStoredFileName);
+            if (oldStoredFileName != null && !string.Equals(oldStoredFileName, storedId, StringComparison.Ordinal))
+                await _storage.DeleteAsync(oldStoredFileName);
 
             return (document, null);
         }
         catch (Exception ex)
         {
-            TryDeleteStoredFile(clientUserId, storageName);
+            await _storage.DeleteAsync(storedId);
             _logger.LogError(ex, "Could not save diet plan document for client {ClientUserId}", clientUserId);
             return (null, "The document could not be saved. Please try again.");
         }
     }
 
-    public string? GetDownloadPath(DietPlanDocument document)
+    public Task<StoredMongoFile?> OpenReadAsync(DietPlanDocument document, CancellationToken cancellationToken = default)
     {
-        if (!Guid.TryParseExact(Path.GetFileNameWithoutExtension(document.StoredFileName), "N", out _))
-            return null;
-
-        var extension = Path.GetExtension(document.StoredFileName).ToLowerInvariant();
-        if (!AllowedExtensions.Contains(extension))
-            return null;
-
-        var path = Path.Combine(GetClientDirectory(document.ClientUserId), document.StoredFileName);
-        return File.Exists(path) ? path : null;
-    }
-
-    private string GetClientDirectory(string clientUserId)
-    {
-        var directoryKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(clientUserId)));
-        return Path.Combine(_storageRoot, directoryKey);
+        var extension = Path.GetExtension(document.OriginalFileName).ToLowerInvariant();
+        return AllowedExtensions.Contains(extension)
+            ? _storage.OpenReadAsync(document.StoredFileName, document.ClientUserId, cancellationToken)
+            : Task.FromResult<StoredMongoFile?>(null);
     }
 
     private static string SanitizeFileName(string fileName)
@@ -119,10 +100,10 @@ public sealed class DietPlanDocumentService
         return cleaned.Length <= 180 ? cleaned : cleaned[^180..];
     }
 
-    private static bool HasExpectedSignature(string path, string extension)
+    private static bool HasExpectedSignature(Stream stream, string extension)
     {
         Span<byte> header = stackalloc byte[8];
-        using var stream = File.OpenRead(path);
+        stream.Position = 0;
         var read = stream.Read(header);
         return extension switch
         {
@@ -133,16 +114,4 @@ public sealed class DietPlanDocumentService
         };
     }
 
-    private void TryDeleteStoredFile(string clientUserId, string storedFileName)
-    {
-        try
-        {
-            if (Path.GetFileName(storedFileName) == storedFileName)
-                File.Delete(Path.Combine(GetClientDirectory(clientUserId), storedFileName));
-        }
-        catch (IOException ex)
-        {
-            _logger.LogWarning(ex, "Could not remove replaced diet plan document for client {ClientUserId}", clientUserId);
-        }
-    }
 }
