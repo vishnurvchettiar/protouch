@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.EntityFrameworkCore.Extensions;
 
 namespace ClinicApp.Data;
 
@@ -27,6 +30,11 @@ public static class DbInitializer
         {
             if ((await db.Database.GetPendingMigrationsAsync()).Any())
                 await db.Database.MigrateAsync();
+        }
+        else if (db.Database.ProviderName?.Contains("Mongo", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var mongoDatabase = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
+            await InitializeMongoDatabaseAsync(db, mongoDatabase, logger);
         }
         else
             await db.Database.EnsureCreatedAsync();
@@ -64,7 +72,9 @@ public static class DbInitializer
         {
             if (!await roleManager.RoleExistsAsync(role))
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                var result = await roleManager.CreateAsync(new IdentityRole(role));
+                if (!result.Succeeded)
+                    throw new InvalidOperationException($"Could not create the {role} role: " + string.Join("; ", result.Errors.Select(error => error.Description)));
             }
         }
 
@@ -278,5 +288,75 @@ public static class DbInitializer
                 await db.SaveChangesAsync();
             }
         }
+    }
+
+    private static async Task InitializeMongoDatabaseAsync(
+        ApplicationDbContext db,
+        IMongoDatabase mongoDatabase,
+        ILogger logger)
+    {
+        await mongoDatabase.RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
+
+        var collectionNames = db.Model.GetCollectionNames()
+            .Append("AppMetadata")
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        var existingCollections = (await mongoDatabase.ListCollectionNames().ToListAsync())
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var collectionName in collectionNames)
+        {
+            if (existingCollections.Contains(collectionName))
+                continue;
+
+            try
+            {
+                await mongoDatabase.CreateCollectionAsync(collectionName);
+            }
+            catch (MongoCommandException exception) when (exception.Code == 48)
+            {
+                // Another app instance may have created the collection after our initial list.
+            }
+        }
+
+        foreach (var entityType in db.Model.GetEntityTypes())
+        {
+            var collectionName = entityType.GetCollectionName();
+            if (string.IsNullOrWhiteSpace(collectionName))
+                continue;
+
+            foreach (var index in entityType.GetIndexes())
+            {
+                var keys = new BsonDocument();
+                foreach (var property in index.Properties)
+                    keys[property.GetElementName()] = 1;
+
+                if (keys.ElementCount == 0)
+                    continue;
+
+                var indexOptions = new CreateIndexOptions
+                {
+                    Name = index.GetDatabaseName(),
+                    Unique = index.IsUnique
+                };
+                await mongoDatabase.GetCollection<BsonDocument>(collectionName).Indexes
+                    .CreateOneAsync(new CreateIndexModel<BsonDocument>(
+                        new BsonDocumentIndexKeysDefinition<BsonDocument>(keys), indexOptions));
+            }
+        }
+
+        var metadata = mongoDatabase.GetCollection<BsonDocument>("AppMetadata");
+        await metadata.UpdateOneAsync(
+            Builders<BsonDocument>.Filter.Eq("_id", "storage-initialized"),
+            Builders<BsonDocument>.Update
+                .SetOnInsert("createdAtUtc", DateTime.UtcNow)
+                .Set("lastStartedAtUtc", DateTime.UtcNow)
+                .Set("provider", "MongoDB Atlas"),
+            new UpdateOptions { IsUpsert = true });
+
+        logger.LogInformation(
+            "MongoDB Atlas database {DatabaseName} is reachable; prepared {CollectionCount} collections.",
+            mongoDatabase.DatabaseNamespace.DatabaseName,
+            collectionNames.Length);
     }
 }
