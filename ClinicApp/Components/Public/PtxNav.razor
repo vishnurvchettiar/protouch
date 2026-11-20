@@ -1,0 +1,42 @@
+@inject NavigationManager Nav
+@{
+    var path = "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].Trim('/').ToLowerInvariant();
+    var onHome = path == "/";
+    var onServices = path.StartsWith("/services");
+}
+<header id="px-nav">
+    <div class="c">
+        <div class="pill">
+            <a class="logo" href="/" aria-label="ProTouch Physio - Slimming Clinic, home">
+                <span class="lg"><img decoding="async" src="/images/protouch-logo.svg" alt="ProTouch Physio - Slimming Clinic" /></span>
+            </a>
+            <nav class="menu" id="px-menu" aria-label="Main navigation">
+                <a href="/" class="@(onHome ? "on" : "")">Home</a>
+                <div class="dd">
+                    <a href="/services" class="@(onServices ? "on" : "")">Services ▾</a>
+                    <div class="dm">
+                        @{ var n = 0; }
+                        @foreach (var id in PublicCatalog.Order)
+                        {
+                            n++;
+                            var s = PublicCatalog.Services[id];
+                            var x = PublicCatalog.Extras[id];
+                            <a href="/services/@id">
+                                <i>@n</i>
+                                <span>@x.Short<small>@s.SubServices.Length conditions &amp; treatments</small></span>
+                            </a>
+                        }
+                    </div>
+                </div>
+                <a href="/#gallery">Gallery</a>
+                <a href="/#contact">Contact</a>
+                <a class="m-only" href="/Account/Login">Login</a>
+            </nav>
+            <div class="nr">
+                <a class="login" href="/Account/Login">Login</a>
+                <a class="pbtn top" href="/book" data-magnet><span>Book a Visit <b class="ar">→</b></span></a>
+                <button class="burger" type="button" data-px-burger aria-label="Open menu">☰</button>
+            </div>
+        </div>
+    </div>
+</header>

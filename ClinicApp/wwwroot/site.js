@@ -618,3 +618,283 @@ window.scheduleDeferredInit_home = function () {
         setTimeout(runDeferred, 200);
     }
 };
+
+
+// ── Sidebar hide / show ─────────────────────────────────────
+// State is stored on <html class="pt-sb-collapsed"> so Blazor's enhanced
+// navigation cannot reset it, and remembered in localStorage.
+(function () {
+    var KEY = 'pt-sidebar-collapsed';
+    var root = document.documentElement;
+
+    function sync() {
+        var collapsed = root.classList.contains('pt-sb-collapsed');
+        document.querySelectorAll('[data-pt-sidebar-toggle]').forEach(function (btn) {
+            var label = collapsed ? 'Show sidebar' : 'Hide sidebar';
+            btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('title', label);
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('[data-pt-sidebar-toggle]');
+        if (!btn) return;
+        var collapsed = root.classList.toggle('pt-sb-collapsed');
+        try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch (err) { }
+        sync();
+    });
+
+    document.addEventListener('DOMContentLoaded', sync);
+    if (window.Blazor && Blazor.addEventListener) {
+        Blazor.addEventListener('enhancedload', sync);
+    } else {
+        document.addEventListener('enhancedload', sync);
+    }
+    sync();
+})();
+
+
+// ── Dashboard top bar greeting ──────────────────────────────
+// Uses the visitor's own clock, so the greeting and date are never off by the server's time zone.
+(function () {
+    function fill() {
+        var g = document.querySelector('[data-pt-greeting]');
+        var d = document.querySelector('[data-pt-date]');
+        if (!g) return;
+        var now = new Date();
+        var h = now.getHours();
+        var part = h < 12 ? 'Good morning' : (h < 17 ? 'Good afternoon' : 'Good evening');
+        g.textContent = part + ', ' + (g.getAttribute('data-pt-name') || '');
+        if (d) {
+            try {
+                d.textContent = now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+            } catch (e) { }
+        }
+    }
+    document.addEventListener('DOMContentLoaded', fill);
+    document.addEventListener('enhancedload', fill);
+    if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', fill);
+    fill();
+})();
+
+
+// ── Login form interactions ─────────────────────────────────
+// Works on the server-rendered login page (no Blazor events needed) and across enhanced navigation.
+(function () {
+    function capsHint(input, e) {
+        var wrap = input.closest('.pt-auth-field');
+        var hint = wrap && wrap.querySelector('[data-pt-caps]');
+        if (!hint) return;
+        var on = e && e.getModifierState && e.getModifierState('CapsLock');
+        hint.hidden = !on;
+    }
+
+    // Show / hide password
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('[data-pt-toggle-password]');
+        if (!btn) return;
+        var input = btn.closest('.pt-auth-input-wrap').querySelector('input');
+        if (!input) return;
+        var show = input.type === 'password';
+        var start = input.selectionStart, end = input.selectionEnd;
+        input.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        input.focus();
+        try { input.setSelectionRange(start, end); } catch (err) { }
+    });
+
+    // Caps Lock warning on the password field
+    ['keydown', 'keyup'].forEach(function (type) {
+        document.addEventListener(type, function (e) {
+            var t = e.target;
+            if (t && t.matches && t.matches('[data-pt-field="password"] input')) capsHint(t, e);
+        });
+    });
+    document.addEventListener('focusout', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('[data-pt-field="password"] input')) {
+            var hint = t.closest('.pt-auth-field').querySelector('[data-pt-caps]');
+            if (hint) hint.hidden = true;
+        }
+    });
+
+    // Green tick when the email looks valid
+    function checkEmail(input) {
+        var wrap = input.closest('[data-pt-field="email"]');
+        if (!wrap) return;
+        var ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.value.trim());
+        wrap.setAttribute('data-valid', ok ? 'true' : 'false');
+    }
+    document.addEventListener('input', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('[data-pt-field="email"] input')) checkEmail(t);
+    });
+    // The login form starts empty every time. Browsers restore typed values on reload and Back,
+    // and password managers fill saved logins; both are cleared here. Staying signed in is what
+    // "Keep me signed in" is for. The fields are read-only until touched so autofill skips them.
+    function unlock(input) { input.removeAttribute('readonly'); }
+    function navType() {
+        try { var n = performance.getEntriesByType('navigation')[0]; return n ? n.type : 'navigate'; } catch (err) { return 'navigate'; }
+    }
+    function clearLogin(force) {
+        var inputs = document.querySelectorAll('input[data-pt-clear]');
+        if (!inputs.length) return;
+        var restored = force || navType() === 'reload' || navType() === 'back_forward';
+        inputs.forEach(function (input) {
+            if (restored) input.value = '';
+            if (document.activeElement === input) { unlock(input); return; }
+            if (!input.value) input.setAttribute('readonly', 'readonly');
+            if (!input.dataset.ptUnlock) {
+                input.dataset.ptUnlock = '1';
+                ['focus', 'pointerdown', 'keydown', 'touchstart'].forEach(function (t) {
+                    input.addEventListener(t, function () { unlock(input); }, { once: true });
+                });
+            }
+        });
+        // Autofill can arrive just after load; clear anything that was filled without the person typing.
+        [150, 600].forEach(function (ms) {
+            setTimeout(function () {
+                inputs.forEach(function (input) {
+                    if (input.value && !input.dataset.ptTyped && !input.hasAttribute('data-pt-keep') && document.activeElement !== input && !document.querySelector('.pt-auth-error-alert')) input.value = '';
+                    var wrap = input.closest('[data-pt-field="email"]');
+                    if (wrap) checkEmail(input);
+                });
+            }, ms);
+        });
+    }
+    document.addEventListener('input', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('input[data-pt-clear]') && e.isTrusted && e.inputType) t.dataset.ptTyped = '1';
+    });
+    window.addEventListener('pageshow', function (e) { if (e.persisted) clearLogin(true); });
+
+    function initLogin() {
+        clearLogin(false);
+        var email = document.querySelector('[data-pt-field="email"] input');
+        if (email) checkEmail(email);
+    }
+    document.addEventListener('DOMContentLoaded', initLogin);
+    document.addEventListener('enhancedload', initLogin);
+    if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', initLogin);
+
+    // Immediate feedback on submit: spinner and a disabled button while the server signs in
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        var btn = form && form.querySelector && form.querySelector('[data-pt-submit]');
+        if (!btn || (form.checkValidity && !form.checkValidity())) return;
+        setTimeout(function () {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="pt-auth-spinner" aria-hidden="true"></span><span>' + (btn.getAttribute('data-pt-loading') || 'Signing in…') + '</span>';
+        }, 0);
+    });
+})();
+
+
+// ── Sign up and password help interactions ──────────────────
+(function () {
+    // Password strength and rules
+    function score(v) {
+        var rules = { len: v.length >= 8, upper: /[A-Z]/.test(v), lower: /[a-z]/.test(v), digit: /\d/.test(v) };
+        var n = Object.keys(rules).filter(function (k) { return rules[k]; }).length;
+        if (v.length >= 12 && n === 4 && /[^A-Za-z0-9]/.test(v)) n = 4;
+        return { rules: rules, level: v.length === 0 ? 0 : Math.max(1, n) };
+    }
+    var labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+    function updateStrength(input) {
+        var field = input.closest('.pt-auth-field');
+        if (!field) return;
+        var s = score(input.value);
+        var meter = field.querySelector('[data-pt-meter]');
+        if (meter) {
+            meter.hidden = s.level === 0;
+            meter.setAttribute('data-level', String(s.level));
+            var lab = meter.querySelector('[data-pt-meter-label]');
+            if (lab) lab.textContent = labels[s.level];
+        }
+        field.querySelectorAll('[data-rule]').forEach(function (li) { li.classList.toggle('is-ok', !!s.rules[li.getAttribute('data-rule')]); });
+        matchCheck(input.closest('form'));
+    }
+    function matchCheck(form) {
+        if (!form) return;
+        var a = form.querySelector('[data-pt-field="newpass"] input');
+        var b = form.querySelector('[data-pt-field="confirm"] input');
+        var wrap = form.querySelector('[data-pt-field="confirm"]');
+        if (!a || !b || !wrap) return;
+        wrap.setAttribute('data-valid', b.value.length > 0 && a.value === b.value ? 'true' : 'false');
+    }
+
+    // Mobile number: digits only, grouped 5 + 5, tick when it is a valid Indian mobile number
+    function phoneDigits(v) {
+        var d = v.replace(/\D/g, '');
+        if (d.length > 10 && d.indexOf('91') === 0) d = d.slice(2);
+        if (d.length === 11 && d.charAt(0) === '0') d = d.slice(1);
+        return d.slice(0, 10);
+    }
+    function formatPhone(input) {
+        var d = phoneDigits(input.value);
+        input.value = d.length > 5 ? d.slice(0, 5) + ' ' + d.slice(5) : d;
+        var wrap = input.closest('[data-pt-field="phone"]');
+        if (wrap) wrap.setAttribute('data-valid', /^[6-9]\d{9}$/.test(d) ? 'true' : 'false');
+    }
+
+    // Email or mobile (forgot password): tick when either looks right
+    function identifierCheck(input) {
+        var wrap = input.closest('[data-pt-field="identifier"]');
+        if (!wrap) return;
+        var v = input.value.trim();
+        var ok = v.indexOf('@') >= 0 ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) : /^[6-9]\d{9}$/.test(phoneDigits(v));
+        wrap.setAttribute('data-valid', ok ? 'true' : 'false');
+    }
+
+    document.addEventListener('input', function (e) {
+        var t = e.target;
+        if (!t || !t.matches) return;
+        if (t.matches('[data-pt-field="newpass"] input')) updateStrength(t);
+        else if (t.matches('[data-pt-field="confirm"] input')) matchCheck(t.closest('form'));
+        else if (t.matches('[data-pt-field="phone"] input')) formatPhone(t);
+        else if (t.matches('[data-pt-field="identifier"] input')) identifierCheck(t);
+        else if (t.matches('input[data-pt-otp]')) {
+            t.value = t.value.replace(/\D/g, '').slice(0, 6);
+            // Sending the form as soon as the sixth digit arrives
+            if (t.value.length === 6 && !t.hasAttribute('data-pt-otp-nosubmit') && t.form && t.form.requestSubmit) t.form.requestSubmit();
+        }
+    });
+    document.addEventListener('paste', function (e) {
+        var t = e.target;
+        if (t && t.matches && t.matches('input[data-pt-otp]')) {
+            var text = (e.clipboardData || window.clipboardData).getData('text');
+            e.preventDefault();
+            t.value = (text || '').replace(/\D/g, '').slice(0, 6);
+            t.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+
+    // Resend countdown
+    function startCountdowns() {
+        document.querySelectorAll('[data-pt-countdown]').forEach(function (btn) {
+            var left = parseInt(btn.getAttribute('data-pt-countdown'), 10) || 0;
+            var label = btn.getAttribute('data-pt-countdown-label') || btn.textContent;
+            if (btn.dataset.ptRunning) return;
+            btn.dataset.ptRunning = '1';
+            function tick() {
+                if (left > 0) { btn.disabled = true; btn.textContent = label + ' in ' + left + 's'; left--; setTimeout(tick, 1000); }
+                else { btn.disabled = false; btn.textContent = label; }
+            }
+            tick();
+        });
+    }
+
+    function initAuthExtras() {
+        document.querySelectorAll('[data-pt-field="newpass"] input').forEach(updateStrength);
+        document.querySelectorAll('[data-pt-field="phone"] input').forEach(function (i) { if (i.value) formatPhone(i); });
+        document.querySelectorAll('[data-pt-field="identifier"] input').forEach(function (i) { if (i.value) identifierCheck(i); });
+        startCountdowns();
+        var otp = document.querySelector('input[data-pt-otp]');
+        if (otp) { otp.removeAttribute('readonly'); }
+    }
+    document.addEventListener('DOMContentLoaded', initAuthExtras);
+    document.addEventListener('enhancedload', initAuthExtras);
+    if (window.Blazor && Blazor.addEventListener) Blazor.addEventListener('enhancedload', initAuthExtras);
+})();

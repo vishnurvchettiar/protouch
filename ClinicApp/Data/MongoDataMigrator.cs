@@ -22,7 +22,6 @@ public static class MongoDataMigrator
         await using var scope = services.CreateAsyncScope();
         var destination = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var mongo = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
-        var fileStorage = scope.ServiceProvider.GetRequiredService<IFileStorage>();
 
         var collections = await mongo.ListCollectionNames().ToListAsync();
         foreach (var collectionName in collections)
@@ -57,7 +56,7 @@ public static class MongoDataMigrator
                 rowCount += await task;
             }
 
-            var filesCopied = await MigrateReferencedFilesAsync(source, destination, fileStorage, contentRoot);
+            var filesCopied = await MigrateReferencedFilesAsync(source, destination, contentRoot);
             await destination.SaveChangesAsync();
             Console.WriteLine($"MongoDB migration completed. Copied {rowCount} database records and {filesCopied} referenced uploads.");
         }
@@ -110,14 +109,13 @@ public static class MongoDataMigrator
     private static async Task<int> MigrateReferencedFilesAsync(
         ApplicationDbContext source,
         ApplicationDbContext destination,
-        IFileStorage storage,
         string contentRoot)
     {
         var copied = 0;
         var logs = await source.DailyLogs.AsNoTracking().ToListAsync();
         foreach (var log in logs.Where(item => !string.IsNullOrWhiteSpace(item.MealPhotoUrl)))
         {
-            var newUrl = await CopyImageAsync(log.MealPhotoUrl, log.UserId, contentRoot, storage);
+            var newUrl = await CopyImageAsync(log.MealPhotoUrl, log.UserId, contentRoot, destination);
             if (newUrl != null)
             {
                 var target = await destination.DailyLogs.FindAsync(log.Id);
@@ -130,7 +128,7 @@ public static class MongoDataMigrator
         foreach (var setting in settings)
         {
             var owner = setting.Key["ClientPhoto:".Length..];
-            var newUrl = await CopyImageAsync(setting.Value, owner, contentRoot, storage);
+            var newUrl = await CopyImageAsync(setting.Value, owner, contentRoot, destination);
             if (newUrl != null)
             {
                 var target = await destination.Settings.FindAsync(setting.Id);
@@ -150,17 +148,15 @@ public static class MongoDataMigrator
                 continue;
             }
 
-            await using var stream = File.OpenRead(path);
-            var storedId = await storage.SaveAsync(stream, document.OriginalFileName, document.ClientUserId, "diet-plan", "application/octet-stream");
             var target = await destination.DietPlanDocuments.FindAsync(document.Id);
-            if (target != null) target.StoredFileName = storedId;
+            if (target != null) target.Content = await File.ReadAllBytesAsync(path);
             copied++;
         }
 
         return copied;
     }
 
-    private static async Task<string?> CopyImageAsync(string value, string ownerId, string contentRoot, IFileStorage storage)
+    private static async Task<string?> CopyImageAsync(string value, string ownerId, string contentRoot, ApplicationDbContext destination)
     {
         Stream? stream = null;
         string contentType;
@@ -200,8 +196,18 @@ public static class MongoDataMigrator
         await using (stream)
         {
             if (contentType is not ("image/jpeg" or "image/png" or "image/webp")) return null;
-            var id = await storage.SaveAsync(stream, fileName, ownerId, "image", contentType);
-            return $"/uploads/{Uri.EscapeDataString(ownerId)}/{id}";
+            var bytes = new MemoryStream();
+            await stream.CopyToAsync(bytes);
+            fileName = $"{Guid.NewGuid():N}{Path.GetExtension(fileName)}";
+            var publicPath = $"uploads/{Uri.EscapeDataString(ownerId)}/{fileName}";
+            destination.StoredFiles.Add(new StoredFile
+            {
+                Path = publicPath,
+                ContentType = contentType,
+                Data = bytes.ToArray(),
+                CreatedAtUtc = DateTime.UtcNow
+            });
+            return $"/{publicPath}";
         }
     }
 

@@ -14,7 +14,16 @@ using Twilio.Rest.Api.V2010.Account;
 namespace ClinicApp.Services;
 
 public record CsvRecipient(string Name, string Phone);
-public record CsvPreviewRow(string RecipientName, string RecipientPhone, string PersonalisedMessage);
+public record CsvPreviewRow(string RecipientName, string RecipientPhone, string PersonalisedMessage, string? Warning = null);
+
+/// <summary>Outcome of a bulk WhatsApp campaign.</summary>
+public record CampaignResult(int Sent, int Simulated, int Failed, int Skipped, string Mode);
+
+/// <summary>Outcome of asking for a one-time code. TestCode is only set when WhatsApp is not in live (Twilio) mode.</summary>
+public record OtpSendResult(bool Sent, string? Error, int RetryAfterSeconds, string? TestCode);
+
+/// <summary>Outcome of checking a one-time code.</summary>
+public record OtpVerifyResult(bool Ok, string? Error, int AttemptsLeft);
 
 public class ClinicService
 {
@@ -77,14 +86,59 @@ public class ClinicService
 
     private (string Sid, string Token, string From) GetTwilioConfig()
     {
-        // Prefer DB settings
-        var sid = _db.Settings.FirstOrDefault(s => s.Key == "WhatsApp:Twilio:AccountSid")?.Value
-                  ?? _config["WhatsApp:Twilio:AccountSid"];
-        var token = _db.Settings.FirstOrDefault(s => s.Key == "WhatsApp:Twilio:AuthToken")?.Value
-                    ?? _config["WhatsApp:Twilio:AuthToken"];
-        var from = _db.Settings.FirstOrDefault(s => s.Key == "WhatsApp:Twilio:From")?.Value
-                   ?? _config["WhatsApp:Twilio:From"] ?? "whatsapp:+14155238886";
-        return (sid ?? string.Empty, token ?? string.Empty, from);
+        // Saved settings win, but a blank saved value must not hide a good appsettings value.
+        string Pick(string key)
+        {
+            var saved = _db.Settings.FirstOrDefault(s => s.Key == key)?.Value;
+            return (!string.IsNullOrWhiteSpace(saved) ? saved : _config[key] ?? string.Empty).Trim();
+        }
+        var from = Pick("WhatsApp:Twilio:From");
+        if (from.Length == 0) from = "whatsapp:+14155238886";
+        return (Pick("WhatsApp:Twilio:AccountSid"), Pick("WhatsApp:Twilio:AuthToken"), from);
+    }
+
+    /// <summary>
+    /// Returns the Twilio "from" address, or explains why it cannot work. The sending number must be a
+    /// Twilio WhatsApp sender (for example the sandbox whatsapp:+14155238886), not the clinic's own phone number.
+    /// </summary>
+    public static string ToWhatsAppSender(string? raw)
+    {
+        var from = (raw ?? string.Empty).Trim();
+        var number = from.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ? from["whatsapp:".Length..].Trim() : from;
+        var digits = new string(number.Where(char.IsDigit).ToArray());
+        if (!number.StartsWith("+") || digits.Length < 11)
+            throw new InvalidOperationException("The Sending number must be a Twilio WhatsApp sender in full international format, for example whatsapp:+14155238886 (the Twilio sandbox). It cannot be the clinic's own 10-digit phone number.");
+        return "whatsapp:" + number;
+    }
+
+    /// <summary>Turns a Twilio failure into a sentence the clinic can act on.</summary>
+    public static string DescribeTwilioError(Exception ex)
+    {
+        if (ex is Twilio.Exceptions.AuthenticationException)
+            return "Twilio rejected the Account SID or Auth token (error 20003). Re-enter both from the Twilio Console, with no spaces.";
+        if (ex is Twilio.Exceptions.ApiException api)
+        {
+            var hint = api.Code switch
+            {
+                20003 => "The Account SID or Auth token is wrong. Re-enter both from the Twilio Console.",
+                20404 => "Twilio could not find that account or number. Check the Account SID and the sending number.",
+                21211 or 21614 => "That phone number is not valid for WhatsApp. Use a full number such as +919028027888.",
+                21408 => "This Twilio account is not allowed to message that country yet. Enable India in Twilio Messaging, Geo permissions.",
+                572002 => "This Twilio account is a trial, and a trial can only message numbers you have verified. Add the recipient number in Twilio Console, Phone Numbers, Verified Caller IDs, or upgrade the account.",
+                21608 => "A trial Twilio account can only message verified numbers. Verify the number in Twilio, or upgrade the account.",
+                21612 or 21606 => "The sending number cannot send WhatsApp messages. Use your WhatsApp sender in the form whatsapp:+14155238886.",
+                63007 => "The sending number is not set up as a WhatsApp sender. Check the Sending number in settings (it must start with whatsapp:).",
+                63015 => "The Twilio sandbox only reaches phones that joined it. Send the join code from that WhatsApp number first, then try again.",
+                63016 => "WhatsApp only allows free-text messages within 24 hours of the person's last message. Use an approved template, or ask them to message the clinic first.",
+                63003 => "Twilio could not find that WhatsApp number. Check the number and that WhatsApp is installed on it.",
+                63018 => "Twilio's WhatsApp rate limit was hit. Wait a minute and send fewer messages at a time.",
+                63024 => "That number is not a valid WhatsApp user.",
+                63038 => "The Twilio account reached its daily WhatsApp message limit.",
+                _ => api.Message
+            };
+            return $"{hint} (Twilio error {api.Code})";
+        }
+        return ex.Message;
     }
 
     // ==========================================
@@ -226,6 +280,21 @@ public class ClinicService
             return string.Empty;
 
         return "91" + digits;
+    }
+
+    /// <summary>
+    /// Builds the address Twilio needs for WhatsApp ("whatsapp:+91XXXXXXXXXX").
+    /// Returns null when the number is not a valid 10-digit Indian mobile number.
+    /// Addresses that already start with "whatsapp:" are passed through unchanged.
+    /// </summary>
+    public static string? ToWhatsAppAddress(string? raw)
+    {
+        var trimmed = (raw ?? string.Empty).Trim();
+        if (trimmed.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase))
+            return trimmed.Length > "whatsapp:".Length ? "whatsapp:" + trimmed["whatsapp:".Length..].Trim() : null;
+
+        var normalised = NormalisePhone(trimmed);
+        return string.IsNullOrEmpty(normalised) ? null : "whatsapp:+" + normalised;
     }
 
     public string BuildWhatsAppLink(string phone, string message)
@@ -810,6 +879,9 @@ public class ClinicService
         var photoSetting = await _db.Settings.FirstOrDefaultAsync(s => s.Key == photoKey);
         if (photoSetting != null) _db.Settings.Remove(photoSetting);
 
+        var uploadedFiles = await _db.StoredFiles.Where(file => file.Path.Contains(userId)).ToListAsync();
+        _db.StoredFiles.RemoveRange(uploadedFiles);
+
         await _db.SaveChangesAsync();
         if (_fileStorage != null)
             await _fileStorage.DeleteOwnerAsync(userId);
@@ -875,6 +947,7 @@ public class ClinicService
     {
         var footer = await GetOptOutFooterAsync();
         var rows = new List<CsvPreviewRow>();
+        var seenPhones = new HashSet<string>();
         foreach (var recipient in recipients)
         {
             var name = string.IsNullOrWhiteSpace(recipient.Name) ? "{{Name}}" : recipient.Name;
@@ -883,20 +956,27 @@ public class ClinicService
                 .Replace("{Name}", name);
             AppendOptOutFooter(personalised, footer, out _);
             var finalMessage = personalised + "\n\n" + footer;
-            rows.Add(new CsvPreviewRow(recipient.Name, recipient.Phone, finalMessage));
+            string? warning = null;
+            var normalised = NormalisePhone(recipient.Phone);
+            if (string.IsNullOrEmpty(normalised))
+                warning = "Invalid phone number. This recipient will be skipped.";
+            else if (!seenPhones.Add(normalised))
+                warning = "Duplicate number. Only the first one is sent.";
+            rows.Add(new CsvPreviewRow(recipient.Name, recipient.Phone, finalMessage, warning));
         }
         // No DB writes — pure preview
         return rows;
     }
 
     // Task 4.3: CSV campaign with delay + progress (Req 11.1–11.4)
-    public async Task SendCsvWhatsAppCampaignAsync(
+    public async Task<CampaignResult> SendCsvWhatsAppCampaignAsync(
         string campaignName,
         string template,
         IEnumerable<CsvRecipient> recipients,
         IProgress<(int sent, int failed, int total)>? progress = null)
     {
         var footer = await GetOptOutFooterAsync();
+        var mode = GetWhatsAppMode();
 
         // Read delay setting
         var delayMs = 1000;
@@ -904,48 +984,72 @@ public class ClinicService
         if (int.TryParse(delaySetting, out var parsedDelay) && parsedDelay >= 100 && parsedDelay <= 60000)
             delayMs = parsedDelay;
 
-        var recipientList = recipients.Where(r => !string.IsNullOrWhiteSpace(r.Phone)).ToList();
+        // Skip blank numbers and repeats so nobody is messaged twice.
+        var seen = new HashSet<string>();
+        var recipientList = new List<CsvRecipient>();
+        var skipped = 0;
+        var dispatchDetails = new List<object>();
+        foreach (var r in recipients.Where(r => !string.IsNullOrWhiteSpace(r.Phone)))
+        {
+            var key = NormalisePhone(r.Phone);
+            if (!string.IsNullOrEmpty(key) && !seen.Add(key))
+            {
+                skipped++;
+                dispatchDetails.Add(new { Name = r.Name, Phone = r.Phone, Status = "Skipped", Error = "Duplicate number" });
+                continue;
+            }
+            recipientList.Add(r);
+        }
+
         var total = recipientList.Count;
         var sent = 0;
         var failed = 0;
-        var dispatchDetails = new List<object>();
+        var simulated = 0;
 
         foreach (var recipient in recipientList)
         {
             var message = template
-                .Replace("{{Name}}", recipient.Name ?? "Client")
-                .Replace("{Name}", recipient.Name ?? "Client");
+                .Replace("{{Name}}", string.IsNullOrWhiteSpace(recipient.Name) ? "there" : recipient.Name)
+                .Replace("{Name}", string.IsNullOrWhiteSpace(recipient.Name) ? "there" : recipient.Name);
             var messageWithFooter = AppendOptOutFooter(message, footer, out _);
 
             try
             {
+                if (mode == "Twilio" && ToWhatsAppAddress(recipient.Phone) == null)
+                    throw new ArgumentException("Not a valid 10-digit phone number.");
+
                 await SendWhatsAppMessageAsync(recipient.Phone, messageWithFooter);
-                sent++;
-                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = "Sent" });
+                if (mode == "Twilio") sent++; else simulated++;
+                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = mode == "Twilio" ? "Sent" : "Simulated" });
             }
             catch (Exception ex)
             {
                 failed++;
                 _logger.LogError(ex, "Failed to send WhatsApp to {Phone}", recipient.Phone);
-                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = "Failed" });
+                dispatchDetails.Add(new { Name = recipient.Name, Phone = recipient.Phone, Status = "Failed", Error = ex.Message });
             }
 
-            progress?.Report((sent, failed, total));
+            progress?.Report((sent + simulated, failed, total));
 
             if (delayMs > 0)
                 await Task.Delay(delayMs);
         }
 
+        var status = failed > 0 ? $"Partial ({failed} failed)"
+                   : mode == "Twilio" ? "Bulk campaign dispatched"
+                   : "Bulk campaign simulated";
         _db.WhatsAppLogs.Add(new WhatsAppLog
         {
             TargetAudience = campaignName,
             MessageTemplate = template,
-            RecipientCount = sent,
+            RecipientCount = sent + simulated,
             SentAt = DateTime.UtcNow,
-            Status = failed > 0 ? $"Partial ({failed} failed)" : "Bulk campaign dispatched",
+            Status = status,
             LogDetail = JsonSerializer.Serialize(dispatchDetails)
         });
         await _db.SaveChangesAsync();
+
+        return new CampaignResult(sent, simulated, failed, skipped, mode);
     }
 
     // ==========================================
@@ -986,8 +1090,8 @@ public class ClinicService
                 TwilioClient.Init(cfg.Sid, cfg.Token);
                 var msg = MessageResource.Create(
                     body: $"Your ProTouch verification code is: {code}",
-                    from: new Twilio.Types.PhoneNumber(cfg.From),
-                    to: new Twilio.Types.PhoneNumber(phone)
+                    from: new Twilio.Types.PhoneNumber(ToWhatsAppSender(cfg.From)),
+                    to: new Twilio.Types.PhoneNumber(ToWhatsAppAddress(phone) ?? phone)
                 );
                 _db.WhatsAppLogs.Add(new WhatsAppLog
                 {
@@ -1035,6 +1139,174 @@ public class ClinicService
     }
 
     // ==========================================
+    // One-time codes for sign up and password reset
+    // ==========================================
+    private const int OtpDigits = 6;
+    private static readonly TimeSpan OtpLifetime = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan OtpResendCooldown = TimeSpan.FromSeconds(30);
+    private const int OtpMaxPerHour = 5;
+    private const int OtpMaxWrongTries = 5;
+    private static readonly TimeSpan OtpLockout = TimeSpan.FromMinutes(15);
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (int Wrong, DateTime Since)> OtpWrongTries = new();
+
+    /// <summary>The one form of a phone number used to compare and key numbers: "91" plus 10 digits, or null if invalid.</summary>
+    public static string? CanonicalPhone(string? raw)
+    {
+        var n = NormalisePhone(raw);
+        return string.IsNullOrEmpty(n) ? null : n;
+    }
+
+    /// <summary>"+91 •••• ••210" style mask for showing where a code was sent.</summary>
+    public static string MaskPhone(string? raw)
+    {
+        var c = CanonicalPhone(raw);
+        return c == null ? "your mobile number" : $"+91 ••••• ••{c[^3..]}";
+    }
+
+    private static string HashOtp(string phone, string code)
+    {
+        var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes($"{phone}:{code}"));
+        return Convert.ToHexString(bytes);
+    }
+
+    /// <summary>True when another account already uses this mobile number, however it was typed.</summary>
+    public async Task<bool> IsPhoneRegisteredAsync(string? phone, string? exceptUserId = null)
+        => await FindUserByPhoneAsync(phone, exceptUserId) != null;
+
+    /// <summary>Finds the account that uses this mobile number, comparing numbers in their canonical form.</summary>
+    public async Task<ApplicationUser?> FindUserByPhoneAsync(string? phone, string? exceptUserId = null)
+    {
+        var canon = CanonicalPhone(phone);
+        if (canon == null) return null;
+        var users = await _db.Users.AsNoTracking()
+            .Where(u => u.PhoneNumber != null && u.PhoneNumber != "")
+            .ToListAsync();
+        return users.FirstOrDefault(u => u.Id != exceptUserId && CanonicalPhone(u.PhoneNumber) == canon);
+    }
+
+    /// <summary>
+    /// Sends a 6 digit code to the number over WhatsApp. Limits: one code every 30 seconds and five an hour per number.
+    /// Codes are stored hashed, last 5 minutes and work once.
+    /// </summary>
+    public async Task<OtpSendResult> SendOtpAsync(string? phone)
+    {
+        var canon = CanonicalPhone(phone);
+        if (canon == null) return new OtpSendResult(false, "Enter a valid 10-digit mobile number.", 0, null);
+
+        var now = DateTime.UtcNow;
+        var recent = await _db.PhoneOtps.Where(o => o.PhoneNumber == canon && o.CreatedAt >= now.AddHours(-1))
+            .OrderByDescending(o => o.CreatedAt).ToListAsync();
+        if (recent.Count > 0)
+        {
+            var wait = (int)Math.Ceiling((recent[0].CreatedAt + OtpResendCooldown - now).TotalSeconds);
+            if (wait > 0) return new OtpSendResult(false, $"Please wait {wait} seconds before asking for another code.", wait, null);
+        }
+        if (recent.Count >= OtpMaxPerHour)
+            return new OtpSendResult(false, "Too many codes were requested for this number. Try again in an hour.", 3600, null);
+
+        var code = System.Security.Cryptography.RandomNumberGenerator.GetInt32(0, (int)Math.Pow(10, OtpDigits)).ToString($"D{OtpDigits}");
+        foreach (var old in recent.Where(o => !o.IsUsed)) old.IsUsed = true; // only the newest code works
+        _db.PhoneOtps.Add(new PhoneOtp
+        {
+            PhoneNumber = canon,
+            Code = HashOtp(canon, code),
+            ExpiresAt = now + OtpLifetime,
+            CreatedAt = now
+        });
+        OtpWrongTries.TryRemove(canon, out _);
+        await _db.SaveChangesAsync();
+
+        var mode = GetWhatsAppMode();
+        var message = $"{code} is your ProTouch verification code. It expires in 5 minutes. Do not share it with anyone.";
+        string status;
+        if (mode == "Twilio")
+        {
+            try
+            {
+                var cfg = GetTwilioConfig();
+                var to = ToWhatsAppAddress("+" + canon)!;
+                var from = ToWhatsAppSender(cfg.From);
+                TwilioClient.Init(cfg.Sid, cfg.Token);
+                var msg = await MessageResource.CreateAsync(body: message,
+                    from: new Twilio.Types.PhoneNumber(from), to: new Twilio.Types.PhoneNumber(to));
+                status = msg.Status.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not send a verification code to {Phone}: {Reason}", MaskPhone(canon), DescribeTwilioError(ex));
+                _db.WhatsAppLogs.Add(new WhatsAppLog
+                {
+                    TargetAudience = "Verification code",
+                    MessageTemplate = $"Verification code to {MaskPhone(canon)} failed",
+                    RecipientCount = 1,
+                    SentAt = now,
+                    Status = "Failed",
+                    LogDetail = JsonSerializer.Serialize(new[] { new { Phone = MaskPhone(canon), Status = "Failed", Reason = DescribeTwilioError(ex) } })
+                });
+                await _db.SaveChangesAsync();
+                return new OtpSendResult(false, "We could not send the code just now. Please try again in a minute.", 0, null);
+            }
+        }
+        else
+        {
+            status = "Simulated";
+            _logger.LogWarning("WhatsApp is in test mode. The verification code for {Phone} was not sent.", MaskPhone(canon));
+        }
+
+        // The log records that a code was sent, never the code itself.
+        _db.WhatsAppLogs.Add(new WhatsAppLog
+        {
+            TargetAudience = mode == "Twilio" ? "Verification code" : "Verification code (simulated)",
+            MessageTemplate = $"Verification code sent to {MaskPhone(canon)}",
+            RecipientCount = 1,
+            SentAt = now,
+            Status = status,
+            LogDetail = JsonSerializer.Serialize(new[] { new { Phone = MaskPhone(canon), Status = status } })
+        });
+        await _db.SaveChangesAsync();
+
+        return new OtpSendResult(true, null, (int)OtpResendCooldown.TotalSeconds, mode == "Twilio" ? null : code);
+    }
+
+    /// <summary>Checks a code. Five wrong tries lock the number for 15 minutes.</summary>
+    public async Task<OtpVerifyResult> VerifyOtpAsync(string? phone, string? code)
+    {
+        var canon = CanonicalPhone(phone);
+        code = (code ?? "").Trim();
+        if (canon == null || code.Length != OtpDigits || !code.All(char.IsAsciiDigit))
+            return new OtpVerifyResult(false, $"Enter the {OtpDigits}-digit code.", OtpMaxWrongTries);
+
+        var now = DateTime.UtcNow;
+        if (OtpWrongTries.TryGetValue(canon, out var tries))
+        {
+            if (now - tries.Since > OtpLockout) OtpWrongTries.TryRemove(canon, out _);
+            else if (tries.Wrong >= OtpMaxWrongTries)
+                return new OtpVerifyResult(false, "Too many wrong codes. Try again in 15 minutes, or ask for a new code then.", 0);
+        }
+
+        var otp = await _db.PhoneOtps
+            .Where(o => o.PhoneNumber == canon && !o.IsUsed && o.ExpiresAt >= now)
+            .OrderByDescending(o => o.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (otp == null)
+            return new OtpVerifyResult(false, "That code has expired. Ask for a new one.", OtpMaxWrongTries);
+
+        if (!System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                System.Text.Encoding.UTF8.GetBytes(otp.Code), System.Text.Encoding.UTF8.GetBytes(HashOtp(canon, code))))
+        {
+            var wrong = OtpWrongTries.AddOrUpdate(canon, _ => (1, now), (_, t) => (t.Wrong + 1, t.Since)).Wrong;
+            var left = Math.Max(0, OtpMaxWrongTries - wrong);
+            return new OtpVerifyResult(false, left > 0 ? $"That code is not right. {left} {(left == 1 ? "try" : "tries")} left." : "Too many wrong codes. Try again in 15 minutes.", left);
+        }
+
+        otp.IsUsed = true;
+        OtpWrongTries.TryRemove(canon, out _);
+        await _db.SaveChangesAsync();
+        return new OtpVerifyResult(true, null, OtpMaxWrongTries);
+    }
+
+    // ==========================================
     // WhatsApp sending wrapper (bulk) — Task 4.1 footer added
     // ==========================================
     public async Task SendWhatsAppMessageAsync(string toPhone, string messageText)
@@ -1043,14 +1315,28 @@ public class ClinicService
         if (mode == "Twilio")
         {
             var cfg = GetTwilioConfig();
-            if (!string.IsNullOrEmpty(cfg.Sid) && !string.IsNullOrEmpty(cfg.Token))
+            if (string.IsNullOrEmpty(cfg.Sid) || string.IsNullOrEmpty(cfg.Token))
+                throw new InvalidOperationException("WhatsApp is set to Twilio (live) but the Account SID or Auth token is missing. Add both in Settings, or switch to Test mode.");
             {
-                TwilioClient.Init(cfg.Sid, cfg.Token);
-                var msg = MessageResource.Create(
-                    body: messageText,
-                    from: new Twilio.Types.PhoneNumber(cfg.From),
-                    to: new Twilio.Types.PhoneNumber(toPhone)
-                );
+                var toAddress = ToWhatsAppAddress(toPhone)
+                    ?? throw new ArgumentException($"'{toPhone}' is not a valid phone number.", nameof(toPhone));
+                var fromAddress = ToWhatsAppSender(cfg.From);
+
+                MessageResource msg;
+                try
+                {
+                    TwilioClient.Init(cfg.Sid, cfg.Token);
+                    msg = await MessageResource.CreateAsync(
+                        body: messageText,
+                        from: new Twilio.Types.PhoneNumber(fromAddress),
+                        to: new Twilio.Types.PhoneNumber(toAddress)
+                    );
+                }
+                catch (Exception ex) when (ex is Twilio.Exceptions.TwilioException)
+                {
+                    _logger.LogError(ex, "Twilio could not send a WhatsApp message to {Phone}", MaskPhone(NormalisePhone(toPhone)));
+                    throw new InvalidOperationException(DescribeTwilioError(ex), ex);
+                }
 
                 var log = new WhatsAppLog
                 {
@@ -1125,7 +1411,7 @@ public class ClinicService
             {
                 failed++;
                 _logger.LogError(ex, "Failed to send bulk WhatsApp to {Phone}", user.PhoneNumber);
-                dispatchDetails.Add(new { Name = user.FullName, Phone = user.PhoneNumber, Status = "Failed" });
+                dispatchDetails.Add(new { Name = user.FullName, Phone = user.PhoneNumber, Status = "Failed", Reason = ex is InvalidOperationException or ArgumentException ? ex.Message : DescribeTwilioError(ex) });
             }
 
             progress?.Report((sent, failed, total));

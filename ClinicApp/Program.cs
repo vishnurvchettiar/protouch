@@ -1,11 +1,11 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
-using MongoDB.EntityFrameworkCore.Extensions;
 using System.Threading.RateLimiting;
 using System.Security.Claims;
 using ClinicApp.Components;
@@ -70,46 +70,76 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-// Production must use durable Atlas storage. SQLite remains available for local
-// development and automated tests, but must never silently back a Render deploy.
-var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDb");
-if (!string.IsNullOrWhiteSpace(mongoConnectionString))
-{
-    var databaseName = builder.Configuration["MongoDb:DatabaseName"];
-    if (string.IsNullOrWhiteSpace(databaseName))
-        throw new InvalidOperationException("MongoDb:DatabaseName must be configured when MongoDb is enabled.");
+// Use absolute DB path so the database survives Render restarts/cold starts
+var rawConnStr = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-    var mongoClient = new MongoClient(mongoConnectionString);
-    var mongoDatabase = mongoClient.GetDatabase(databaseName);
+// Make the SQLite path absolute, relative to ContentRootPath (not CWD)
+var connectionString = rawConnStr;
+if (rawConnStr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+{
+    var dbRelative = rawConnStr.Substring("Data Source=".Length);
+    if (!System.IO.Path.IsPathRooted(dbRelative))
+    {
+        var dbAbsolute = System.IO.Path.Combine(
+            builder.Environment.ContentRootPath, dbRelative);
+        // Ensure the directory exists
+        var dbDir = System.IO.Path.GetDirectoryName(dbAbsolute)!;
+        System.IO.Directory.CreateDirectory(dbDir);
+        connectionString = $"Data Source={dbAbsolute}";
+    }
+}
+
+// Prefer Atlas when configured; keep PostgreSQL support for services that still use it.
+var mongoConnection = builder.Configuration["ConnectionStrings:MongoDb"]
+    ?? Environment.GetEnvironmentVariable("MONGODB_URI");
+var mongoDatabaseName = builder.Configuration["MongoDb:DatabaseName"] ?? "protouch";
+var useMongo = !string.IsNullOrWhiteSpace(mongoConnection);
+
+var postgresConnection = ClinicApp.Services.DatabaseConnection.PostgresFromEnvironment(
+    Environment.GetEnvironmentVariable("DATABASE_URL"),
+    builder.Configuration.GetConnectionString("Postgres"));
+var usePostgres = postgresConnection != null;
+
+if (useMongo)
+{
+    var mongoClient = new MongoClient(mongoConnection);
+    var mongoDatabase = mongoClient.GetDatabase(mongoDatabaseName);
     builder.Services.AddSingleton<IMongoClient>(mongoClient);
     builder.Services.AddSingleton(mongoDatabase);
-    builder.Services.AddSingleton(new GridFSBucket(mongoDatabase, new GridFSBucketOptions { BucketName = "protouch_files" }));
-    builder.Services.AddSingleton<ClinicApp.Services.IFileStorage, ClinicApp.Services.MongoFileStorage>();
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseMongoDB(mongoClient, databaseName));
+    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseMongoDB(mongoClient, mongoDatabaseName));
+}
+else if (usePostgres)
+{
+    // Keep DateTime behaving as it always has here (stored exactly as given, no time zone conversion).
+    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+    AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+    builder.Services.AddDbContext<ApplicationDbContext, PgApplicationDbContext>(options =>
+        options.UseNpgsql(postgresConnection!, npgsql =>
+        {
+            npgsql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null);
+            npgsql.CommandTimeout(60);
+        }));
 }
 else
 {
     if (!builder.Environment.IsDevelopment())
-        throw new InvalidOperationException("Production requires the MongoDb connection string. Set ConnectionStrings__MongoDb in Render.");
-
-    var rawConnStr = builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Data Source=Data/app.db";
-    var connectionString = rawConnStr;
-    if (rawConnStr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
-    {
-        var dbRelative = rawConnStr.Substring("Data Source=".Length);
-        if (!Path.IsPathRooted(dbRelative))
-        {
-            var dbAbsolute = Path.Combine(builder.Environment.ContentRootPath, dbRelative);
-            Directory.CreateDirectory(Path.GetDirectoryName(dbAbsolute)!);
-            connectionString = $"Data Source={dbAbsolute}";
-        }
-    }
-
-    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connectionString));
-    builder.Services.AddSingleton<ClinicApp.Services.IFileStorage, ClinicApp.Services.LocalFileStorage>();
+        throw new InvalidOperationException("Production requires MONGODB_URI or DATABASE_URL. Configure MONGODB_URI in Render to use MongoDB Atlas.");
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlite(connectionString));
 }
+
+// Files that may still exist from before photos and documents moved into the database.
+// They are read once at startup and copied into the database; nothing new is written there.
+var legacyRoot = ClinicApp.Services.AppStorage.FolderFromConnectionString(connectionString, builder.Environment.ContentRootPath)
+    ?? System.IO.Path.Combine(builder.Environment.ContentRootPath, "Data");
+var appStorage = new ClinicApp.Services.AppStorage(legacyRoot);
+builder.Services.AddSingleton(appStorage);
+
+// Sign-in keys live in the database, so a deploy or restart never logs people out.
+builder.Services.AddDataProtection()
+    .SetApplicationName("ProTouch")
+    .PersistKeysToDbContext<ApplicationDbContext>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<ClinicApp.Services.ClinicService>();
@@ -152,7 +182,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-if (!string.IsNullOrWhiteSpace(mongoConnectionString))
+if (useMongo)
     builder.Services.AddScoped<IUserStore<ApplicationUser>, MongoCompatibleUserStore>();
 
 // Email sender selection
@@ -169,8 +199,6 @@ var app = builder.Build();
 
 if (sqliteMigrationPath != null)
 {
-    if (string.IsNullOrWhiteSpace(mongoConnectionString))
-        throw new InvalidOperationException("SQLite import requires a configured MongoDB Atlas connection string.");
     await ClinicApp.Data.MongoDataMigrator.MigrateAsync(app.Services, sqliteMigrationPath, app.Environment.ContentRootPath);
     return;
 }
@@ -203,6 +231,8 @@ app.UseWebSockets(new WebSocketOptions
 {
     KeepAliveInterval = TimeSpan.FromSeconds(30)
 });
+
+app.Logger.LogInformation("Database: {Provider}. Clinic records, uploads, and sign-in keys are stored durably.", useMongo ? $"MongoDB Atlas ({mongoDatabaseName})" : usePostgres ? "PostgreSQL" : "SQLite (local development)");
 
 // Seed database
 await ClinicApp.Data.DbInitializer.SeedDataAsync(app.Services);
@@ -265,40 +295,60 @@ app.MapGet("/diet-plan-documents/{id:guid}/download", async (
     if (document == null || (!user.IsInRole("Admin") && document.ClientUserId != userId))
         return Results.NotFound();
 
-    var file = await documents.OpenReadAsync(document);
-    if (file == null)
+    var content = await documents.ReadContentAsync(document);
+    if (content == null)
         return Results.NotFound();
 
-    return Results.File(file.Content, "application/octet-stream", document.OriginalFileName);
+    return Results.File(content, "application/octet-stream", document.OriginalFileName);
 })
     .RequireAuthorization();
 
-// Uploaded profile and meal photos are stored in GridFS in production and are
-// only readable by their owner or a clinic administrator.
-app.MapGet("/uploads/{ownerId}/{fileId}", async (
-    string ownerId,
-    string fileId,
+// PDF diet plans can also be opened in the browser instead of downloaded.
+app.MapGet("/diet-plan-documents/{id:guid}/view", async (
+    Guid id,
     ClaimsPrincipal user,
-    ClinicApp.Services.IFileStorage files,
-    CancellationToken cancellationToken) =>
+    ApplicationDbContext db,
+    ClinicApp.Services.DietPlanDocumentService documents) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-    if (string.IsNullOrWhiteSpace(userId) || (!user.IsInRole("Admin") && userId != ownerId))
+    if (string.IsNullOrWhiteSpace(userId) || !(user.IsInRole("Admin") || user.IsInRole("Client")))
         return Results.Forbid();
 
-    var file = await files.OpenReadAsync(fileId, ownerId, cancellationToken);
-    if (file == null)
+    var document = await db.DietPlanDocuments.AsNoTracking()
+        .FirstOrDefaultAsync(item => item.Id == id);
+    if (document == null || (!user.IsInRole("Admin") && document.ClientUserId != userId))
         return Results.NotFound();
 
-    if (file.ContentType is not ("image/jpeg" or "image/png" or "image/webp"))
-    {
-        await file.DisposeAsync();
-        return Results.NotFound();
-    }
+    // Only PDFs can be shown in the browser. Word files are downloaded.
+    if (!document.OriginalFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        return Results.Redirect($"/diet-plan-documents/{id}/download");
 
-    return Results.Stream(file.Content, file.ContentType, enableRangeProcessing: true);
+    var content = await documents.ReadContentAsync(document);
+    if (content == null)
+        return Results.NotFound();
+
+    return Results.File(content, "application/pdf", enableRangeProcessing: true);
 })
     .RequireAuthorization();
+
+// Uploaded photos (meals, profiles) are stored durably and served from here.
+app.MapGet("/uploads/{folder}/{name}", async (string folder, string name, ClaimsPrincipal user, ApplicationDbContext db, HttpContext http) =>
+{
+    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrWhiteSpace(userId) || (!user.IsInRole("Admin") &&
+        !string.Equals(userId, folder, StringComparison.Ordinal) && !name.StartsWith(userId + "_", StringComparison.Ordinal)))
+        return Results.Forbid();
+
+    var path = $"uploads/{folder}/{name}";
+    var file = await db.StoredFiles.AsNoTracking()
+        .Where(f => f.Path == path)
+        .Select(f => new { f.ContentType, f.Data })
+        .FirstOrDefaultAsync();
+    if (file == null)
+        return Results.NotFound();
+    http.Response.Headers["Cache-Control"] = "private, max-age=300";
+    return Results.File(file.Data, file.ContentType);
+}).RequireAuthorization();
 
 // Health endpoint — lets Render know the app is alive (avoids cold-start sleep)
 app.MapGet("/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }));

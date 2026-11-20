@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +21,8 @@ public static class DbInitializer
         var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
+        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DataSafety");
+
         if (db.Database.IsRelational())
         {
             if ((await db.Database.GetPendingMigrationsAsync()).Any())
@@ -26,6 +30,33 @@ public static class DbInitializer
         }
         else
             await db.Database.EnsureCreatedAsync();
+
+        var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+        var storage = scope.ServiceProvider.GetService<ClinicApp.Services.AppStorage>();
+
+        // Moving to PostgreSQL: copy any existing SQLite data across once, before anything is seeded.
+        if (db is PgApplicationDbContext)
+        {
+            var candidates = new[]
+            {
+                Environment.GetEnvironmentVariable("IMPORT_SQLITE_PATH"),
+                storage != null ? Path.Combine(storage.Root, "app.db") : null,
+                Path.Combine(env.ContentRootPath, "Data", "app.db")
+            };
+            var imported = await SqliteImporter.ImportIfNeededAsync(db, candidates, logger);
+            logger.LogInformation("SQLite import: {Reason}.", imported.Reason);
+        }
+
+        // Photos and documents that only exist as files are copied into the database (never deleted from disk).
+        try
+        {
+            await LegacyFileBackfill.RunAsync(db, env, storage, logger);
+            await scope.ServiceProvider.GetRequiredService<ClinicApp.Services.DietPlanDocumentService>().BackfillFromDiskAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Could not copy older files into the database. They remain on disk and will be tried again next start.");
+        }
 
         // 1. Seed Roles
         string[] roles = { "Admin", "Client" };
@@ -37,33 +68,23 @@ public static class DbInitializer
             }
         }
 
-        // Production databases never receive fake patients, appointments, or
-        // health records. A real production admin can be bootstrapped explicitly
-        // with BootstrapAdmin__Email and BootstrapAdmin__Password.
+        // Production starts with roles only. An administrator is created only when explicitly configured.
         if (!environment.IsDevelopment())
         {
-            var bootstrapEmail = configuration["BootstrapAdmin:Email"];
-            var bootstrapPassword = configuration["BootstrapAdmin:Password"];
-            if (!string.IsNullOrWhiteSpace(bootstrapEmail) && !string.IsNullOrWhiteSpace(bootstrapPassword)
-                && await userManager.FindByEmailAsync(bootstrapEmail) == null)
+            var email = configuration["BootstrapAdmin:Email"];
+            var password = configuration["BootstrapAdmin:Password"];
+            if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password)
+                && await userManager.FindByEmailAsync(email) == null)
             {
-                var admin = new ApplicationUser
-                {
-                    UserName = bootstrapEmail,
-                    Email = bootstrapEmail,
-                    EmailConfirmed = true,
-                    FullName = "Clinic Administrator"
-                };
-                var result = await userManager.CreateAsync(admin, bootstrapPassword);
-                if (!result.Succeeded)
-                    throw new InvalidOperationException("Could not create the configured bootstrap admin: " +
-                        string.Join("; ", result.Errors.Select(error => error.Description)));
+                var admin = new ApplicationUser { UserName = email, Email = email, EmailConfirmed = true, FullName = "Clinic Administrator" };
+                var created = await userManager.CreateAsync(admin, password);
+                if (!created.Succeeded)
+                    throw new InvalidOperationException("Could not create the configured bootstrap admin: " + string.Join("; ", created.Errors.Select(error => error.Description)));
                 await userManager.AddToRoleAsync(admin, "Admin");
             }
             return;
         }
 
-        // Development-only sample accounts and health records.
         // 2. Seed Admin User
         var adminEmail = "admin@clinic.com";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);

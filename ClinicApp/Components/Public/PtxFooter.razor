@@ -1,0 +1,35 @@
+<footer>
+    <div class="c">
+        <div class="fg2">
+            <div>
+                <div class="logo" style="margin-bottom:12px"><span class="lg"><img decoding="async" src="/images/protouch-logo.svg" alt="ProTouch Physio - Slimming Clinic" /></span></div>
+                <p>PROTOUCH Physio - Slimming Clinic</p>
+                <p>ISO 9001:2015 certified</p>
+            </div>
+            <div>
+                <h4>Services</h4>
+                @foreach (var id in PublicCatalog.Order)
+                {
+                    <a href="/services/@id">@PublicCatalog.Extras[id].Short</a>
+                }
+            </div>
+            <div>
+                <h4>Clinic</h4>
+                <a href="/">Home</a>
+                <a href="/services">All services</a>
+                <a href="/book">Book a visit</a>
+                <a href="/Account/Login">Client login</a>
+            </div>
+            <div>
+                <h4>Visit</h4>
+                <p>Row H. No. 22, Kasliwal Bhagyoday,</p>
+                <p>Beed By-pass, Chhatrapati Sambhajinagar 431010</p>
+                <p>96735 30031</p>
+            </div>
+        </div>
+        <div class="copy">
+            <span>© @DateTime.Now.Year PROTOUCH Physio - Slimming Clinic · Dr. Manjari</span>
+            <span>Results vary by individual.</span>
+        </div>
+    </div>
+</footer>

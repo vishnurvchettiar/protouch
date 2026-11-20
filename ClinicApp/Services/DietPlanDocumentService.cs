@@ -1,5 +1,8 @@
+using System.Security.Cryptography;
+using System.Text;
 using ClinicApp.Data;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicApp.Services;
@@ -10,22 +13,38 @@ public sealed class DietPlanDocumentService
 
     private static readonly HashSet<string> AllowedExtensions = [".pdf", ".doc", ".docx"];
     private readonly ApplicationDbContext _db;
-    private readonly IFileStorage _storage;
+    private readonly string[] _legacyRoots;
     private readonly ILogger<DietPlanDocumentService> _logger;
 
     public DietPlanDocumentService(
         ApplicationDbContext db,
-        IFileStorage storage,
-        ILogger<DietPlanDocumentService> logger)
+        IWebHostEnvironment environment,
+        ILogger<DietPlanDocumentService> logger,
+        AppStorage? storage = null)
     {
         _db = db;
-        _storage = storage;
+        // Where documents were kept before they moved into the database (read only).
+        _legacyRoots = new[]
+        {
+            storage != null ? Path.Combine(storage.Root, "diet-plan-documents") : "",
+            Path.Combine(environment.ContentRootPath, "App_Data", "diet-plan-documents")
+        }.Where(root => root.Length > 0).ToArray();
         _logger = logger;
     }
 
+    /// <summary>The client's current document without its bytes (the bytes can be large; read them with ReadContentAsync).</summary>
     public Task<DietPlanDocument?> GetCurrentAsync(string clientUserId) =>
         _db.DietPlanDocuments.AsNoTracking()
-            .FirstOrDefaultAsync(document => document.ClientUserId == clientUserId);
+            .Where(document => document.ClientUserId == clientUserId)
+            .Select(document => new DietPlanDocument
+            {
+                Id = document.Id,
+                ClientUserId = document.ClientUserId,
+                StoredFileName = document.StoredFileName,
+                OriginalFileName = document.OriginalFileName,
+                UploadedAtUtc = document.UploadedAtUtc
+            })
+            .FirstOrDefaultAsync();
 
     public async Task<(DietPlanDocument? Document, string? ErrorMessage)> SaveAsync(
         string clientUserId,
@@ -37,29 +56,29 @@ public sealed class DietPlanDocumentService
         if (file.Size <= 0 || file.Size > MaxFileSizeBytes)
             return (null, "The document must be between 1 byte and 15 MB.");
 
-        var storageName = $"{Guid.NewGuid():N}{extension}";
-        string? storedId = null;
-
         try
         {
-            await using var input = new MemoryStream();
-            await using (var source = file.OpenReadStream(MaxFileSizeBytes))
-                await source.CopyToAsync(input);
-            if (!HasExpectedSignature(input, extension))
+            byte[] bytes;
+            await using (var input = file.OpenReadStream(MaxFileSizeBytes))
+            await using (var memory = new MemoryStream())
+            {
+                await input.CopyToAsync(memory);
+                bytes = memory.ToArray();
+            }
+
+            if (!HasExpectedSignature(bytes, extension))
                 return (null, "The selected file does not match its PDF, DOC, or DOCX extension.");
 
-            input.Position = 0;
-            storedId = await _storage.SaveAsync(input, storageName, clientUserId, "diet-plan", "application/octet-stream");
-
+            var storageName = $"{Guid.NewGuid():N}{extension}";
             var oldDocument = await _db.DietPlanDocuments
                 .FirstOrDefaultAsync(document => document.ClientUserId == clientUserId);
-            var oldStoredFileName = oldDocument?.StoredFileName;
             var document = new DietPlanDocument
             {
                 ClientUserId = clientUserId,
-                StoredFileName = storedId,
+                StoredFileName = storageName,
                 OriginalFileName = SanitizeFileName(file.Name),
-                UploadedAtUtc = DateTime.UtcNow
+                UploadedAtUtc = DateTime.UtcNow,
+                Content = bytes
             };
 
             if (oldDocument == null)
@@ -72,26 +91,73 @@ public sealed class DietPlanDocumentService
 
             await _db.SaveChangesAsync();
 
-            if (oldStoredFileName != null && !string.Equals(oldStoredFileName, storedId, StringComparison.Ordinal))
-                await _storage.DeleteAsync(oldStoredFileName);
-
-            return (document, null);
+            // Return a copy without the bytes so the page does not keep a large file in memory.
+            return (new DietPlanDocument
+            {
+                Id = document.Id,
+                ClientUserId = document.ClientUserId,
+                StoredFileName = document.StoredFileName,
+                OriginalFileName = document.OriginalFileName,
+                UploadedAtUtc = document.UploadedAtUtc
+            }, null);
         }
         catch (Exception ex)
         {
-            await _storage.DeleteAsync(storedId);
             _logger.LogError(ex, "Could not save diet plan document for client {ClientUserId}", clientUserId);
             return (null, "The document could not be saved. Please try again.");
         }
     }
 
-    public Task<StoredMongoFile?> OpenReadAsync(DietPlanDocument document, CancellationToken cancellationToken = default)
+    /// <summary>The document's bytes: from the database, or from the old file on disk for rows saved before the move.</summary>
+    public async Task<byte[]?> ReadContentAsync(DietPlanDocument document)
     {
-        var extension = Path.GetExtension(document.OriginalFileName).ToLowerInvariant();
-        return AllowedExtensions.Contains(extension)
-            ? _storage.OpenReadAsync(document.StoredFileName, document.ClientUserId, cancellationToken)
-            : Task.FromResult<StoredMongoFile?>(null);
+        var content = await _db.DietPlanDocuments.AsNoTracking()
+            .Where(item => item.Id == document.Id)
+            .Select(item => item.Content)
+            .FirstOrDefaultAsync();
+        if (content != null) return content;
+
+        var path = LegacyPath(document);
+        return path == null ? null : await File.ReadAllBytesAsync(path);
     }
+
+    /// <summary>Copies documents that still live only on disk into the database. Safe to run on every start.</summary>
+    public async Task<int> BackfillFromDiskAsync()
+    {
+        var copied = 0;
+        var pending = await _db.DietPlanDocuments
+            .Where(document => document.Content == null)
+            .ToListAsync();
+        foreach (var document in pending)
+        {
+            var path = LegacyPath(document);
+            if (path == null) continue;
+            document.Content = await File.ReadAllBytesAsync(path);
+            copied++;
+        }
+        if (copied > 0) await _db.SaveChangesAsync();
+        return copied;
+    }
+
+    private string? LegacyPath(DietPlanDocument document)
+    {
+        if (!Guid.TryParseExact(Path.GetFileNameWithoutExtension(document.StoredFileName), "N", out _))
+            return null;
+
+        var extension = Path.GetExtension(document.StoredFileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+            return null;
+
+        foreach (var root in _legacyRoots)
+        {
+            var path = Path.Combine(root, DirectoryKey(document.ClientUserId), document.StoredFileName);
+            if (File.Exists(path)) return path;
+        }
+        return null;
+    }
+
+    private static string DirectoryKey(string clientUserId) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(clientUserId)));
 
     private static string SanitizeFileName(string fileName)
     {
@@ -100,11 +166,10 @@ public sealed class DietPlanDocumentService
         return cleaned.Length <= 180 ? cleaned : cleaned[^180..];
     }
 
-    private static bool HasExpectedSignature(Stream stream, string extension)
+    private static bool HasExpectedSignature(byte[] bytes, string extension)
     {
-        Span<byte> header = stackalloc byte[8];
-        stream.Position = 0;
-        var read = stream.Read(header);
+        ReadOnlySpan<byte> header = bytes.AsSpan(0, Math.Min(8, bytes.Length));
+        var read = header.Length;
         return extension switch
         {
             ".pdf" => read >= 5 && header[..5].SequenceEqual("%PDF-"u8),
@@ -113,5 +178,4 @@ public sealed class DietPlanDocumentService
             _ => false
         };
     }
-
 }

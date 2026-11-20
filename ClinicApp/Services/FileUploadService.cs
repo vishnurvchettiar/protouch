@@ -1,6 +1,11 @@
 using System;
+using System.IO;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
+
+using ClinicApp.Data;
 
 namespace ClinicApp.Services;
 
@@ -20,13 +25,18 @@ public class FileUploadService
 
     private const long MaxFileSizeBytes = 8 * 1024 * 1024; // 8 MB
 
-    private readonly IFileStorage _storage;
+    private readonly IWebHostEnvironment _env;
     private readonly ILogger<FileUploadService> _logger;
 
-    public FileUploadService(IFileStorage storage, ILogger<FileUploadService> logger)
+    private readonly AppStorage? _storage;
+    private readonly ApplicationDbContext? _db;
+
+    public FileUploadService(IWebHostEnvironment env, ILogger<FileUploadService> logger, AppStorage? storage = null, ApplicationDbContext? db = null)
     {
+        _env = env;
         _storage = storage;
         _logger = logger;
+        _db = db;
     }
 
     /// <summary>
@@ -70,10 +80,28 @@ public class FileUploadService
             return (null, "File must be 8 MB or smaller.");
         }
 
+        var fileName = $"{prefix}_{Guid.NewGuid():N}{extension}";
+        var publicPath = $"uploads/{folder}/{fileName}";
+
         await using var source = file.OpenReadStream(MaxFileSizeBytes);
-        var storedName = $"{Guid.NewGuid():N}{extension}";
-        var fileId = await _storage.SaveAsync(source, storedName, prefix, folder, contentType);
-        return ($"/uploads/{Uri.EscapeDataString(prefix)}/{fileId}", null);
+        await using var buffer = new MemoryStream();
+        await source.CopyToAsync(buffer);
+        var bytes = buffer.ToArray();
+
+        if (_db != null)
+        {
+            // The photo is stored in the database so it survives redeploys.
+            _db.StoredFiles.Add(new StoredFile { Path = publicPath, ContentType = contentType, Data = bytes, CreatedAtUtc = DateTime.UtcNow });
+            await _db.SaveChangesAsync();
+        }
+        else
+        {
+            var directory = Path.Combine(_storage?.UploadsRoot ?? Path.Combine(_env.WebRootPath, "uploads"), folder);
+            Directory.CreateDirectory(directory);
+            await File.WriteAllBytesAsync(Path.Combine(directory, fileName), bytes);
+        }
+
+        return ($"/uploads/{folder}/{fileName}", null);
     }
 
     /// <summary>

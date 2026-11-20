@@ -1,0 +1,69 @@
+@using ClinicApp.Services
+@inject ClinicService ClinicService
+@* Feedback widget. Interactive island on the home page. Saves through ClinicService as before. *@
+
+@if (_feedbackSuccess)
+{
+    <div class="fbok" role="status">
+        <b>Thank you!</b>
+        <p>Your feedback has been recorded.</p>
+    </div>
+}
+else
+{
+    <div class="box">
+        <div class="srow" role="group" aria-label="Star rating">
+            @for (int s = 1; s <= 5; s++)
+            {
+                var star = s;
+                <button type="button"
+                        class="sb @((_feedbackHoverRating > 0 ? star <= _feedbackHoverRating : star <= _feedbackRating) ? "lit" : "")"
+                        @onclick="() => SetFeedbackStar(star)"
+                        @onmouseenter="() => HoverFeedbackStar(star)"
+                        @onmouseleave="UnhoverFeedbackStar"
+                        aria-label="@star star@(star > 1 ? "s" : "")">★</button>
+            }
+        </div>
+        @if (!string.IsNullOrEmpty(_feedbackError))
+        {
+            <p class="err" role="alert" style="text-align:center">@_feedbackError</p>
+        }
+        <div class="fld">
+            <label for="fb-comment">Your comments (optional)</label>
+            <textarea id="fb-comment" maxlength="500"
+                      placeholder="Tell us about your experience..."
+                      @bind="_feedbackComment" @bind:event="oninput"></textarea>
+            <div class="cnt">@FeedbackCharsRemaining characters remaining</div>
+        </div>
+        <button class="pbtn" type="button" style="justify-self:start"
+                disabled="@_feedbackSubmitting"
+                @onclick="SubmitFeedbackAsync">
+            <span>@(_feedbackSubmitting ? "Submitting…" : "Submit feedback") <b class="ar">→</b></span>
+        </button>
+    </div>
+}
+
+@code {
+    private int _feedbackRating = 0;
+    private int _feedbackHoverRating = 0;
+    private string _feedbackComment = "";
+    private bool _feedbackSubmitting = false;
+    private bool _feedbackSuccess = false;
+    private string _feedbackError = "";
+    private const int FeedbackMaxChars = 500;
+    private int FeedbackCharsRemaining => FeedbackMaxChars - _feedbackComment.Length;
+
+    private void SetFeedbackStar(int star)   => _feedbackRating = star;
+    private void HoverFeedbackStar(int star) => _feedbackHoverRating = star;
+    private void UnhoverFeedbackStar()       => _feedbackHoverRating = 0;
+
+    private async Task SubmitFeedbackAsync()
+    {
+        _feedbackError = "";
+        if (_feedbackRating == 0) { _feedbackError = "Please select a star rating before submitting."; return; }
+        _feedbackSubmitting = true;
+        try { await ClinicService.SaveFeedbackAsync(_feedbackRating, _feedbackComment); _feedbackSuccess = true; }
+        catch { _feedbackError = "Unable to save your feedback. Please try again."; }
+        finally { _feedbackSubmitting = false; }
+    }
+}
