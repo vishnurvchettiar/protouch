@@ -1,0 +1,133 @@
+@* Wellness estimator. Interactive island on the home page. Logic and messages are unchanged. *@
+
+<div class="bf">
+    <div class="grid2">
+        <div class="fld">
+            <label for="bmi-height">Height (cm)</label>
+            <input id="bmi-height" type="number" min="100" max="250" placeholder="e.g. 165"
+                   class="@(string.IsNullOrEmpty(_heightError) ? "" : "bad")"
+                   @bind="_heightCm" @bind:event="oninput" />
+            @if (!string.IsNullOrEmpty(_heightError))
+            {
+                <span class="err">@_heightError</span>
+            }
+        </div>
+        <div class="fld">
+            <label for="bmi-weight">Weight (kg)</label>
+            <input id="bmi-weight" type="number" min="20" max="300" step="0.1" placeholder="e.g. 70.5"
+                   class="@(string.IsNullOrEmpty(_weightError) ? "" : "bad")"
+                   @bind="_weightKg" @bind:event="oninput" />
+            @if (!string.IsNullOrEmpty(_weightError))
+            {
+                <span class="err">@_weightError</span>
+            }
+        </div>
+        <div class="fld wide">
+            <label for="bmi-goal">Wellness goal</label>
+            <select id="bmi-goal" @bind="_bmiGoal" class="@(string.IsNullOrEmpty(_goalError) ? "" : "bad")">
+                <option value="">Select a goal…</option>
+                <option>Weight Loss</option>
+                <option>Inch Loss</option>
+                <option>Physiotherapy / Pain Relief</option>
+                <option>Yoga &amp; Wellness</option>
+                <option>Height Increase</option>
+            </select>
+            @if (!string.IsNullOrEmpty(_goalError))
+            {
+                <span class="err">@_goalError</span>
+            }
+        </div>
+    </div>
+    <button class="pbtn" type="button" @onclick="ComputeBmi" style="justify-self:start"><span>Calculate <b class="ar">→</b></span></button>
+
+    @if (_bmiValue.HasValue)
+    {
+        <div class="bres" style="--bmi-color: @_bmiColor" role="status">
+            <div class="sc2">
+                <b>@_bmiValue</b>
+                <span>BMI · @_bmiCategory</span>
+            </div>
+            <p>@_bmiMessage</p>
+            <p><em>@_bmiOutcome</em></p>
+            <a class="pbtn" href="/book"><span>Book your free consultation <b class="ar">→</b></span></a>
+        </div>
+    }
+</div>
+
+@code {
+    private int? _heightCm;
+    private double? _weightKg;
+    private string _bmiGoal = "";
+    private double? _bmiValue = null;
+    private string _bmiCategory = "";
+    private string _bmiColor = "";
+    private string _bmiMessage = "";
+    private string _bmiOutcome = "";
+    private string _heightError = "";
+    private string _weightError = "";
+    private string _goalError = "";
+
+    private void ComputeBmi()
+    {
+        _heightError = _weightError = _goalError = "";
+        _bmiValue = null;
+        bool valid = true;
+        var heightCm = _heightCm ?? 0;
+        var weightKg = _weightKg ?? 0;
+        if (heightCm < 100 || heightCm > 250) { _heightError = "Height must be between 100 and 250 cm."; valid = false; }
+        if (weightKg < 20 || weightKg > 300)   { _weightError = "Weight must be between 20 and 300 kg.";  valid = false; }
+        if (string.IsNullOrWhiteSpace(_bmiGoal))  { _goalError = "Please select a wellness goal.";           valid = false; }
+        if (!valid) return;
+        double h = heightCm / 100.0;
+        double bmi = Math.Round(weightKg / (h * h), 1);
+        _bmiValue = bmi;
+        (_bmiCategory, _bmiColor) = bmi < 18.5 ? ("Underweight", "#b79cf5")
+            : bmi < 25.0 ? ("Normal", "#5fd4a0")
+            : bmi < 30.0 ? ("Overweight", "#f4b41a")
+            : ("Obese", "#ff7a6b");
+        _bmiMessage = WellnessMessageMap.GetValueOrDefault(_bmiCategory, new())
+            .GetValueOrDefault(_bmiGoal, "Your health journey starts here. Book a consultation today.");
+        _bmiOutcome = OutcomeMap.GetValueOrDefault(_bmiGoal, "Based on your profile, Dr. Manjari will design a personalised plan for you.");
+    }
+
+    private static readonly Dictionary<string, Dictionary<string, string>> WellnessMessageMap = new()
+    {
+        ["Underweight"] = new() {
+            ["Weight Loss"]="Your BMI indicates you are underweight. Dr. Manjari recommends a tailored nutrition and strength plan before pursuing weight loss goals.",
+            ["Inch Loss"]="Inch loss at your current BMI requires careful guidance. Dr. Manjari will design a safe programme that builds lean mass.",
+            ["Physiotherapy / Pain Relief"]="Even at a lower BMI, physiotherapy can address pain effectively. Let's start with a full assessment.",
+            ["Yoga & Wellness"]="Yoga is an excellent way to build strength and balance at your BMI. Dr. Manjari's nature-cure approach will support your overall wellness.",
+            ["Height Increase"]="A structured growth programme may help. Dr. Manjari specialises in height increase programmes for those up to 23 years of age.",
+        },
+        ["Normal"] = new() {
+            ["Weight Loss"]="Your BMI is in the healthy range — ideal for a targeted toning and inch-loss programme.",
+            ["Inch Loss"]="With a healthy BMI, inch loss is achievable quickly. Visible results from session one.",
+            ["Physiotherapy / Pain Relief"]="A healthy BMI supports faster recovery. Dr. Manjari's physiotherapy plans are designed to resolve pain and restore full mobility.",
+            ["Yoga & Wellness"]="You are in great shape to benefit from an advanced yoga wellness plan.",
+            ["Height Increase"]="Excellent baseline health. Dr. Manjari's specialised growth programme can be started immediately.",
+        },
+        ["Overweight"] = new() {
+            ["Weight Loss"]="Your BMI indicates room to shed excess weight safely. Dr. Manjari's 4–8 kg/month programme — no fasting, no medicine — is designed exactly for your profile.",
+            ["Inch Loss"]="Targeted inch loss is very effective at your BMI. Expect visible waist and hip reduction within the first few sessions.",
+            ["Physiotherapy / Pain Relief"]="Excess weight often strains joints. Dr. Manjari will combine physiotherapy with a supervised weight-management plan.",
+            ["Yoga & Wellness"]="Yoga combined with Dr. Manjari's dietary guidance is a powerful tool for bringing your BMI back to the healthy range.",
+            ["Height Increase"]="Healthy weight management supports posture and height. Dr. Manjari will assess suitability during your consultation.",
+        },
+        ["Obese"] = new() {
+            ["Weight Loss"]="Significant, safe weight loss is within reach. Dr. Manjari's medically supervised programme combines physiotherapy and slimming.",
+            ["Inch Loss"]="You can start seeing inch loss immediately. Dr. Manjari's targeted body-contouring approach shows results from the very first session.",
+            ["Physiotherapy / Pain Relief"]="Pain management and weight reduction go hand in hand. Dr. Manjari will prioritise pain relief while guiding you toward a healthier weight.",
+            ["Yoga & Wellness"]="Dr. Manjari's gentle, adapted yoga programme is designed to be safe and effective at all BMI levels.",
+            ["Height Increase"]="A consultation with Dr. Manjari will determine the best integrated plan for your specific goals.",
+        },
+    };
+
+    private static readonly Dictionary<string, string> OutcomeMap = new()
+    {
+        ["Weight Loss"]="Based on your profile, you could achieve 4–8 kg weight loss in your first month with Dr. Manjari's programme.",
+        ["Inch Loss"]="Based on your profile, expect 2–5 inches of targeted reduction per session with Dr. Manjari's body-contouring plan.",
+        ["Physiotherapy / Pain Relief"]="Based on your profile, most patients experience significant pain relief within 2–4 physiotherapy sessions.",
+        ["Yoga & Wellness"]="Based on your profile, a personalised 12-session yoga plan with Dr. Manjari will improve energy, flexibility and metabolic balance.",
+        ["Height Increase"]="Based on your profile and age, Dr. Manjari's height-increase programme may help you gain 1–3 inches with a dedicated plan.",
+    };
+}

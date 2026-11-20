@@ -1,0 +1,157 @@
+@using ClinicApp.Data
+@using ClinicApp.Services
+@inject ClinicService ClinicService
+@* Inline booking form on a service page. Interactive island. Validation and saving are unchanged. *@
+
+@if (bookingSuccess)
+{
+    <div class="okp" role="status">
+        <div class="tick"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 19l8 8 15-17" /></svg></div>
+        <h2>Booking request received!</h2>
+        <p>Thank you, <strong>@submittedName</strong>. We've received your request for <strong>@submittedService</strong> on <strong>@submittedDate</strong>. The team will contact you on <strong>@submittedPhone</strong> to confirm.</p>
+        <div class="acts">
+            <a class="pbtn" href="/"><span>Back to home</span></a>
+            <a class="pbtn o" href="/services"><span>View other services</span></a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="bk">
+        <div>
+            <h2>Ready to start your journey with @ServiceName?</h2>
+            <p class="sub">Fill in your details below. Our team will confirm your appointment within the day.</p>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(submitError))
+        {
+            <div class="alert" role="alert">@submitError</div>
+        }
+
+        <div class="grid2">
+            <div class="fld">
+                <label for="sb-name">Full name *</label>
+                <input id="sb-name" type="text" @bind="fullName" @bind:event="oninput"
+                       placeholder="Your full name" maxlength="100"
+                       class="@(string.IsNullOrEmpty(nameError) ? "" : "bad")" />
+                @if (!string.IsNullOrEmpty(nameError)) { <span class="err">@nameError</span> }
+            </div>
+            <div class="fld">
+                <label for="sb-phone">Mobile number *</label>
+                <input id="sb-phone" type="tel" @bind="phoneNumber" @bind:event="oninput"
+                       placeholder="10-digit Indian mobile" maxlength="15"
+                       class="@(string.IsNullOrEmpty(phoneError) ? "" : "bad")" />
+                @if (!string.IsNullOrEmpty(phoneError)) { <span class="err">@phoneError</span> }
+            </div>
+            <div class="fld">
+                <label for="sb-date">Preferred date &amp; time *</label>
+                <input id="sb-date" type="datetime-local" @bind="preferredDate"
+                       class="@(string.IsNullOrEmpty(dateError) ? "" : "bad")" />
+                @if (!string.IsNullOrEmpty(dateError)) { <span class="err">@dateError</span> }
+            </div>
+            <div class="fld">
+                <label>Service</label>
+                <div class="pre">@ServiceName</div>
+            </div>
+            @if (SubServices.Length > 0)
+            {
+                <div class="fld wide">
+                    <label for="px-cond">Condition or goal (optional)</label>
+                    <select id="px-cond" @bind="condition">
+                        <option value="">Not sure yet</option>
+                        @foreach (var s in SubServices)
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    </select>
+                </div>
+            }
+            <div class="fld wide">
+                <label for="sb-notes">Additional notes (optional)</label>
+                <textarea id="sb-notes" @bind="notes" rows="3" maxlength="900"
+                          placeholder="Any specific concerns, preferred timings, or health details..."></textarea>
+            </div>
+        </div>
+
+        <div class="foot">
+            <span>* Required fields. We'll call you to confirm.</span>
+            <button class="pbtn" type="button" @onclick="HandleSubmit" disabled="@submitting">
+                <span>@(submitting ? "Submitting…" : "Request appointment") <b class="ar">→</b></span>
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string ServiceName { get; set; } = "";
+    [Parameter] public string[] SubServices { get; set; } = Array.Empty<string>();
+
+    private string fullName = "";
+    private string phoneNumber = "";
+    private DateTime preferredDate = DateTime.Today.AddDays(1).AddHours(10);
+    private string notes = "";
+    private string condition = "";
+
+    private string nameError = "";
+    private string phoneError = "";
+    private string dateError = "";
+    private string submitError = "";
+
+    private bool bookingSuccess = false;
+    private bool submitting = false;
+    private string submittedName = "";
+    private string submittedService = "";
+    private string submittedDate = "";
+    private string submittedPhone = "";
+
+    private async Task HandleSubmit()
+    {
+        nameError = phoneError = dateError = submitError = "";
+        var valid = true;
+
+        var trimName = (fullName ?? "").Trim();
+        if (trimName.Length < 2 || trimName.Length > 100)
+        { nameError = "Full name must be 2–100 characters."; valid = false; }
+
+        var digits = new string((phoneNumber ?? "").Where(char.IsDigit).ToArray());
+        if (digits.Length != 10 || digits[0] < '6')
+        { phoneError = "Enter a valid 10-digit Indian mobile number (starts 6–9)."; valid = false; }
+
+        var now = DateTime.UtcNow;
+        var prefUtc = preferredDate.ToUniversalTime();
+        if (prefUtc < now.AddHours(1))
+        { dateError = "Please choose a time at least 1 hour from now."; valid = false; }
+        else if (prefUtc > now.AddDays(90))
+        { dateError = "Preferred date must be within the next 90 days."; valid = false; }
+
+        if (!valid) return;
+
+        submitting = true;
+        try
+        {
+            var noteText = (notes ?? "").Trim();
+            if (!string.IsNullOrWhiteSpace(condition))
+                noteText = $"Interested in: {condition}" + (noteText.Length > 0 ? " — " + noteText : "");
+            if (noteText.Length > 1000) noteText = noteText[..1000];
+
+            var request = new BookingRequest
+            {
+                FullName = trimName,
+                PhoneNumber = digits,
+                ServiceType = ServiceName,
+                PreferredDate = prefUtc,
+                Notes = noteText
+            };
+            await ClinicService.SubmitBookingRequestAsync(request);
+
+            submittedName = trimName;
+            submittedService = ServiceName;
+            submittedDate = preferredDate.ToString("dd MMM yyyy, hh:mm tt");
+            submittedPhone = phoneNumber ?? "";
+            bookingSuccess = true;
+        }
+        catch (ArgumentException ex) { submitError = ex.Message; }
+        catch { submitError = "We couldn't submit your request. Please call us directly."; }
+        finally { submitting = false; }
+    }
+}

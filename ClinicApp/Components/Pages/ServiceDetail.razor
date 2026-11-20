@@ -1,587 +1,219 @@
 @page "/services/{ServiceId}"
 @layout PublicLayout
-@rendermode InteractiveServer
-@implements IAsyncDisposable
-@using ClinicApp.Data
-@using ClinicApp.Services
-@inject ClinicService ClinicService
-@inject NavigationManager NavManager
-@inject IJSRuntime JS
 
-<PageTitle>@(currentService?.Name ?? "Service") | ProTouch Physio - Slimming Clinic</PageTitle>
+<PageTitle>@(svc?.Name ?? "Service") | ProTouch Physio - Slimming Clinic</PageTitle>
 
-<div class="wellness-page">
-
-    <!-- ── Header ── -->
-    <header class="wellness-header">
-        <a href="/" class="wellness-logo">
-            <img src="/images/protouch-logo.svg" alt="ProTouch Physio - Slimming Clinic" />
-        </a>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/#services">Services</a>
-            <a href="/#approach">Our Approach</a>
-            <a href="/#contact">Contact</a>
-        </nav>
-        <div class="wellness-header-actions">
-            <a class="wellness-login-btn" href="/Account/Login">🔒 Login</a>
-            <a class="wellness-call" href="tel:9673530031">📞 Call 96735 30031</a>
-        </div>
-    </header>
-
-    @if (currentService == null)
-    {
-        <div style="max-width:700px;margin:6rem auto;padding:0 1.5rem;text-align:center;">
-            <p class="section-kicker">404 — NOT FOUND</p>
-            <h1 style="font-family:'Playfair Display',Georgia,serif;color:#1a1520;font-size:2.8rem;margin:1rem 0;">Service not found.</h1>
-            <p style="color:#6b636d;margin-bottom:2rem;">The service you're looking for doesn't exist. Browse all our services below.</p>
-            <a class="wellness-primary" href="/#services">← View All Services</a>
-        </div>
-    }
-    else
-    {
-        <!-- ── Service Hero Banner ── -->
-        <section class="svc-hero" style="background: @currentService.BannerGradient;">
-            <div class="svc-hero-inner">
-                <a href="/#services" class="svc-back">← All Services</a>
-                <p class="section-kicker" style="color:@currentService.KickerColor;">@currentService.CategoryLabel</p>
-                <h1>@currentService.Name</h1>
-                <p class="svc-hero-tagline">@currentService.Tagline</p>
-                <div class="svc-hero-badges">
-                    @foreach (var b in currentService.HeroBadges)
-                    {
-                        <span>@b</span>
-                    }
-                </div>
-            </div>
-            <div class="svc-hero-image">
-                <img src="@currentService.HeroImage" alt="@currentService.Name" onerror="this.parentElement.style.background='linear-gradient(135deg,#008d36,#eef6f1)'" />
+@if (svc == null || ex == null)
+{
+    <div class="ppage" data-ptx="notfound">
+        <section class="nf dk">
+            <div class="c">
+                <div class="eb"><i></i>404 · Not found</div>
+                <h1>Service not <em>found.</em></h1>
+                <p>The service you're looking for doesn't exist. Browse all our services instead.</p>
+                <a class="pbtn" href="/services"><span>View all services <b class="ar">→</b></span></a>
             </div>
         </section>
+    </div>
+}
+else
+{
+    var s = svc;
+    var x = ex;
+    var related = PublicCatalog.Order.Where(o => o != s.Id).ToList();
 
-        <!-- ── What We Treat / Offer ── -->
-        <section class="wellness-section svc-content-section">
-            <div class="svc-intro-grid">
-                <div class="svc-overview">
-                    <p class="section-kicker">OVERVIEW</p>
-                    <h2>@currentService.OverviewHeading</h2>
-                    <p class="large-copy">@currentService.OverviewBody</p>
-                </div>
-                <div class="svc-stats-col">
-                    @foreach (var stat in currentService.KeyStats)
-                    {
-                        <div class="svc-stat-card">
-                            <strong>@stat.Value</strong>
-                            <span>@stat.Label</span>
+    <div class="ppage" data-ptx="detail">
+
+        <!-- ═══════════════ HERO ═══════════════ -->
+        <section class="ih dk">
+            <span class="bl" style="width:560px;height:560px;right:-160px;top:-160px;background:radial-gradient(circle at 30% 30%,rgba(22,99,92,.5),transparent 70%)"></span>
+            <div class="c">
+                <div class="g">
+                    <div>
+                        <div class="crumb"><a href="/">Home</a> / <a href="/services">Services</a> / <b>@x.Short</b></div>
+                        <h1 data-split data-now>@s.Name</h1>
+                        <p class="plead" data-hero>@s.Tagline</p>
+                        <div class="prow" data-hero style="display:flex;gap:12px;flex-wrap:wrap">
+                            <a class="pbtn" href="#book-now" data-magnet><span>Book this service <b class="ar">→</b></span></a>
+                            <a class="pbtn o" href="#conditions" data-magnet><span>What we treat</span></a>
                         </div>
+                        <div class="bdg" data-hero>
+                            @foreach (var b in s.HeroBadges)
+                            {
+                                <span>@b.Replace("✓", "").Trim()</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="trio">
+                        <div class="ci a" data-depth="10"><img src="@x.Image" alt="@s.Name" /></div>
+                        <div class="ci b" data-depth="-16"><img src="@x.Image2" alt="" /></div>
+                        <div class="ci c3" data-depth="20"><img src="@x.Image3" alt="" /></div>
+                    </div>
+                </div>
+                <div class="ks" data-st>
+                    @foreach (var stat in s.KeyStats)
+                    {
+                        <div><b data-ct>@stat.Value</b><span>@stat.Label</span></div>
                     }
                 </div>
             </div>
         </section>
+        <Wave Kind="dl" />
 
-        <!-- ── Treatments & Methods ── -->
-        <section class="svc-treatments-band">
-            <div class="wellness-section" style="padding-top:60px;padding-bottom:60px;">
-                <p class="section-kicker">TREATMENTS &amp; METHODS</p>
-                <h2>How we help you.</h2>
-                <div class="svc-treatment-grid">
-                    @{ var tIdx = 0; }
-                    @foreach (var t in currentService.Treatments)
+        <!-- ═══════════════ OVERVIEW + OUTCOMES ═══════════════ -->
+        <section class="sec lt" style="padding-top:clamp(30px,5vw,70px)">
+            <div class="c ov2">
+                <div>
+                    <div class="eb" data-rv><i></i>Overview</div>
+                    <h2 class="h" data-split>@s.OverviewHeading</h2>
+                    <p class="b" data-rv>@s.OverviewBody</p>
+                </div>
+                <ul class="out" data-st>
+                    @foreach (var o in s.Outcomes)
                     {
-                        <div class="svc-treatment-card svc-glass-card">
-                            <div class="svc-glass-icon-wrap">
-                                @GetTreatmentSvg(tIdx)
-                                <span class="svc-treat-icon">@t.Icon</span>
-                            </div>
-                            <h4>@t.Name</h4>
+                        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path data-d d="M4 12l5 5L20 6" /></svg><span>@o</span></li>
+                    }
+                </ul>
+            </div>
+        </section>
+        <Wave Kind="ld" />
+
+        <!-- ═══════════════ TREATMENTS ═══════════════ -->
+        <section class="sec dk" style="padding-top:clamp(30px,5vw,70px)">
+            <div class="c">
+                <div class="eb" data-rv><i></i>Treatments &amp; methods</div>
+                <h2 class="h" data-split>How we <em>help you.</em></h2>
+                <div class="tg" data-st>
+                    @{ var ti = 0; }
+                    @foreach (var t in s.Treatments)
+                    {
+                        ti++;
+                        <div class="tc" data-tilt>
+                            <span class="n">@ti.ToString("00")</span>
+                            <h3>@t.Name</h3>
                             <p>@t.Description</p>
                         </div>
-                        tIdx++;
                     }
                 </div>
             </div>
         </section>
+        <Wave Kind="dl" />
 
-        <!-- ── Sub-services pills ── -->
-        @if (currentService.SubServices.Length > 0)
-        {
-            <section class="wellness-section" style="padding-top:60px;padding-bottom:60px;">
-                <p class="section-kicker">SUB-SERVICES</p>
-                <h2>Specialisations within this service.</h2>
-                <div class="svc-subservice-pills">
-                    @foreach (var s in currentService.SubServices)
-                    {
-                        <button class="svc-pill @(selectedSubService == s ? "active" : "")"
-                                type="button"
-                                @onclick="() => SelectSubService(s)">@s</button>
-                    }
-                </div>
-                @if (!string.IsNullOrEmpty(selectedSubService))
-                {
-                    <div class="svc-pill-cta">
-                        <p>Ready to book <strong>@selectedSubService</strong>?</p>
-                        <button class="wellness-primary" type="button" @onclick="() => ScrollToBooking()">Book Now →</button>
-                    </div>
-                }
-            </section>
-        }
-
-        <!-- ── Photo gallery strip ── -->
-        <section class="svc-photo-strip">
-            @foreach (var img in currentService.GalleryImages)
-            {
-                <div class="svc-photo-item">
-                    <img src="@img" alt="@currentService.Name" loading="lazy" onerror="this.style.display='none'" />
-                </div>
-            }
-        </section>
-
-        <!-- ── Outcomes ── -->
-        <section class="wellness-section svc-outcomes-section">
-            <p class="section-kicker">EXPECTED OUTCOMES</p>
-            <h2>What you can expect.</h2>
-            <div class="svc-outcomes-grid">
-                @foreach (var o in currentService.Outcomes)
-                {
-                    <div class="svc-outcome-item">
-                        <span class="svc-outcome-icon">✓</span>
-                        <p>@o</p>
-                    </div>
-                }
-            </div>
-        </section>
-
-        <!-- ════════════════════════════════════════════════════════
-             INLINE BOOKING FORM
-             ════════════════════════════════════════════════════════ -->
-        <section id="book-now" class="svc-booking-section">
-            <div class="wellness-section" style="padding-top:0;">
-                @if (bookingSuccess)
-                {
-                    <div class="booking-success">
-                        <div class="checkmark-circle">✓</div>
-                        <h2>Booking Request Received!</h2>
-                        <p>Thank you, <strong>@submittedName</strong>. We've received your request for <strong>@submittedService</strong> on <strong>@submittedDate</strong>. The team will contact you on <strong>@submittedPhone</strong> to confirm.</p>
-                        <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-                            <a class="wellness-primary" href="/">← Back to Home</a>
-                            <a class="wellness-secondary" href="/#services">View Other Services</a>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div class="svc-booking-card">
-                        <div class="svc-booking-header">
-                            <p class="section-kicker" style="color:#ffeb00;">BOOK AN APPOINTMENT</p>
-                            <h2 style="color:#fff;">Ready to start your @currentService.Name journey?</h2>
-                            <p style="color:#c8e8d0;">Fill in your details below — our team will confirm your appointment within the day.</p>
-                        </div>
-
-                        @if (!string.IsNullOrWhiteSpace(submitError))
+        <!-- ═══════════════ CONDITIONS ═══════════════ -->
+        <section class="sec lt" id="conditions" style="padding-top:clamp(30px,5vw,70px)">
+            <div class="c">
+                <div class="eb" data-rv><i></i>Sub-services</div>
+                <h2 class="h" data-split>Specialisations <em>within this service.</em></h2>
+                <p class="plead" data-rv style="margin-top:18px">Choose one and it is added to your booking request.</p>
+                <div class="cn">
+                    <div class="chips" data-st>
+                        @foreach (var sub in s.SubServices)
                         {
-                            <div class="svc-booking-error">⚠ @submitError</div>
+                            <button class="chp" type="button" data-c="@sub">@sub</button>
                         }
-
-                        <div class="svc-form-grid">
-                            <!-- Full Name -->
-                            <div class="svc-field">
-                                <label>Full Name *</label>
-                                <input type="text" @bind="fullName" @bind:event="oninput"
-                                       placeholder="Your full name" maxlength="100"
-                                       class="@(string.IsNullOrEmpty(nameError) ? "" : "field-error")" />
-                                @if (!string.IsNullOrEmpty(nameError))
-                                { <span class="field-error-msg">@nameError</span> }
-                            </div>
-
-                            <!-- Phone -->
-                            <div class="svc-field">
-                                <label>Mobile Number *</label>
-                                <input type="tel" @bind="phoneNumber" @bind:event="oninput"
-                                       placeholder="10-digit Indian mobile" maxlength="15"
-                                       class="@(string.IsNullOrEmpty(phoneError) ? "" : "field-error")" />
-                                @if (!string.IsNullOrEmpty(phoneError))
-                                { <span class="field-error-msg">@phoneError</span> }
-                            </div>
-
-                            <!-- Preferred Date -->
-                            <div class="svc-field">
-                                <label>Preferred Date &amp; Time *</label>
-                                <input type="datetime-local" @bind="preferredDate"
-                                       class="@(string.IsNullOrEmpty(dateError) ? "" : "field-error")" />
-                                @if (!string.IsNullOrEmpty(dateError))
-                                { <span class="field-error-msg">@dateError</span> }
-                            </div>
-
-                            <!-- Service (pre-filled, readonly display) -->
-                            <div class="svc-field">
-                                <label>Service</label>
-                                <div class="svc-field-prefill">@currentService.Name</div>
-                            </div>
-
-                            <!-- Notes — full width -->
-                            <div class="svc-field svc-field-wide">
-                                <label>Additional Notes (optional)</label>
-                                <textarea @bind="notes" rows="3"
-                                          placeholder="Any specific concerns, preferred timings, or health details..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="svc-form-footer">
-                            <span>* Required fields. We'll call you to confirm.</span>
-                            <button class="wellness-primary svc-submit-btn"
-                                    type="button"
-                                    @onclick="HandleSubmit"
-                                    disabled="@submitting">
-                                @(submitting ? "Submitting…" : "Request Appointment →")
-                            </button>
-                        </div>
                     </div>
-                }
+                    <div class="ap">
+                        <h3>Book this service</h3>
+                        <div class="sv">@s.Name</div>
+                        <p class="selnote">Interested in: <b>any condition</b></p>
+                        <a class="pbtn" href="#book-now"><span>Continue to booking <b class="ar">→</b></span></a>
+                    </div>
+                </div>
             </div>
         </section>
-    }
 
-    <footer>© @DateTime.Now.Year PROTOUCH Physio - Slimming Clinic <span>•</span> Dr. Manjari</footer>
-</div>
+        <!-- ═══════════════ PROCESS ═══════════════ -->
+        <section class="sec lt" style="padding-top:0">
+            <div class="c" style="text-align:center">
+                <div class="eb" data-rv><i></i>How it works</div>
+                <h2 class="h" data-split>Four steps for <em>@(x.Short.ToLowerInvariant()).</em></h2>
+                <div class="ps">
+                    <div class="pr"></div>
+                    @for (var i = 0; i < x.Steps.Length; i++)
+                    {
+                        <div class="pst">
+                            <div class="o">@(i + 1)</div>
+                            <h3>@x.Steps[i].Title</h3>
+                            <p>@x.Steps[i].Text</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ CLINIC MATERIAL ═══════════════ -->
+        <section class="sec lt" style="padding-top:0">
+            <div class="c">
+                <div class="eb" data-rv><i></i>From the clinic</div>
+                <h2 class="h" data-split>Programme <em>material.</em></h2>
+                <div class="psr" style="margin-top:36px" data-lbset data-st>
+                    @foreach (var poster in x.Posters)
+                    {
+                        <figure data-lb><img loading="lazy" src="@poster" alt="@s.Name programme poster" onerror="this.parentElement.style.display='none'" /></figure>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ FAQ ═══════════════ -->
+        <section class="sec lt" style="padding-top:0">
+            <div class="c" style="text-align:center">
+                <div class="eb" data-rv><i></i>Questions</div>
+                <h2 class="h" data-split>About <em>@(x.Short.ToLowerInvariant()).</em></h2>
+                <div class="faq">
+                    @foreach (var f in x.Faq)
+                    {
+                        <div class="q">
+                            <button type="button" aria-expanded="false"><span>@f.Q</span><i>+</i></button>
+                            <div class="a"><div><p>@f.A</p></div></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ BOOKING (interactive) ═══════════════ -->
+        <section class="sec lt" id="book-now" style="padding-top:0">
+            <div class="c" data-rv>
+                <ServiceBookingForm @rendermode="InteractiveServer" ServiceName="@s.Name" SubServices="@s.SubServices" />
+            </div>
+        </section>
+
+        <!-- ═══════════════ OTHER SERVICES ═══════════════ -->
+        <section class="sec lt" style="padding-top:0">
+            <div class="c">
+                <div class="eb" data-rv><i></i>Explore more</div>
+                <h2 class="h" data-split>Other <em>services.</em></h2>
+                <div class="rel" style="margin-top:36px" data-st>
+                    @foreach (var rid in related)
+                    {
+                        var rs = PublicCatalog.Services[rid];
+                        var rx = PublicCatalog.Extras[rid];
+                        <article class="rc">
+                            <div class="im"><img src="@rx.Image" alt="@rs.Name" loading="lazy" /></div>
+                            <h3>@rs.Name</h3>
+                            <p>@string.Join(" · ", rs.SubServices.Take(3))</p>
+                            <a class="pbtn" href="/services/@rid"><span>Explore <b class="ar">→</b></span></a>
+                        </article>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <PtxCta />
+    </div>
+}
 
 @code {
     [Parameter] public string ServiceId { get; set; } = "";
 
-    // ── Service data model ────────────────────────────────────────────────
-    private record StatItem(string Value, string Label);
-    private record TreatmentItem(string Icon, string Name, string Description);
-    private record ServicePageData(
-        string Id,
-        string Name,
-        string CategoryLabel,
-        string KickerColor,
-        string Tagline,
-        string BannerGradient,
-        string HeroImage,
-        string OverviewHeading,
-        string OverviewBody,
-        StatItem[] KeyStats,
-        TreatmentItem[] Treatments,
-        string[] SubServices,
-        string[] Outcomes,
-        string[] GalleryImages,
-        string[] HeroBadges
-    );
-
-    // ── Page state ────────────────────────────────────────────────────────
-    private ServicePageData? currentService;
-    private string selectedSubService = "";
-
-    // ── Booking form state ────────────────────────────────────────────────
-    private string fullName = "";
-    private string phoneNumber = "";
-    private DateTime preferredDate = DateTime.Today.AddDays(1).AddHours(10);
-    private string notes = "";
-
-    private string nameError = "";
-    private string phoneError = "";
-    private string dateError = "";
-    private string submitError = "";
-
-    private bool bookingSuccess = false;
-    private bool submitting = false;
-    private string submittedName = "";
-    private string submittedService = "";
-    private string submittedDate = "";
-    private string submittedPhone = "";
-
-    // ── Static service catalogue ──────────────────────────────────────────
-    private static readonly Dictionary<string, ServicePageData> ServiceCatalogue = new()
-    {
-        ["weight-loss"] = new ServicePageData(
-            Id: "weight-loss",
-            Name: "Weight Loss & Slimming",
-            CategoryLabel: "SLIMMING & BODY CARE",
-            KickerColor: "#ffeb00",
-            Tagline: "Inch loss, figure correction, body shaping and skin tightening — without surgery, fasting or side effects.",
-            BannerGradient: "linear-gradient(135deg, #1a4d2e 0%, #2d7a44 100%)",
-            HeroImage: "/images/clinic-gallery/gallery-49.jpeg",
-            OverviewHeading: "Safe, science-backed slimming without the extremes.",
-            OverviewBody: "Our weight-loss programme combines European body-care technology with individual physiotherapy assessment. You lose weight at a healthy, sustainable rate with visible inch loss from the very first session — no starvation, no medicine, no surgery.",
-            KeyStats: new[]
-            {
-                new StatItem("4–8 kg", "weight loss per month"),
-                new StatItem("2–5 in", "inch loss per session"),
-                new StatItem("0", "side effects"),
-                new StatItem("1st session", "visible results"),
-            },
-            Treatments: new[]
-            {
-                new TreatmentItem("🔁", "LPG Endermologie", "Non-invasive mechanical massage that stimulates fat cells, boosts circulation and firms skin."),
-                new TreatmentItem("📡", "RF Therapy", "Radio-frequency energy heats the deep skin layer to break down fat and tighten tissue."),
-                new TreatmentItem("🌡️", "Cryotherapy", "Targeted cold application that freezes and eliminates stubborn fat cells permanently."),
-                new TreatmentItem("💆", "Body Wraps", "Compression wraps combined with slimming serums to reduce water retention and tone the skin."),
-                new TreatmentItem("🔊", "Ultrasound Cavitation", "Low-frequency ultrasound that breaks fat-cell membranes for natural lymphatic elimination."),
-                new TreatmentItem("💅", "Body Spa", "Deep relaxation treatment combining detox, exfoliation and nourishing body care."),
-            },
-            SubServices: new[] { "Figure Correction", "Body Shaping", "Toning", "Skin Tightening", "Breast Correction", "Body Spa", "Inch Loss Program", "Post-Pregnancy Slimming" },
-            Outcomes: new[]
-            {
-                "4–8 kg weight reduction per month",
-                "2–5 inches reduction per session/week",
-                "Measurable, visible results from the first session",
-                "No fasting, no medicine, no surgery, no side effects",
-                "Improved skin tone and firmness",
-                "Better posture and body confidence",
-            },
-            GalleryImages: new[]
-            {
-                "/images/clinic-gallery/gallery-05.jpeg",
-                "/images/clinic-gallery/gallery-17.jpeg",
-                "/images/clinic-gallery/gallery-20.jpeg",
-                "/images/clinic-gallery/gallery-49.jpeg",
-                "/images/clinic-gallery/gallery-58.jpeg",
-            },
-            HeroBadges: new[] { "✓ No Surgery", "✓ No Fasting", "✓ ISO Certified", "✓ Results from Session 1" }
-        ),
-
-        ["physiotherapy"] = new ServicePageData(
-            Id: "physiotherapy",
-            Name: "Physiotherapy & Rehabilitation",
-            CategoryLabel: "PHYSIO & REHAB",
-            KickerColor: "#ffeb00",
-            Tagline: "Expert pain relief and rehabilitation for back, neck, knee, sports injuries and neurological conditions.",
-            BannerGradient: "linear-gradient(135deg, #3a1a4d 0%, #5e2d7a 100%)",
-            HeroImage: "/images/clinic-gallery/gallery-47.jpeg",
-            OverviewHeading: "Targeted therapy for lasting pain relief and recovery.",
-            OverviewBody: "Our physiotherapy clinic provides individually designed treatment plans for acute injuries, chronic pain, neurological conditions and post-surgery rehabilitation. Using a combination of electrotherapy, manual therapy and movement re-education, we help you regain strength, mobility and quality of life.",
-            KeyStats: new[]
-            {
-                new StatItem("1st session", "pain relief begins"),
-                new StatItem("30+", "conditions treated"),
-                new StatItem("100%", "personalised plans"),
-                new StatItem("ISO", "9001:2015 certified"),
-            },
-            Treatments: new[]
-            {
-                new TreatmentItem("⚡", "Electrotherapy", "Electrical stimulation to reduce pain, speed healing and improve muscle function."),
-                new TreatmentItem("🔊", "Ultrasound Therapy", "Deep tissue ultrasound to reduce inflammation and accelerate tissue repair."),
-                new TreatmentItem("🔌", "TENS", "Transcutaneous electrical nerve stimulation — blocks pain signals and relaxes muscles."),
-                new TreatmentItem("🤲", "Manual Therapy", "Hands-on joint mobilisation, soft tissue release and therapeutic massage."),
-                new TreatmentItem("🏃", "Exercise Therapy", "Guided movement and strengthening programmes tailored to your condition."),
-                new TreatmentItem("🧠", "Neurological Rehab", "Specialised exercises and stimulation for stroke, paralysis and nerve conditions."),
-            },
-            SubServices: new[] { "Back Pain", "Neck Pain", "Knee Pain", "Arthritis", "Spondylitis", "Sinusitis", "Paralysis Recovery", "Orthopaedic Rehab", "Neurological Care", "Sports Injury", "Post-Surgery Rehab", "Stress & Strain" },
-            Outcomes: new[]
-            {
-                "Significant pain reduction from the first session",
-                "Improved joint mobility and muscle strength",
-                "Faster recovery from injury or surgery",
-                "Reduced dependency on painkillers",
-                "Better posture and movement patterns",
-                "Long-term prevention of recurring injuries",
-            },
-            GalleryImages: new[]
-            {
-                "/images/clinic-gallery/gallery-47.jpeg",
-                "/images/clinic-gallery/gallery-48.jpeg",
-                "/images/clinic-gallery/gallery-17.jpeg",
-                "/images/clinic-gallery/gallery-14.jpeg",
-            },
-            HeroBadges: new[] { "✓ All Ages", "✓ Expert Physiotherapist", "✓ Ortho & Neuro", "✓ Sports Injury" }
-        ),
-
-        ["yoga"] = new ServicePageData(
-            Id: "yoga",
-            Name: "Yoga & Holistic Wellness",
-            CategoryLabel: "YOGA & LIFESTYLE",
-            KickerColor: "#ffeb00",
-            Tagline: "Personalised yoga and lifestyle support for managing chronic conditions and restoring hormonal balance.",
-            BannerGradient: "linear-gradient(135deg, #4d3a00 0%, #8a6800 100%)",
-            HeroImage: "/images/clinic-gallery/gallery-23.jpeg",
-            OverviewHeading: "Holistic healing that goes beyond exercise.",
-            OverviewBody: "Our yoga and wellness programmes are built around your specific health conditions — not generic routines. Whether you're managing diabetes, blood pressure, thyroid issues or hormonal imbalances, we design a programme that supports your body's natural healing capacity alongside your medical treatment.",
-            KeyStats: new[]
-            {
-                new StatItem("8+", "chronic conditions supported"),
-                new StatItem("100%", "personalised plans"),
-                new StatItem("Pre & Post", "natal programmes"),
-                new StatItem("Holistic", "mind-body approach"),
-            },
-            Treatments: new[]
-            {
-                new TreatmentItem("🧘", "Personalised Yoga", "Custom asana sequences designed for your specific health condition and fitness level."),
-                new TreatmentItem("🌬️", "Pranayama", "Breathing techniques to regulate the nervous system, reduce stress and improve organ function."),
-                new TreatmentItem("🥗", "Nutrition Coaching", "Personalised dietary guidance to support your wellness goals alongside your yoga practice."),
-                new TreatmentItem("🌿", "Lifestyle Counselling", "Holistic guidance on sleep, stress management and daily habits for lasting health."),
-                new TreatmentItem("🤱", "Pre-Natal Yoga", "Safe pregnancy yoga to ease discomfort, build strength and prepare for birth."),
-                new TreatmentItem("👶", "Post-Natal Recovery", "Gentle recovery yoga to rebuild core strength, balance hormones and support new mothers."),
-            },
-            SubServices: new[] { "Diabetes Wellness", "Blood Pressure", "Thyroid Health", "Cholesterol Management", "Varicose Veins", "Menstrual Wellness", "Pre-Natal Care", "Post-Natal Recovery", "Hormonal Balance", "Stress & Anxiety" },
-            Outcomes: new[]
-            {
-                "Improved blood sugar levels and metabolic health",
-                "Regulated blood pressure and cardiovascular health",
-                "Better hormonal balance and menstrual health",
-                "Reduced stress, anxiety and improved sleep",
-                "Stronger, more flexible body across all life stages",
-                "Sustained lifestyle improvements with ongoing support",
-            },
-            GalleryImages: new[]
-            {
-                "/images/clinic-gallery/gallery-21.jpeg",
-                "/images/clinic-gallery/gallery-23.jpeg",
-                "/images/clinic-gallery/gallery-53.jpeg",
-                "/images/clinic-gallery/gallery-25.jpeg",
-            },
-            HeroBadges: new[] { "✓ Condition-Specific", "✓ Pre & Post-Natal", "✓ Hormonal Health", "✓ All Ages" }
-        ),
-
-        ["specialised"] = new ServicePageData(
-            Id: "specialised",
-            Name: "Specialised Programs",
-            CategoryLabel: "SPECIALISED CARE",
-            KickerColor: "#ffeb00",
-            Tagline: "Focused, clinician-guided programmes for height increase, sports recovery and specific health goals.",
-            BannerGradient: "linear-gradient(135deg, #4d0a0a 0%, #7a1a1a 100%)",
-            HeroImage: "/images/clinic-gallery/gallery-20.jpeg",
-            OverviewHeading: "Precision programmes for specific, measurable goals.",
-            OverviewBody: "Some goals need a dedicated, specialist approach. Our specialised programmes are designed around a single focused objective — whether that's growing taller, recovering from a sports injury, correcting posture, or managing a specific health condition — with a clinician-supervised plan built around you.",
-            KeyStats: new[]
-            {
-                new StatItem("1–3 in", "height increase possible"),
-                new StatItem("Up to 23", "years for height program"),
-                new StatItem("100%", "clinician supervised"),
-                new StatItem("Custom", "plan per individual"),
-            },
-            Treatments: new[]
-            {
-                new TreatmentItem("📏", "Height Increase Program", "Structured stretching, decompression and nutrition protocols designed to maximise growth potential in young adults."),
-                new TreatmentItem("⚽", "Sports Rehabilitation", "Sport-specific recovery and strengthening programmes for athletes returning after injury."),
-                new TreatmentItem("🦴", "Posture Correction", "Assessment and targeted exercises to correct spinal alignment and postural imbalances."),
-                new TreatmentItem("🎯", "Custom Wellness Plans", "Bespoke clinician-designed programmes for any specific health goal not covered by other services."),
-            },
-            SubServices: new[] { "Height Increase (up to 23 yrs)", "Sports Rehabilitation", "Posture Correction", "Pre-Sports Conditioning", "Custom Health Plans" },
-            Outcomes: new[]
-            {
-                "1–3 inches height increase for eligible candidates (up to age 23)",
-                "Faster, safer return to sport after injury",
-                "Improved posture and spinal alignment",
-                "Clinician-supervised progress at every stage",
-                "Clear milestone tracking from first session",
-            },
-            GalleryImages: new[]
-            {
-                "/images/clinic-gallery/gallery-30.jpeg",
-                "/images/clinic-gallery/gallery-37.jpeg",
-                "/images/clinic-gallery/gallery-40.jpeg",
-                "/images/clinic-gallery/gallery-56.jpeg",
-            },
-            HeroBadges: new[] { "✓ Clinician Supervised", "✓ Height Program", "✓ Sports Rehab", "✓ Custom Plans" }
-        ),
-    };
+    private ServicePageData? svc;
+    private ServiceExtra? ex;
 
     protected override void OnParametersSet()
     {
-        ServiceCatalogue.TryGetValue(ServiceId?.ToLower() ?? "", out var svc);
-        currentService = svc;
-        // Reset booking form when service changes
-        ResetForm();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // Concept 2: 3D glassmorphic tilt on treatment cards
-            try { await JS.InvokeVoidAsync("initGlassCardTilt", ".svc-glass-card", 6); } catch { }
-            // Concept 3: SVG line-art self-draw animation on scroll
-            try { await JS.InvokeVoidAsync("initSvgDraw", ".svc-glass-card"); } catch { }
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        try { await JS.InvokeVoidAsync("destroyGlassCardTilt"); } catch { }
-    }
-
-    // ── Concept 3: Inline SVG per treatment slot (cycles through 6 patterns) ──
-    private MarkupString GetTreatmentSvg(int index)
-    {
-        var svgs = new[]
-        {
-            // Slot 0: Lightning bolt / energy wave
-            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><polyline points=\"28,4 16,26 24,26 20,44 32,22 24,22 28,4\" /></svg>",
-            // Slot 1: Sound wave circles
-            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><circle cx=\"24\" cy=\"24\" r=\"6\" /><circle cx=\"24\" cy=\"24\" r=\"12\" /><circle cx=\"24\" cy=\"24\" r=\"19\" /></svg>",
-            // Slot 2: Plug/connector
-            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><line x1=\"24\" y1=\"4\" x2=\"24\" y2=\"16\" /><rect x=\"14\" y=\"16\" width=\"20\" height=\"14\" rx=\"4\" /><line x1=\"24\" y1=\"30\" x2=\"24\" y2=\"38\" /><line x1=\"20\" y1=\"38\" x2=\"28\" y2=\"38\" /><line x1=\"17\" y1=\"10\" x2=\"17\" y2=\"16\" /><line x1=\"31\" y1=\"10\" x2=\"31\" y2=\"16\" /></svg>",
-            // Slot 3: Two hands / touch
-            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><path d=\"M10,28 C10,20 14,16 18,16 L18,10 C18,8 20,7 21,8 L21,18 C22,17 24,16.5 25,17.5 C26,16.5 28,16.5 29,18 C30,17 32,17.5 32,20 L32,30 C32,36 28,40 22,40 L18,40 C14,40 10,36 10,28 Z\" /></svg>",
-            // Slot 4: Running figure
-            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><circle cx=\"30\" cy=\"8\" r=\"4\" /><path d=\"M30,12 L26,22 L18,26\" /><path d=\"M26,22 L28,32 L22,40\" /><path d=\"M26,22 L34,28 L40,26\" /></svg>",
-            // Slot 5: Brain/mind wave
-            "<svg class=\"svc-svg-art\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><path d=\"M24,10 C18,10 12,14 12,20 C12,24 14,26 14,28 C14,32 17,35 20,36 L20,40 L28,40 L28,36 C31,35 34,32 34,28 C34,26 36,24 36,20 C36,14 30,10 24,10 Z\" /><line x1=\"8\" y1=\"24\" x2=\"12\" y2=\"24\" /><line x1=\"36\" y1=\"24\" x2=\"40\" y2=\"24\" /><path d=\"M16,20 C16,18 18,17 20,18 C20,16 22,15 24,16 C24,14 26,13 28,15 C28,17 30,18 30,20\" /></svg>",
-        };
-        return new MarkupString(svgs[index % svgs.Length]);
-    }
-
-    private void SelectSubService(string s)
-    {
-        selectedSubService = selectedSubService == s ? "" : s;
-    }
-
-    private void ScrollToBooking()
-    {
-        // Blazor can't directly scroll — we use a JS-free anchor approach
-        NavManager.NavigateTo($"/services/{ServiceId}#book-now", false);
-    }
-
-    private void ResetForm()
-    {
-        fullName = phoneNumber = notes = nameError = phoneError = dateError = submitError = "";
-        preferredDate = DateTime.Today.AddDays(1).AddHours(10);
-        bookingSuccess = submitting = false;
-    }
-
-    private async Task HandleSubmit()
-    {
-        nameError = phoneError = dateError = submitError = "";
-        var valid = true;
-
-        var trimName = (fullName ?? "").Trim();
-        if (trimName.Length < 2 || trimName.Length > 100)
-        { nameError = "Full name must be 2–100 characters."; valid = false; }
-
-        var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
-        if (digits.Length != 10 || digits[0] < '6')
-        { phoneError = "Enter a valid 10-digit Indian mobile number (starts 6–9)."; valid = false; }
-
-        var now = DateTime.UtcNow;
-        var prefUtc = preferredDate.ToUniversalTime();
-        if (prefUtc < now.AddHours(1))
-        { dateError = "Please choose a time at least 1 hour from now."; valid = false; }
-        else if (prefUtc > now.AddDays(90))
-        { dateError = "Preferred date must be within the next 90 days."; valid = false; }
-
-        if (!valid) return;
-
-        submitting = true;
-        try
-        {
-            var request = new BookingRequest
-            {
-                FullName = trimName,
-                PhoneNumber = digits,
-                ServiceType = currentService!.Name,
-                PreferredDate = prefUtc,
-                Notes = (notes ?? "").Trim()
-            };
-            await ClinicService.SubmitBookingRequestAsync(request);
-
-            submittedName = trimName;
-            submittedService = currentService!.Name;
-            submittedDate = preferredDate.ToString("dd MMM yyyy, hh:mm tt");
-            submittedPhone = phoneNumber;
-            bookingSuccess = true;
-        }
-        catch (ArgumentException ex) { submitError = ex.Message; }
-        catch { submitError = "We couldn't submit your request. Please call us directly."; }
-        finally { submitting = false; }
+        var key = (ServiceId ?? "").ToLowerInvariant();
+        svc = PublicCatalog.Services.GetValueOrDefault(key);
+        ex = PublicCatalog.Extras.GetValueOrDefault(key);
     }
 }

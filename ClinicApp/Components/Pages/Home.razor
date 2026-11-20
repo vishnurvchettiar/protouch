@@ -1,612 +1,349 @@
 @page "/"
 @layout PublicLayout
-@rendermode InteractiveServer
-@implements IAsyncDisposable
-@inject IJSRuntime JS
-@inject ClinicApp.Services.ClinicService ClinicService
 
 <PageTitle>PROTOUCH Physio - Slimming Clinic | Chhatrapati Sambhajinagar</PageTitle>
 
-<div class="pt-page ac-page">
+<div class="ppage" data-ptx="home">
 
-    <!-- ═══════════════════════ HEADER ═══════════════════════ -->
-    <header class="pt-header" id="pt-header">
-        <a href="#top" class="pt-logo">
-            <img src="/images/protouch-logo.svg"
-                     alt="ProTouch Physio - Slimming Clinic"
-                     class="pt-header-logo" />
-        </a>
-        <nav class="pt-nav ac-nav" role="navigation" aria-label="Main navigation">
-            <a href="#services">Services</a>
-            <a href="#body-parts">Treatments</a>
-            <a href="#team">Team</a>
-            <a href="#feedback">Feedback</a>
-            <a href="#contact">Contact</a>
-        </nav>
-        <div class="pt-header-actions">
-            <a class="ac-login-btn" href="/Account/Login">Login</a>
-            <a class="pt-btn-primary" href="/book">Book a Visit</a>
+    <!-- ═══════════════ HERO: a framed photo that grows to full screen as you scroll ═══════════════ -->
+    <section class="zh dk" id="top">
+        <div class="top">Physio &amp; Slimming Clinic · Chhatrapati Sambhajinagar</div>
+        <div class="bgw" aria-hidden="true"><span class="hw1">Gentle</span><span class="hw2">touch</span></div>
+        <div class="frame">
+            <img src="@heroImages[0].ImagePath" alt="@heroImages[0].Caption" />
         </div>
-        <button class="pt-hamburger" type="button"
-                @onclick="ToggleMobileMenu"
-                aria-label="Toggle navigation menu"
-                aria-expanded="@_mobileMenuOpen">
-            <span></span><span></span><span></span>
-        </button>
-    </header>
-
-    <div class="pt-mobile-nav @(_mobileMenuOpen ? "pt-mobile-nav--open" : "")">
-        <a href="#services"   @onclick="ToggleMobileMenu">Services</a>
-        <a href="#body-parts" @onclick="ToggleMobileMenu">Treatments</a>
-        <a href="#team"       @onclick="ToggleMobileMenu">Team</a>
-        <a href="#feedback"   @onclick="ToggleMobileMenu">Feedback</a>
-        <a href="#contact"    @onclick="ToggleMobileMenu">Contact</a>
-        <a class="pt-btn-primary" href="/book" @onclick="ToggleMobileMenu">Book a Visit</a>
-    </div>
-
-    <!-- ═══════════════════════ HERO ═════════════════════════ -->
-    <section class="pt-hero" id="top">
-        <div class="pt-hero-left">
-            <p class="pt-kicker">✦ ISO 9001:2015 CERTIFIED CLINIC</p>
-            <h1 class="pt-hero-h1">
-                Take care of<br />
-                <em>your health</em>
-            </h1>
-            <p class="pt-hero-sub">
-                Physiotherapy-led slimming, rehabilitation and wellness plans by
-                <strong>Dr. Manjari</strong> — created for lasting results, not temporary fixes.
-            </p>
-            <div class="pt-hero-stats">
-                <div class="pt-stat-pill">
-                    <span class="pt-stat-num">99%</span>
-                    <span class="pt-stat-label">Cured</span>
-                </div>
-                <span class="pt-stat-divider"></span>
-                <div class="pt-stat-pill">
-                    <span class="pt-stat-num">4–8 kg</span>
-                    <span class="pt-stat-label">/ Month</span>
-                </div>
-                <span class="pt-stat-divider"></span>
-                <div class="pt-stat-pill">
-                    <span class="pt-stat-num">500+</span>
-                    <span class="pt-stat-label">Patients</span>
+        <div class="side">
+            <div><b>500+</b><span>patients served</span></div>
+            <div><b>ISO</b><span>9001:2015 certified</span></div>
+        </div>
+        <div class="ov">
+            <div class="c">
+                <h1>Care that feels <em>personal</em>, results that last.</h1>
+                <p>Physiotherapy-led slimming, rehabilitation and wellness by <strong>Dr. Manjari</strong>. No fasting, no medicine, no surgery.</p>
+                <div class="prow">
+                    <a class="pbtn" href="/book" data-magnet><span>Book a Visit <b class="ar">→</b></span></a>
+                    <a class="pbtn o" href="/services" data-magnet><span>Explore services</span></a>
                 </div>
             </div>
-            <div class="pt-hero-actions">
-                <a class="pt-btn-primary" href="/book">Book a Visit</a>
-                <a class="pt-hero-link" href="#services">Our Services →</a>
-            </div>
         </div>
-        <div class="pt-hero-right">
-            @for (var i = 0; i < heroImages.Count; i++)
-            {
-                var idx = i;
-                var slideClass = idx == 0 ? "pt-hero-slide--1" : idx == 1 ? "pt-hero-slide--2" : "pt-hero-slide--3";
-                <div class="pt-hero-slide @slideClass">
-<img src="@heroImages[idx].ImagePath" alt="@heroImages[idx].Caption"
-                             loading="@(idx == 0 ? "eager" : "lazy")"
-                             fetchpriority="@(idx == 0 ? "high" : "auto")"
-                             onerror="this.style.display='none'" />
-                </div>
-            }
-            <div class="pt-hero-overlay-strip"></div>
-        </div>
+        <div class="hint">Scroll</div>
     </section>
+    <Wave Kind="dl" />
 
-    <!-- ═══════════════════ BOOKING BANNER ═══════════════════ -->
-    <section class="pt-booking-banner" aria-label="Booking call to action">
-        <p class="pt-banner-text">Ready to start your wellness journey?</p>
-        <a class="pt-btn-inverse" href="/book">Book a Visit Now →</a>
-    </section>
-
-    <!-- ═══════════════════ BODY PART TREATMENTS ═════════════ -->
-    <section class="pt-body-parts" id="body-parts" data-reveal>
-        <div class="pt-body-parts-inner">
-            <p class="pt-kicker">TREATMENTS BY AREA</p>
-            <h2>We can help with any part of you</h2>
-            <div class="pt-bp-tabs" role="tablist" aria-label="Body area treatments">
-                @foreach (var tab in bodyPartTabs)
+    <!-- ═══════════════ BELIEF + FIGURES ═══════════════ -->
+    <section class="sec lt" style="padding-top:clamp(30px,5vw,70px)">
+        <div class="c">
+            <div class="eb" data-rv><i></i>Our belief</div>
+            <p class="st" data-hl>ProTouch is built on a simple idea: <span class="chip">care</span> should be personal, hands-on and honest. Led by Dr. Manjari, our ISO 9001:2015 certified clinic has served 500+ patients, helping them lose weight, ease pain and feel well without fasting, medicine or surgery.</p>
+            <div class="circ" data-st>
+                @for (var i = 0; i < socialProofStats.Count; i++)
                 {
-                    <button class="pt-bp-tab @(activeBodyPart == tab.Id ? "pt-bp-tab--active" : "")"
-                            type="button" role="tab"
-                            id="tab-@tab.Id"
-                            aria-selected="@(activeBodyPart == tab.Id ? "true" : "false")"
-                            aria-controls="panel-@tab.Id"
-                            @onclick="() => SetBodyPart(tab.Id)">
-                        @tab.Label
-                    </button>
-                }
-            </div>
-            @{
-                var activeBpTab = bodyPartTabs.FirstOrDefault(t => t.Id == activeBodyPart) ?? bodyPartTabs[0];
-                var bpIdx = bodyPartTabs.IndexOf(activeBpTab);
-                var bpImg = activeBpTab.ImagePath ?? $"/images/clinic-gallery/gallery-{(bpIdx * 9 + 27):D2}.jpeg";
-            }
-            <div class="pt-bp-panel" id="panel-@activeBpTab.Id" role="tabpanel" aria-labelledby="tab-@activeBpTab.Id">
-                <div class="pt-bp-panel-left">
-                    <h3>@activeBpTab.Label</h3>
-                    <p>@activeBpTab.Description</p>
-                    <a class="pt-btn-primary" href="/book">Book Treatment →</a>
-                </div>
-                <div class="pt-bp-panel-right">
-                    <img src="@bpImg" alt="@(string.IsNullOrWhiteSpace(activeBpTab.ImageAlt) ? activeBpTab.Label : activeBpTab.ImageAlt)" loading="lazy" decoding="async"
-                             onerror="this.style.display='none'" />
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════════════════════ SERVICES ═════════════════════ -->
-    <section class="pt-services" id="services" data-reveal>
-        <div class="pt-services-header">
-            <p class="pt-kicker">WHAT WE OFFER</p>
-            <h2>Our Services</h2>
-            <p class="pt-services-intro">
-                Expert-led programmes for weight loss, physiotherapy, yoga and specialised care —
-                all under one roof. No fasting, no medicine, no surgery.
-            </p>
-        </div>
-        <div class="pt-services-row">
-            @{bool isSvcFirst = true;}
-            @foreach (var svc in serviceCards)
-            {
-                var svcIdx = serviceCards.IndexOf(svc);
-                var svcImgNum = svcIdx * 9 + 1;
-                var svcImg = svc.ImagePath ?? $"/images/clinic-gallery/gallery-{svcImgNum:D2}.jpeg";
-                <div class="pt-svc-card" style="--svc-accent: @svc.AccentColor">
-                    <div class="pt-svc-card-img">
-                        <img src="@svcImg" alt="@(string.IsNullOrWhiteSpace(svc.ImageAlt) ? svc.Name : svc.ImageAlt)"
-                                 loading="@(isSvcFirst ? "eager" : "lazy")"
-                                 fetchpriority="@(isSvcFirst ? "high" : "auto")"
-                                 decoding="async"
-                                 onerror="this.style.display='none'" />
-                    </div>
-                    <div class="pt-svc-card-body">
-                        <h3>@svc.Name</h3>
-                        <p>@svc.Summary</p>
-                        <a class="pt-svc-link" href="/services/@svc.Id">View &amp; Book →</a>
-                    </div>
-                </div>
-                isSvcFirst = false;
-            }
-        </div>
-    </section>
-
-    <!-- ═══════════════════ HOW IT WORKS ═════════════════════ -->
-    <section class="pt-how-it-works" data-reveal>
-        <div class="pt-how-inner">
-            <p class="pt-kicker">HOW IT WORKS</p>
-            <h2>Our team of specialists is at your service</h2>
-            <div class="pt-steps">
-                @foreach (var step in howItWorksSteps)
-                {
-                    <div class="pt-step">
-                        <span class="pt-step-num" aria-hidden="true">@step.Number</span>
-                        <h3 class="pt-step-title">@step.Title</h3>
-                        <p class="pt-step-desc">@step.Description</p>
-                    </div>
-                }
-            </div>
-            <blockquote class="pt-pull-quote">
-                <p>"The best care for lasting results!"</p>
-                <footer>— ISO 9001:2015 Certified Clinic</footer>
-            </blockquote>
-        </div>
-    </section>
-
-    <!-- ═══════════════════ DARK CTA + STATS ═════════════════ -->
-    <section class="pt-dark-cta" data-reveal>
-        <div class="pt-dark-cta-inner">
-            <div class="pt-dark-cta-copy">
-                <p class="pt-kicker" style="color: var(--pt-mint)">ISO 9001:2015 CERTIFIED</p>
-                <h2>Take care of your health anytime, anywhere</h2>
-                <p>
-                    In-clinic and teleconsultation appointments available.
-                    Dr. Manjari's team is ready to build your personalised plan today —
-                    no fasting, no medicine, no surgery.
-                </p>
-                <a class="pt-btn-primary" href="/book">Book a Visit Now →</a>
-            </div>
-            <div class="pt-dark-stats social-proof-section ac-stats" data-reveal>
-                @foreach (var stat in socialProofStats)
-                {
-                    <div class="pt-dark-stat">
-                        <span class="pt-dark-stat-num"
-                              data-count-target="@stat.CountTarget"
-                              data-count-display="@stat.CountDisplay">@stat.CountDisplay</span>
-                        <span class="pt-dark-stat-label">@stat.Label</span>
+                    var stat = socialProofStats[i];
+                    <div class="cc">
+                        <div class="r">
+                            <svg viewBox="0 0 100 100" aria-hidden="true">
+                                <circle class="b" cx="50" cy="50" r="44" />
+                                <circle class="f" cx="50" cy="50" r="44" data-p="@ringPercent[i]" />
+                            </svg>
+                            <b data-ct>@stat.CountDisplay</b>
+                        </div>
+                        <span>@stat.Label</span>
                     </div>
                 }
             </div>
         </div>
     </section>
+    <Wave Kind="ld" />
 
-    <!-- ═══════════════════ SPECIALISTS / TEAM ═══════════════ -->
-    <section class="pt-specialists" id="team" data-reveal>
-        <div class="pt-specialists-inner">
-            <p class="pt-kicker">MEET THE TEAM</p>
-            <h2>Our team of specialists is at your service</h2>
-            <div class="pt-specialists-grid">
-                <!-- Primary: Dr. Manjari -->
-                <div class="pt-specialist-card pt-specialist-card--primary">
-                    <div class="pt-specialist-photo">
-                                                <img src="/images/clinic-gallery/gallery-27.jpeg"
-                                 alt="Dr. Manjari — Physiotherapist &amp; Slimming Expert"
-                                 loading="lazy" onerror="this.style.display='none'" />
-                    </div>
-                    <div class="pt-specialist-body">
+    <!-- ═══════════════ SERVICES: cards stack as you scroll ═══════════════ -->
+    <section class="sec dk" id="services" style="padding-top:clamp(30px,5vw,70px)">
+        <div class="c">
+            <div class="eb" data-rv><i></i>Our services</div>
+            <h2 class="h" data-split>Four programmes, <em>stacked</em> with care.</h2>
+            <div style="margin-top:60px">
+                @foreach (var svc in serviceCards)
+                {
+                    <article class="sc">
+                        <div class="tx">
+                            <span class="no">@svc.Number</span>
+                            <h3>@svc.Name</h3>
+                            <p>@svc.Summary</p>
+                            <ul>
+                                @foreach (var bullet in svc.Bullets)
+                                {
+                                    <li>@bullet</li>
+                                }
+                            </ul>
+                            <div><a class="pbtn" href="/services/@svc.Id" data-magnet><span>View &amp; book <b class="ar">→</b></span></a></div>
+                        </div>
+                        <div class="ph">
+                            <img src="@svc.ImagePath" alt="@svc.ImageAlt" loading="lazy" />
+                            <span class="cir" aria-hidden="true">→</span>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+    <Wave Kind="dl" />
+
+    <!-- ═══════════════ FIND YOUR AREA ═══════════════ -->
+    <section class="sec lt" id="body-parts" style="padding-top:clamp(30px,5vw,70px)">
+        <div class="c fd">
+            <div>
+                <div class="eb" data-rv><i></i>Treatments by area</div>
+                <h2 class="h" data-split>We can help with <em>any part</em> of you.</h2>
+                <div class="tabs" role="tablist" aria-label="Body area treatments">
+                    @for (var i = 0; i < bodyPartTabs.Count; i++)
+                    {
+                        var tab = bodyPartTabs[i];
+                        <button class="tab @(i == 0 ? "on" : "")" type="button" role="tab"
+                                aria-selected="@(i == 0 ? "true" : "false")"
+                                data-t="@tab.Label" data-desc="@tab.Description">@tab.Label<span>@((i + 1).ToString("00"))</span></button>
+                    }
+                </div>
+            </div>
+            <div class="cl">
+                <div class="big">
+                    @for (var i = 0; i < bodyPartTabs.Count; i++)
+                    {
+                        var tab = bodyPartTabs[i];
+                        <img class="@(i == 0 ? "on" : "")" src="@tab.ImagePath" alt="@tab.ImageAlt" loading="@(i == 0 ? "eager" : "lazy")" />
+                    }
+                </div>
+                <div class="sm"><img src="/images/clinic_hero.jpg" alt="ProTouch clinic reception" loading="lazy" /></div>
+                <div class="ap">
+                    <h3>@bodyPartTabs[0].Label</h3>
+                    <p class="desc">@bodyPartTabs[0].Description</p>
+                    <a class="pbtn" href="/book"><span>Book treatment <b class="ar">→</b></span></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ WELLNESS ESTIMATOR (interactive) ═══════════════ -->
+    <section class="sec lt" id="bmi-estimator" style="padding-top:0">
+        <div class="c bmi">
+            <div>
+                <div class="eb" data-rv><i></i>Wellness estimator</div>
+                <h2 class="h" data-split>Discover your <em>personalised</em> plan.</h2>
+                <p class="plead" data-rv style="margin-top:20px">Enter your details for an instant, personalised estimate, then book a free consultation.</p>
+            </div>
+            <div data-rv>
+                <BmiEstimator @rendermode="InteractiveServer" />
+            </div>
+        </div>
+    </section>
+    <Wave Kind="ld" />
+
+    <!-- ═══════════════ PINNED STATEMENT ═══════════════ -->
+    <section class="dp" id="approach">
+        <div class="stg2">
+            <span class="m" aria-hidden="true">“</span>
+            <div class="qt">
+                <div class="eb" style="background:rgba(255,255,255,.08);color:var(--gold)"><i></i>Our promise</div>
+                <q>The best care for lasting results.</q>
+                <cite>ISO 9001:2015 Certified Clinic</cite>
+                <div class="cr">
+                    @foreach (var g in guarantees)
+                    {
+                        <span>@g</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+    <Wave Kind="dl" />
+
+    <!-- ═══════════════ TEAM + HOW IT WORKS ═══════════════ -->
+    <section class="sec lt" id="team" style="padding-top:clamp(30px,5vw,70px)">
+        <div class="c">
+            <div class="eb" data-rv><i></i>Meet the team</div>
+            <h2 class="h" data-split style="max-width:900px">Our team of specialists is at <em>your service.</em></h2>
+            <div class="tm2" style="margin-top:50px">
+                <div class="drc" data-rv>
+                    <div class="im" aria-hidden="true">M</div>
+                    <div>
                         <h3>Dr. Manjari</h3>
-                        <p class="pt-specialist-title">Physiotherapist &amp; Slimming Expert</p>
-                        <ul class="pt-specialist-creds">
+                        <span class="role">Physiotherapist &amp; Slimming Expert</span>
+                        <ul class="creds2">
                             @foreach (var cred in doctorCredentials)
                             {
                                 <li>@cred</li>
                             }
                         </ul>
-                        <a class="pt-btn-primary" href="/book">Book Consultation →</a>
+                        <a class="pbtn" href="/book" data-magnet><span>Book consultation <b class="ar">→</b></span></a>
                     </div>
                 </div>
-                <!-- Supporting practitioners -->
-                @foreach (var practitioner in supportingPractitioners)
-                {
-                    <div class="pt-specialist-card">
-                        <div class="pt-specialist-photo pt-specialist-photo--placeholder" aria-hidden="true">
-                            <span>👤</span>
-                        </div>
-                        <div class="pt-specialist-body">
-                            <h3>@practitioner.Title</h3>
-                            <p class="pt-specialist-title">ProTouch Specialist</p>
-                            <a class="pt-link" href="#contact">Learn More →</a>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════════════════ BMI ESTIMATOR ════════════════════ -->
-    <section class="pt-bmi" id="bmi-estimator" data-reveal>
-        <div class="pt-bmi-inner">
-            <p class="pt-kicker">WELLNESS ESTIMATOR</p>
-            <h2>Discover your personalised wellness plan.</h2>
-            <p class="pt-bmi-intro">Enter your details for an instant, personalised estimate — then book a free consultation.</p>
-            <div class="pt-bmi-form">
-                <div class="pt-bmi-field">
-                    <label for="bmi-height">Height (cm)</label>
-                    <input id="bmi-height" type="number" min="100" max="250" placeholder="e.g. 165"
-                           @bind="_heightCm" @bind:event="oninput" />
-                    @if (!string.IsNullOrEmpty(_heightError))
+                <div class="prs" data-st>
+                    @foreach (var practitioner in supportingPractitioners)
                     {
-                        <span class="pt-field-error">@_heightError</span>
+                        <div class="pr2">
+                            <i aria-hidden="true">@practitioner.Title.Substring(0, 1)</i>
+                            <div><b>@practitioner.Title</b><span>ProTouch specialist</span></div>
+                        </div>
                     }
                 </div>
-                <div class="pt-bmi-field">
-                    <label for="bmi-weight">Weight (kg)</label>
-                    <input id="bmi-weight" type="number" min="20" max="300" step="0.1" placeholder="e.g. 70.5"
-                           @bind="_weightKg" @bind:event="oninput" />
-                    @if (!string.IsNullOrEmpty(_weightError))
+            </div>
+
+            <div style="text-align:center;margin-top:clamp(80px,10vw,130px)">
+                <div class="eb" data-rv><i></i>How it works</div>
+                <h2 class="h" data-split>Three gentle <em>steps.</em></h2>
+                <div class="ps three">
+                    <div class="pr"></div>
+                    @for (var i = 0; i < howItWorksSteps.Count; i++)
                     {
-                        <span class="pt-field-error">@_weightError</span>
-                    }
-                </div>
-                <div class="pt-bmi-field">
-                    <label for="bmi-goal">Wellness Goal</label>
-                    <select id="bmi-goal" @bind="_bmiGoal">
-                        <option value="">Select a goal…</option>
-                        <option>Weight Loss</option>
-                        <option>Inch Loss</option>
-                        <option>Physiotherapy / Pain Relief</option>
-                        <option>Yoga &amp; Wellness</option>
-                        <option>Height Increase</option>
-                    </select>
-                    @if (!string.IsNullOrEmpty(_goalError))
-                    {
-                        <span class="pt-field-error">@_goalError</span>
-                    }
-                </div>
-                <button class="pt-btn-primary" type="button" @onclick="ComputeBmi">Calculate →</button>
-            </div>
-            @if (_bmiValue.HasValue)
-            {
-                <div class="pt-bmi-result" style="--bmi-color: @_bmiColor">
-                    <div class="pt-bmi-score">
-                        <span class="pt-bmi-num">@_bmiValue</span>
-                        <span class="pt-bmi-label">BMI — @_bmiCategory</span>
-                    </div>
-                    <p class="pt-bmi-message">@_bmiMessage</p>
-                    <p class="pt-bmi-outcome"><em>@_bmiOutcome</em></p>
-                    <a class="pt-btn-primary" href="/book">Book Your Free Consultation →</a>
-                </div>
-            }
-        </div>
-    </section>
-
-    <!-- ═══════════════════ PHOTO GALLERY ════════════════════ -->
-    <section class="pt-gallery" id="gallery" data-reveal>
-        <p class="pt-kicker">CLINIC GALLERY</p>
-        <h2>A glimpse inside ProTouch.</h2>
-        <div class="pt-gallery-grid">
-            @for (int i = 0; i < _galleryVisible; i++)
-            {
-                var idx = i;
-                <div class="pt-gallery-item" @onclick="() => OpenLightbox(idx)">
-<img src="@GalleryImages[idx]"
-                             alt="ProTouch Clinic @(idx + 1)"
-                             loading="@(idx < 6 ? "eager" : "lazy")"
-                             onerror="this.style.display='none'" />
-                </div>
-            }
-        </div>
-        @if (CanLoadMore)
-        {
-            <button class="pt-load-more" @onclick="LoadMoreGallery">Load More Photos</button>
-        }
-        @if (_isLightboxOpen)
-        {
-            <div class="pt-lightbox" role="dialog" aria-modal="true">
-                <button class="pt-lightbox-close" @onclick="CloseLightbox" aria-label="Close lightbox">✕</button>
-                <button class="pt-lightbox-prev" @onclick="LightboxPrev" aria-label="Previous image">‹</button>
-<img src="@GalleryImages[_selectedLightboxIndex]"
-                         alt="Gallery image @(_selectedLightboxIndex + 1)" />
-                <button class="pt-lightbox-next" @onclick="LightboxNext" aria-label="Next image">›</button>
-            </div>
-        }
-    </section>
-
-    <!-- ═══════════════════ TESTIMONIALS ═════════════════════ -->
-    <section class="pt-testimonials ac-testimonials" data-reveal>
-        <div class="pt-testimonials-inner">
-            <p class="pt-kicker">PATIENT STORIES</p>
-            <h2>Hear from our patients.</h2>
-            <div class="pt-testi-track">
-                @for (var i = 0; i < testimonials.Count; i++)
-                {
-                    var t = testimonials[i];
-                    var ti = i;
-                    <div class="pt-testi-slide @(ti == activeTestiIndex ? "ac-testi--active" : "")">
-                        <span class="pt-stars">★★★★★</span>
-                        <p class="pt-testi-quote">@t.Quote</p>
-                        <footer class="pt-testi-footer">— @t.RoleLabel</footer>
-                    </div>
-                }
-            </div>
-            <div class="pt-testi-arrows">
-                <button type="button" @onclick="PrevTesti" aria-label="Previous testimonial">‹</button>
-                <button type="button" @onclick="NextTesti" aria-label="Next testimonial">›</button>
-            </div>
-            <div class="pt-testi-dots" role="tablist" aria-label="Testimonial slides">
-                @for (var i = 0; i < testimonials.Count; i++)
-                {
-                    var di = i;
-                    <button type="button"
-                            class="@(di == activeTestiIndex ? "active" : "")"
-                            @onclick="() => JumpToTesti(di)"
-                            aria-label="Testimonial @(di + 1)"></button>
-                }
-            </div>
-        </div>
-    </section>
-
-    <!-- ═══════════════════ FAQ ACCORDION ════════════════════ -->
-    <section class="pt-faq" data-reveal>
-        <div class="pt-faq-inner">
-            <p class="pt-kicker">FREQUENTLY ASKED</p>
-            <h2>Your questions, answered.</h2>
-            <div class="pt-faq-list">
-                @for (var i = 0; i < faqItems.Count; i++)
-                {
-                    var fi = i;
-                    var fq = faqItems[fi];
-                    <div class="pt-faq-item @(openFaq == fi ? "ac-faq--open" : "")">
-                        <button class="pt-faq-q" type="button" @onclick="() => ToggleFaq(fi)">
-                            @fq.Q
-                            <span class="pt-faq-icon">+</span>
-                        </button>
-                        <div class="pt-faq-a">
-                            <p>@fq.A</p>
+                        var step = howItWorksSteps[i];
+                        <div class="pst">
+                            <div class="o">@(i + 1)</div>
+                            <h3>@step.Title</h3>
+                            <p>@step.Description</p>
                         </div>
-                    </div>
-                }
+                    }
+                </div>
             </div>
         </div>
     </section>
+    <Wave Kind="ld" />
 
-    <!-- ═══════════════════ FEEDBACK WIDGET ══════════════════ -->
-    <section class="pt-feedback" id="feedback" data-reveal>
-        <div class="pt-feedback-inner">
-            <p class="pt-kicker">SHARE YOUR EXPERIENCE</p>
-            <h2>How was your visit?</h2>
-            @if (_feedbackSuccess)
-            {
-                <div class="pt-feedback-success">
-                    <span>⭐</span>
-                    <p>Thank you! Your feedback has been recorded.</p>
+    <!-- ═══════════════ GALLERY ═══════════════ -->
+    <section class="sec dk" id="gallery" style="padding-top:clamp(30px,5vw,70px)">
+        <div class="c">
+            <div class="eb" data-rv><i></i>Clinic gallery</div>
+            <h2 class="h" data-split>A glimpse inside <em>ProTouch.</em></h2>
+            <div data-lbset>
+                <GalleryGrid @rendermode="InteractiveServer" />
+            </div>
+        </div>
+    </section>
+    <Wave Kind="dl" />
+
+    <!-- ═══════════════ PATIENT STORIES + FAQ + FEEDBACK ═══════════════ -->
+    <section class="sec lt" id="stories" style="padding-top:clamp(30px,5vw,70px)">
+        <div class="c" style="text-align:center">
+            <div class="eb" data-rv><i></i>Patient stories</div>
+            <h2 class="h" data-split>Hear from our <em>patients.</em></h2>
+            <div class="tt-wrap">
+                <div class="tt" aria-live="polite">
+                    @for (var i = 0; i < testimonials.Count; i++)
+                    {
+                        var t = testimonials[i];
+                        <div class="tq @(i == 0 ? "on" : "")">
+                            <span class="stars" aria-hidden="true">★★★★★</span>
+                            <q>@t.Quote</q>
+                            <small>— @t.RoleLabel</small>
+                        </div>
+                    }
                 </div>
-            }
-            else
-            {
-                <div class="pt-feedback-form">
-                    <div class="pt-stars-row" role="group" aria-label="Star rating">
-                        @for (int s = 1; s <= 5; s++)
+                <div class="tctl">
+                    <button class="tprev" type="button" aria-label="Previous testimonial">‹</button>
+                    <div class="tdots">
+                        @for (var i = 0; i < testimonials.Count; i++)
                         {
-                            var star = s;
-                            <button type="button"
-                                    class="pt-star-btn @((_feedbackHoverRating > 0 ? star <= _feedbackHoverRating : star <= _feedbackRating) ? "ac-star--lit" : "")"
-                                    @onclick="() => SetFeedbackStar(star)"
-                                    @onmouseenter="() => HoverFeedbackStar(star)"
-                                    @onmouseleave="UnhoverFeedbackStar"
-                                    aria-label="@star star@(star > 1 ? "s" : "")">★</button>
+                            <button type="button" class="@(i == 0 ? "on" : "")" aria-label="Testimonial @(i + 1)"></button>
                         }
                     </div>
-                    @if (!string.IsNullOrEmpty(_feedbackError))
+                    <button class="tnext" type="button" aria-label="Next testimonial">›</button>
+                </div>
+            </div>
+
+            <div style="margin-top:clamp(80px,10vw,130px)">
+                <div class="eb" data-rv><i></i>Frequently asked</div>
+                <h2 class="h" data-split>Your questions, <em>answered.</em></h2>
+                <div class="faq">
+                    @foreach (var fq in faqItems)
                     {
-                        <p class="pt-feedback-error" role="alert">@_feedbackError</p>
+                        <div class="q">
+                            <button type="button" aria-expanded="false"><span>@fq.Q</span><i>+</i></button>
+                            <div class="a"><div><p>@fq.A</p></div></div>
+                        </div>
                     }
-                    <textarea class="pt-feedback-textarea" maxlength="500"
-                              placeholder="Tell us about your experience (optional)..."
-                              @bind="_feedbackComment" @bind:event="oninput"></textarea>
-                    <p class="pt-char-counter">@FeedbackCharsRemaining characters remaining</p>
-                    <button class="pt-btn-primary" type="button"
-                            disabled="@_feedbackSubmitting"
-                            @onclick="SubmitFeedbackAsync">
-                        @(_feedbackSubmitting ? "Submitting…" : "Submit Feedback →")
-                    </button>
-                </div>
-            }
-        </div>
-    </section>
-
-    <!-- ═══════════════════ CONTACT ═══════════════════════════ -->
-    <section class="pt-contact" id="contact" data-reveal>
-        <div class="pt-contact-inner">
-            <div class="pt-contact-left">
-                <p class="pt-kicker">GET IN TOUCH</p>
-                <h2>Let's take the first step together.</h2>
-                <p>Contact Dr. Manjari to discuss a physiotherapy, slimming or wellness plan that fits you.</p>
-                <div class="pt-contact-actions">
-                    <a class="pt-btn-primary" href="/book">Book an Appointment →</a>
-                    <a class="pt-btn-ghost" href="https://wa.me/919028027888" target="_blank" rel="noopener noreferrer">💬 WhatsApp Us</a>
                 </div>
             </div>
-            <div class="pt-contact-right">
-                <div class="pt-contact-details">
-                    <div class="pt-contact-detail-item">
-                        <span class="pt-detail-icon">📞</span>
-                        <div>
-                            <a href="tel:9673530031"><strong>96735 30031</strong></a>
-                            <a href="tel:+919028027888" style="display:block;margin-top:4px"><strong>+91 90280 27888</strong></a>
-                            <span>Primary &amp; WhatsApp</span>
-                        </div>
-                    </div>
-                    <div class="pt-contact-detail-item">
-                        <span class="pt-detail-icon">✉️</span>
-                        <div>
-                            <a href="mailto:protouch1998@gmail.com"><strong>protouch1998@gmail.com</strong></a>
-                            <span>Email Us</span>
-                        </div>
-                    </div>
-                    <div class="pt-contact-detail-item">
-                        <span class="pt-detail-icon">📍</span>
-                        <div>
-                            <strong>Row H. No. 22, Kasliwal Bhagyoday,<br />Beed By-pass, Chhatrapati Sambhajinagar – 431010</strong>
-                            <span>Clinic Address</span>
-                        </div>
+
+            <div id="feedback" style="margin-top:clamp(80px,10vw,130px)">
+                <div class="fbk">
+                    <div class="eb" data-rv><i></i>Share your experience</div>
+                    <h2 class="h" data-split>How was your <em>visit?</em></h2>
+                    <div data-rv>
+                        <FeedbackForm @rendermode="InteractiveServer" />
                     </div>
                 </div>
-                <a class="pt-directions-link"
-                   href="https://www.google.com/maps/search/?api=1&query=Kasliwal+Bhagyoday+Beed+By-pass+Chhatrapati+Sambhajinagar"
-                   target="_blank" rel="noopener noreferrer">Get Directions →</a>
             </div>
         </div>
     </section>
+    <Wave Kind="ld" />
 
-    <!-- ═══════════════════ FOOTER ════════════════════════════ -->
-    <footer class="pt-footer">
-        © @DateTime.Now.Year PROTOUCH Physio - Slimming Clinic
-        <span>•</span> Dr. Manjari
-        <span>•</span> Chhatrapati Sambhajinagar
-    </footer>
-
-    <!-- ═══════════════════ FLOATING CTA ═════════════════════ -->
-    <div class="pt-floating-cta" role="complementary" aria-label="Quick actions">
-        <a class="pt-float-btn pt-float-wa" href="https://wa.me/919028027888"
-           target="_blank" rel="noopener noreferrer" aria-label="WhatsApp us">💬</a>
-        <a class="pt-float-btn pt-float-book" href="/book" aria-label="Book appointment">📅</a>
-    </div>
-
-    <button class="ac-back-to-top" id="ac-back-to-top" type="button"
-            aria-label="Back to top"
-            @onclick='async () => await JS.InvokeVoidAsync("scrollToTop")'>↑</button>
-
+    <!-- ═══════════════ CONTACT ═══════════════ -->
+    <section class="sec dk" id="contact" style="padding-top:clamp(30px,5vw,70px)">
+        <div class="c ctc">
+            <div>
+                <div class="eb" data-rv><i></i>Get in touch</div>
+                <h2 class="h" data-split>Let's take the first step <em>together.</em></h2>
+                <p class="b" data-rv>Contact Dr. Manjari to discuss a physiotherapy, slimming or wellness plan that fits you.</p>
+                <div class="acts" data-rv>
+                    <a class="pbtn g" href="/book" data-magnet><span>Book an appointment <b class="ar">→</b></span></a>
+                    <a class="pbtn o" href="https://wa.me/919028027888" target="_blank" rel="noopener noreferrer" data-magnet><span>WhatsApp us</span></a>
+                </div>
+            </div>
+            <div class="cds" data-st>
+                <div class="cd">
+                    <i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></svg></i>
+                    <div>
+                        <small>Phone · WhatsApp</small>
+                        <a href="tel:9673530031"><strong>96735 30031</strong></a><br />
+                        <a href="tel:+919028027888"><strong>+91 90280 27888</strong></a>
+                    </div>
+                </div>
+                <div class="cd">
+                    <i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" /><path d="M3 8l9 6 9-6" /></svg></i>
+                    <div>
+                        <small>Email us</small>
+                        <a href="mailto:protouch1998@gmail.com"><strong>protouch1998@gmail.com</strong></a>
+                    </div>
+                </div>
+                <div class="cd">
+                    <i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg></i>
+                    <div>
+                        <small>Clinic address</small>
+                        <strong>Row H. No. 22, Kasliwal Bhagyoday,<br />Beed By-pass, Chhatrapati Sambhajinagar – 431010</strong><br />
+                        <a class="dirs" href="https://www.google.com/maps/search/?api=1&query=Kasliwal+Bhagyoday+Beed+By-pass+Chhatrapati+Sambhajinagar"
+                           target="_blank" rel="noopener noreferrer">Get directions →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
 @code {
     private record CarouselSlide(string ImagePath, string Caption);
-    private record ServiceCard(string Id, string Number, string Icon, string Name, string Summary, string[] Bullets, string AccentColor, string IconBg, string? ImagePath = null, string ImageAlt = "");
-    private record StatCounter(string CountDisplay, double CountTarget, string Label);
+    private record ServiceCard(string Id, string Number, string Name, string Summary, string[] Bullets, string ImagePath, string ImageAlt);
+    private record StatCounter(string CountDisplay, string Label);
     private record Testimonial(string Quote, string RoleLabel);
     private record FaqItem(string Q, string A);
-    private record BodyPartTab(string Id, string Label, string Description, string? ImagePath = null, string ImageAlt = "");
+    private record BodyPartTab(string Id, string Label, string Description, string ImagePath, string ImageAlt);
     private record HowItWorksStep(string Number, string Title, string Description);
     private record SupportingPractitioner(string Title);
 
-    // ── Hero ─────────────────────────────────────────────────
+    private readonly int[] ringPercent = { 80, 50, 100, 70 };
+    private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"];
+
     private List<CarouselSlide> heroImages = new();
-    private int activeHeroIndex = 0;
-
-    // ── Testimonial carousel ─────────────────────────────────
-    private int activeTestiIndex = 0;
-
-    // ── Services tabs ────────────────────────────────────────
-    private string activeTab = "weight-loss";
-
-    // ── FAQ ──────────────────────────────────────────────────
-    private int openFaq = -1;
-
-    // ── Body parts ───────────────────────────────────────────
-    private string activeBodyPart = "neck-shoulder";
     private List<BodyPartTab> bodyPartTabs = new();
     private List<HowItWorksStep> howItWorksSteps = new();
     private List<SupportingPractitioner> supportingPractitioners = new();
     private List<string> doctorCredentials = new();
-
-    // ── Navigation ───────────────────────────────────────────
-    private bool _mobileMenuOpen = false;
-    private void ToggleMobileMenu() => _mobileMenuOpen = !_mobileMenuOpen;
-    private void SetBodyPart(string id) => activeBodyPart = id;
-
-    // ── Data lists ───────────────────────────────────────────
     private List<ServiceCard> serviceCards = new();
     private List<StatCounter> socialProofStats = new();
     private List<Testimonial> testimonials = new();
     private List<FaqItem> faqItems = new();
-    private readonly string[] guarantees = ["No Fasting", "No Medicine", "No Surgery", "No Side Effects", "No Down Time"];
-    private List<CarouselSlide> carouselSlides = new();
-    private int activeSlideIndex = 0;
-
-    // ── BMI Estimator ─────────────────────────────────────────
-    private int _heightCm = 0;
-    private double _weightKg = 0;
-    private string _bmiGoal = "";
-    private double? _bmiValue = null;
-    private string _bmiCategory = "";
-    private string _bmiColor = "";
-    private string _bmiMessage = "";
-    private string _bmiOutcome = "";
-    private string _heightError = "";
-    private string _weightError = "";
-    private string _goalError = "";
-
-    // ── Gallery ───────────────────────────────────────────────
-    private int _galleryVisible = 24;
-    private int _galleryTotal = 60;
-    private bool _isLightboxOpen = false;
-    private int _selectedLightboxIndex = 0;
-    private bool _lightboxInited = false;
-
-    private List<string> GalleryImages =>
-        Enumerable.Range(1, _galleryTotal)
-                  .Select(i => $"/images/clinic-gallery/gallery-{i:D2}.jpeg")
-                  .ToList();
-    private bool CanLoadMore => _galleryVisible < _galleryTotal;
-
-    // ── Feedback Widget ───────────────────────────────────────
-    private int _feedbackRating = 0;
-    private int _feedbackHoverRating = 0;
-    private string _feedbackComment = "";
-    private bool _feedbackSubmitting = false;
-    private bool _feedbackSuccess = false;
-    private string _feedbackError = "";
-    private const int FeedbackMaxChars = 500;
-    private int FeedbackCharsRemaining => FeedbackMaxChars - _feedbackComment.Length;
 
     protected override void OnInitialized()
     {
         heroImages = new List<CarouselSlide>
         {
-            new("/images/homepage/physiotherapy-session.png", "Physiotherapist supporting a client during shoulder rehabilitation."),
             new("/images/homepage/weight-loss.png", "Nutritionist discussing a healthy meal plan with a client."),
-            new("/images/homepage/yoga.png", "Clients following a gentle group yoga session."),
         };
 
         bodyPartTabs = new List<BodyPartTab>
@@ -648,43 +385,43 @@
 
         serviceCards = new List<ServiceCard>
         {
-            new("weight-loss",   "01", "⚖️", "Weight Loss & Slimming",
+            new("weight-loss", "01", "Weight Loss & Slimming",
                 "Weight loss, inch loss, figure correction, body shaping, toning and skin tightening.",
                 new[] { "4–8 kg weight loss per month", "2–5 inches loss per session" },
-                "#008d36", "rgba(0,141,54,0.08)", "/images/homepage/weight-loss.png", "Nutritionist discussing a healthy meal plan with a client."),
-            new("physiotherapy", "02", "🦴", "Physiotherapy & Rehabilitation",
+                "/images/homepage/weight-loss.png", "Nutritionist discussing a healthy meal plan with a client."),
+            new("physiotherapy", "02", "Physiotherapy & Rehabilitation",
                 "Back, neck and knee pain, arthritis, spondylitis, sinusitis, paralysis and injury care.",
                 new[] { "Muscle & ligament injury care", "Orthopaedic & neurological" },
-                "#7c1b68", "rgba(124,27,104,0.08)", "/images/homepage/physiotherapy-session.png", "Physiotherapist supporting a patient during a mobility exercise."),
-            new("yoga",          "03", "🧘", "Yoga & Russian Nature Cure",
+                "/images/homepage/physiotherapy-session.png", "Physiotherapist supporting a patient during a mobility exercise."),
+            new("yoga", "03", "Yoga & Russian Nature Cure",
                 "Personalised yoga for diabetes, blood pressure, thyroid, hormonal health and lifestyle support.",
                 new[] { "Menstrual wellness support", "Pre & post-natal care" },
-                "#f4b41a", "rgba(244,180,26,0.08)", "/images/homepage/yoga.png", "Small group following a gentle yoga session."),
-            new("specialised",   "04", "⭐", "Specialised Programs For Children",
+                "/images/homepage/yoga.png", "Small group following a gentle yoga session."),
+            new("specialised", "04", "Specialised Programs For Children",
                 "Height increase, sports rehabilitation and focused clinician-guided health plans.",
                 new[] { "Height increase up to 23 years", "1–3 inches growth possible" },
-                "#e52321", "rgba(229,35,33,0.08)", "/images/homepage/specialised-care.png", "Child doing a supervised balance exercise with a parent present."),
+                "/images/homepage/specialised-care.png", "Child doing a supervised balance exercise with a parent present."),
         };
 
         socialProofStats = new List<StatCounter>
         {
-            new("4–8 kg",  8,   "Weight Loss / Month"),
-            new("2–5 in",  5,   "Lost Per Session"),
-            new("500+",    500, "Patients Served"),
-            new("10+",     10,  "Years of Experience"),
+            new("4–8 kg",  "Weight Loss / Month"),
+            new("2–5 in",  "Lost Per Session"),
+            new("500+",    "Patients Served"),
+            new("10+",     "Years of Experience"),
         };
 
         testimonials = new List<Testimonial>
         {
-            new("\"Lost 6 kg in the first month without any fasting or medicine — the physiotherapy approach made all the difference.\"",
+            new("Lost 6 kg in the first month without any fasting or medicine — the physiotherapy approach made all the difference.",
                 "Weight Loss Patient"),
-            new("\"My knee pain reduced significantly within two weeks of targeted rehabilitation. Finally able to walk without discomfort.\"",
+            new("My knee pain reduced significantly within two weeks of targeted rehabilitation. Finally able to walk without discomfort.",
                 "Physiotherapy Patient"),
-            new("\"The personalised yoga program helped manage my thyroid and I feel more energetic than ever. Highly recommend Dr. Manjari!\"",
+            new("The personalised yoga program helped manage my thyroid and I feel more energetic than ever. Highly recommend Dr. Manjari!",
                 "Yoga & Wellness Patient"),
-            new("\"My child gained 2 inches through the specialised height increase program. We are extremely happy with the results.\"",
+            new("My child gained 2 inches through the specialised height increase program. We are extremely happy with the results.",
                 "Parent — Specialised Program"),
-            new("\"The slimming program was completely safe — no side effects, no surgery. Lost 8 kg in just 5 weeks.\"",
+            new("The slimming program was completely safe — no side effects, no surgery. Lost 8 kg in just 5 weeks.",
                 "Slimming Program Patient"),
         };
 
@@ -703,140 +440,5 @@
             new("Can children join the height increase program?",
                 "Yes, the program is available up to 23 years of age with potential growth of 1–3 inches. A consultation with Dr. Manjari will determine suitability."),
         };
-
-        carouselSlides = new List<CarouselSlide>
-        {
-            new("/images/clinic-gallery/gallery-03.jpeg", "ProTouch Physio Clinic"),
-            new("/images/clinic-gallery/gallery-09.jpeg", "Physiotherapy & Rehabilitation"),
-        };
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender) return;
-        try { await JS.InvokeVoidAsync("initStickyHeader", "#pt-header"); } catch { }
-        try { await JS.InvokeVoidAsync("initActiveNavHighlight"); } catch { }
-        try { await JS.InvokeVoidAsync("initBackToTop"); } catch { }
-        try { await JS.InvokeVoidAsync("initGalleryLightbox", DotNetObjectReference.Create(this)); } catch { }
-        try { await JS.InvokeVoidAsync("initTestiObserver", DotNetObjectReference.Create(this)); } catch { }
-        try { await JS.InvokeVoidAsync("scheduleDeferredInit_home"); } catch { }
-        _lightboxInited = true;
-    }
-
-    private void SetTab(string id) => activeTab = id;
-    private void ToggleFaq(int index) => openFaq = (openFaq == index) ? -1 : index;
-
-    private void NextTesti()
-    {
-        activeTestiIndex = (activeTestiIndex + 1) % testimonials.Count;
-        StateHasChanged();
-    }
-    private void PrevTesti()
-    {
-        activeTestiIndex = (activeTestiIndex - 1 + testimonials.Count) % testimonials.Count;
-        StateHasChanged();
-    }
-    private void JumpToTesti(int index)
-    {
-        activeTestiIndex = index;
-        StateHasChanged();
-    }
-    [Microsoft.JSInterop.JSInvokable]
-    public void AdvanceTesti()
-    {
-        activeTestiIndex = (activeTestiIndex + 1) % testimonials.Count;
-        InvokeAsync(StateHasChanged);
-    }
-
-    private void JumpToSlide(int index) { activeSlideIndex = index; StateHasChanged(); }
-
-    private void LoadMoreGallery() => _galleryVisible = Math.Min(_galleryVisible + 12, _galleryTotal);
-    private void OpenLightbox(int index) { _selectedLightboxIndex = index; _isLightboxOpen = true; }
-    [Microsoft.JSInterop.JSInvokable]
-    public void CloseLightbox() { _isLightboxOpen = false; InvokeAsync(StateHasChanged); }
-    private void LightboxNext() => _selectedLightboxIndex = (_selectedLightboxIndex + 1) % _galleryVisible;
-    private void LightboxPrev() => _selectedLightboxIndex = (_selectedLightboxIndex - 1 + _galleryVisible) % _galleryVisible;
-
-    private void ComputeBmi()
-    {
-        _heightError = _weightError = _goalError = "";
-        _bmiValue = null;
-        bool valid = true;
-        if (_heightCm < 100 || _heightCm > 250) { _heightError = "Height must be between 100 and 250 cm."; valid = false; }
-        if (_weightKg < 20 || _weightKg > 300)   { _weightError = "Weight must be between 20 and 300 kg.";  valid = false; }
-        if (string.IsNullOrWhiteSpace(_bmiGoal))  { _goalError = "Please select a wellness goal.";           valid = false; }
-        if (!valid) return;
-        double h = _heightCm / 100.0;
-        double bmi = Math.Round(_weightKg / (h * h), 1);
-        _bmiValue = bmi;
-        (_bmiCategory, _bmiColor) = bmi < 18.5 ? ("Underweight", "#7c1b68")
-            : bmi < 25.0 ? ("Normal", "#008d36")
-            : bmi < 30.0 ? ("Overweight", "#f4b41a")
-            : ("Obese", "#e52321");
-        _bmiMessage = WellnessMessageMap.GetValueOrDefault(_bmiCategory, new())
-            .GetValueOrDefault(_bmiGoal, "Your health journey starts here. Book a consultation today.");
-        _bmiOutcome = OutcomeMap.GetValueOrDefault(_bmiGoal, "Based on your profile, Dr. Manjari will design a personalised plan for you.");
-    }
-
-    private static readonly Dictionary<string, Dictionary<string, string>> WellnessMessageMap = new()
-    {
-        ["Underweight"] = new() {
-            ["Weight Loss"]="Your BMI indicates you are underweight. Dr. Manjari recommends a tailored nutrition and strength plan before pursuing weight loss goals.",
-            ["Inch Loss"]="Inch loss at your current BMI requires careful guidance. Dr. Manjari will design a safe programme that builds lean mass.",
-            ["Physiotherapy / Pain Relief"]="Even at a lower BMI, physiotherapy can address pain effectively. Let's start with a full assessment.",
-            ["Yoga & Wellness"]="Yoga is an excellent way to build strength and balance at your BMI. Dr. Manjari's nature-cure approach will support your overall wellness.",
-            ["Height Increase"]="A structured growth programme may help. Dr. Manjari specialises in height increase programmes for those up to 23 years of age.",
-        },
-        ["Normal"] = new() {
-            ["Weight Loss"]="Your BMI is in the healthy range — ideal for a targeted toning and inch-loss programme.",
-            ["Inch Loss"]="With a healthy BMI, inch loss is achievable quickly. Visible results from session one.",
-            ["Physiotherapy / Pain Relief"]="A healthy BMI supports faster recovery. Dr. Manjari's physiotherapy plans are designed to resolve pain and restore full mobility.",
-            ["Yoga & Wellness"]="You are in great shape to benefit from an advanced yoga wellness plan.",
-            ["Height Increase"]="Excellent baseline health. Dr. Manjari's specialised growth programme can be started immediately.",
-        },
-        ["Overweight"] = new() {
-            ["Weight Loss"]="Your BMI indicates room to shed excess weight safely. Dr. Manjari's 4–8 kg/month programme — no fasting, no medicine — is designed exactly for your profile.",
-            ["Inch Loss"]="Targeted inch loss is very effective at your BMI. Expect visible waist and hip reduction within the first few sessions.",
-            ["Physiotherapy / Pain Relief"]="Excess weight often strains joints. Dr. Manjari will combine physiotherapy with a supervised weight-management plan.",
-            ["Yoga & Wellness"]="Yoga combined with Dr. Manjari's dietary guidance is a powerful tool for bringing your BMI back to the healthy range.",
-            ["Height Increase"]="Healthy weight management supports posture and height. Dr. Manjari will assess suitability during your consultation.",
-        },
-        ["Obese"] = new() {
-            ["Weight Loss"]="Significant, safe weight loss is within reach. Dr. Manjari's medically supervised programme combines physiotherapy and slimming.",
-            ["Inch Loss"]="You can start seeing inch loss immediately. Dr. Manjari's targeted body-contouring approach shows results from the very first session.",
-            ["Physiotherapy / Pain Relief"]="Pain management and weight reduction go hand in hand. Dr. Manjari will prioritise pain relief while guiding you toward a healthier weight.",
-            ["Yoga & Wellness"]="Dr. Manjari's gentle, adapted yoga programme is designed to be safe and effective at all BMI levels.",
-            ["Height Increase"]="A consultation with Dr. Manjari will determine the best integrated plan for your specific goals.",
-        },
-    };
-
-    private static readonly Dictionary<string, string> OutcomeMap = new()
-    {
-        ["Weight Loss"]="Based on your profile, you could achieve 4–8 kg weight loss in your first month with Dr. Manjari's programme.",
-        ["Inch Loss"]="Based on your profile, expect 2–5 inches of targeted reduction per session with Dr. Manjari's body-contouring plan.",
-        ["Physiotherapy / Pain Relief"]="Based on your profile, most patients experience significant pain relief within 2–4 physiotherapy sessions.",
-        ["Yoga & Wellness"]="Based on your profile, a personalised 12-session yoga plan with Dr. Manjari will improve energy, flexibility and metabolic balance.",
-        ["Height Increase"]="Based on your profile and age, Dr. Manjari's height-increase programme may help you gain 1–3 inches with a dedicated plan.",
-    };
-
-    private void SetFeedbackStar(int star)   => _feedbackRating = star;
-    private void HoverFeedbackStar(int star) => _feedbackHoverRating = star;
-    private void UnhoverFeedbackStar()       => _feedbackHoverRating = 0;
-
-    private async Task SubmitFeedbackAsync()
-    {
-        _feedbackError = "";
-        if (_feedbackRating == 0) { _feedbackError = "Please select a star rating before submitting."; return; }
-        _feedbackSubmitting = true;
-        try { await ClinicService.SaveFeedbackAsync(_feedbackRating, _feedbackComment); _feedbackSuccess = true; }
-        catch { _feedbackError = "Unable to save your feedback. Please try again."; }
-        finally { _feedbackSubmitting = false; }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        try { await JS.InvokeVoidAsync("destroyAestheticAnimations"); }  catch { }
-        try { await JS.InvokeVoidAsync("destroyHomepageAnimations"); }   catch { }
-        try { await JS.InvokeVoidAsync("destroyTestiObserver"); }        catch { }
     }
 }

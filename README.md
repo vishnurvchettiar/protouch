@@ -16,6 +16,16 @@ ASP.NET Core 9 / Blazor Server clinic management portal.
 - Existing Twilio integration is retained for deployments that want an API gateway.
 - `ProTouch.sln` is included.
 
+## Public site design
+
+The public pages (home, services, service detail, booking) use one design system:
+
+- `ClinicApp/wwwroot/ptx.css`: all styles, scoped under a `.px` wrapper so the admin and client dashboards are unaffected.
+- `ClinicApp/wwwroot/ptx.js`: GSAP animations and interactions. It falls back to a plain page when GSAP is missing or the visitor prefers reduced motion.
+- `ClinicApp/wwwroot/lib/gsap/`: GSAP and ScrollTrigger, served locally (GreenSock standard licence, see the header in each file).
+- `ClinicApp/Components/Public/`: shared nav, footer, wave dividers, the service catalogue (`PublicCatalog.cs`) and the interactive pieces (BMI estimator, gallery, feedback, booking forms).
+- Pages are server-rendered. Only the forms and widgets are interactive Blazor components, so the animation layer never fights Blazor's DOM updates.
+
 ## Demo credentials
 
 Admin:

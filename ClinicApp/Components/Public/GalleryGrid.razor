@@ -1,0 +1,33 @@
+@* Clinic gallery grid with "load more". Interactive island; the lightbox is handled by ptx.js. *@
+
+<div class="gal">
+    @for (int i = 0; i < _galleryVisible; i++)
+    {
+        var idx = i;
+        <figure>
+            <img src="@GalleryImages[idx]"
+                 alt="ProTouch Clinic @(idx + 1)"
+                 loading="@(idx < 6 ? "eager" : "lazy")"
+                 onerror="this.parentElement.style.display='none'" />
+        </figure>
+    }
+</div>
+@if (CanLoadMore)
+{
+    <div class="more">
+        <button class="pbtn o" type="button" @onclick="LoadMoreGallery"><span>Load more photos</span></button>
+    </div>
+}
+
+@code {
+    private int _galleryVisible = 24;
+    private int _galleryTotal = 60;
+
+    private List<string> GalleryImages =>
+        Enumerable.Range(1, _galleryTotal)
+                  .Select(i => $"/images/clinic-gallery/gallery-{i:D2}.jpeg")
+                  .ToList();
+    private bool CanLoadMore => _galleryVisible < _galleryTotal;
+
+    private void LoadMoreGallery() => _galleryVisible = Math.Min(_galleryVisible + 12, _galleryTotal);
+}
