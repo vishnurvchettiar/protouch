@@ -45,9 +45,9 @@ else
                         </div>
                     </div>
                     <div class="trio">
-                        <div class="ci a" data-depth="10"><img src="@x.Image" alt="@s.Name" /></div>
-                        <div class="ci b" data-depth="-16"><img src="@x.Image2" alt="" /></div>
-                        <div class="ci c3" data-depth="20"><img src="@x.Image3" alt="" /></div>
+                        <div class="ci a" data-depth="10"><img decoding="async" src="@x.Image" alt="@s.Name" /></div>
+                        <div class="ci b" data-depth="-16"><img decoding="async" src="@x.Image2" alt="" /></div>
+                        <div class="ci c3" data-depth="20"><img decoding="async" src="@x.Image3" alt="" /></div>
                     </div>
                 </div>
                 <div class="ks" data-st>
@@ -149,7 +149,7 @@ else
                 <div class="psr" style="margin-top:36px" data-lbset data-st>
                     @foreach (var poster in x.Posters)
                     {
-                        <figure data-lb><img loading="lazy" src="@poster" alt="@s.Name programme poster" onerror="this.parentElement.style.display='none'" /></figure>
+                        <figure data-lb><img decoding="async" loading="lazy" src="@poster" alt="@s.Name programme poster" onerror="this.parentElement.style.display='none'" /></figure>
                     }
                 </div>
             </div>
@@ -190,7 +190,7 @@ else
                         var rs = PublicCatalog.Services[rid];
                         var rx = PublicCatalog.Extras[rid];
                         <article class="rc">
-                            <div class="im"><img src="@rx.Image" alt="@rs.Name" loading="lazy" /></div>
+                            <div class="im"><img decoding="async" src="@rx.Image" alt="@rs.Name" loading="lazy" /></div>
                             <h3>@rs.Name</h3>
                             <p>@string.Join(" · ", rs.SubServices.Take(3))</p>
                             <a class="pbtn" href="/services/@rid"><span>Explore <b class="ar">→</b></span></a>

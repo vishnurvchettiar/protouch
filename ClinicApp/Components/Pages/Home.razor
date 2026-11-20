@@ -10,7 +10,7 @@
         <div class="top">Physio &amp; Slimming Clinic · Chhatrapati Sambhajinagar</div>
         <div class="bgw" aria-hidden="true"><span class="hw1">Gentle</span><span class="hw2">touch</span></div>
         <div class="frame">
-            <img src="@heroImages[0].ImagePath" alt="@heroImages[0].Caption" />
+            <img decoding="async" src="@heroImages[0].ImagePath" alt="@heroImages[0].Caption" />
         </div>
         <div class="side">
             <div><b>500+</b><span>patients served</span></div>
@@ -77,7 +77,7 @@
                             <div><a class="pbtn" href="/services/@svc.Id" data-magnet><span>View &amp; book <b class="ar">→</b></span></a></div>
                         </div>
                         <div class="ph">
-                            <img src="@svc.ImagePath" alt="@svc.ImageAlt" loading="lazy" />
+                            <img decoding="async" src="@svc.ImagePath" alt="@svc.ImageAlt" loading="lazy" />
                             <span class="cir" aria-hidden="true">→</span>
                         </div>
                     </article>
@@ -108,10 +108,10 @@
                     @for (var i = 0; i < bodyPartTabs.Count; i++)
                     {
                         var tab = bodyPartTabs[i];
-                        <img class="@(i == 0 ? "on" : "")" src="@tab.ImagePath" alt="@tab.ImageAlt" loading="@(i == 0 ? "eager" : "lazy")" />
+                        <img decoding="async" class="@(i == 0 ? "on" : "")" src="@tab.ImagePath" alt="@tab.ImageAlt" loading="@(i == 0 ? "eager" : "lazy")" />
                     }
                 </div>
-                <div class="sm"><img src="/images/clinic_hero.jpg" alt="ProTouch clinic reception" loading="lazy" /></div>
+                <div class="sm"><img decoding="async" src="/images/clinic_hero.jpg" alt="ProTouch clinic reception" loading="lazy" /></div>
                 <div class="ap">
                     <h3>@bodyPartTabs[0].Label</h3>
                     <p class="desc">@bodyPartTabs[0].Description</p>

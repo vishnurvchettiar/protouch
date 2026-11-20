@@ -5,7 +5,7 @@
     {
         var idx = i;
         <figure>
-            <img src="@GalleryImages[idx]"
+            <img decoding="async" src="@GalleryImages[idx]"
                  alt="ProTouch Clinic @(idx + 1)"
                  loading="@(idx < 6 ? "eager" : "lazy")"
                  onerror="this.parentElement.style.display='none'" />
