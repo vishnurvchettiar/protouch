@@ -19,10 +19,11 @@ public sealed class DietPlanDocumentService
     public DietPlanDocumentService(
         ApplicationDbContext db,
         IWebHostEnvironment environment,
-        ILogger<DietPlanDocumentService> logger)
+        ILogger<DietPlanDocumentService> logger,
+        AppStorage? storage = null)
     {
         _db = db;
-        _storageRoot = Path.Combine(environment.ContentRootPath, "App_Data", "diet-plan-documents");
+        _storageRoot = storage?.DietPlanRoot ?? Path.Combine(environment.ContentRootPath, "App_Data", "diet-plan-documents");
         _logger = logger;
     }
 

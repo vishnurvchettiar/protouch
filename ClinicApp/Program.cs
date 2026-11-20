@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -88,6 +89,16 @@ if (rawConnStr.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
+
+// Everything the clinic saves lives next to the database, so one persistent disk keeps it all:
+// uploaded photos, diet plan documents and the keys that keep people signed in.
+var storageRoot = ClinicApp.Services.AppStorage.FolderFromConnectionString(connectionString, builder.Environment.ContentRootPath)
+    ?? System.IO.Path.Combine(builder.Environment.ContentRootPath, "Data");
+var appStorage = new ClinicApp.Services.AppStorage(storageRoot);
+builder.Services.AddSingleton(appStorage);
+builder.Services.AddDataProtection()
+    .SetApplicationName("ProTouch")
+    .PersistKeysToFileSystem(new DirectoryInfo(appStorage.KeysRoot));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddScoped<ClinicApp.Services.ClinicService>();
@@ -171,6 +182,8 @@ app.UseWebSockets(new WebSocketOptions
     KeepAliveInterval = TimeSpan.FromSeconds(30)
 });
 
+app.Logger.LogInformation("Saved data (database, photos, diet plans, login keys) is kept in {Folder}. On Render this must be a mounted Disk or it is lost on every deploy.", appStorage.Root);
+
 // Seed database
 await ClinicApp.Data.DbInitializer.SeedDataAsync(app.Services);
 
@@ -198,6 +211,13 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 // Task 8.4: Cache-Control for static images (max-age 1 year, immutable)
+// Uploaded photos are served from the persistent folder first (older files in wwwroot/uploads still work).
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(appStorage.UploadsRoot),
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable"
+});
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>

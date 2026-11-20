@@ -26,6 +26,16 @@ The public pages (home, services, service detail, booking) use one design system
 - `ClinicApp/Components/Public/`: shared nav, footer, wave dividers, the service catalogue (`PublicCatalog.cs`) and the interactive pieces (BMI estimator, gallery, feedback, booking forms).
 - Pages are server-rendered. Only the forms and widgets are interactive Blazor components, so the animation layer never fights Blazor's DOM updates.
 
+## Where data is saved
+
+The database is SQLite. Everything the clinic saves lives in the folder that holds the database file
+(`/var/data` on Render, set by the Dockerfile): the database itself, uploaded meal and profile photos
+(`uploads/`), diet plan documents (`diet-plan-documents/`) and the keys that keep people signed in (`keys/`).
+
+On Render, attach a **Disk** to the web service and mount it at `/var/data`. Without a disk the folder is
+wiped on every deploy and settings, meal reviews, diet plans and clients are lost. The log line
+"Saved data ... is kept in ..." at startup shows the folder in use.
+
 ## Demo credentials
 
 Admin:

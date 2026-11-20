@@ -26,9 +26,12 @@ public class FileUploadService
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<FileUploadService> _logger;
 
-    public FileUploadService(IWebHostEnvironment env, ILogger<FileUploadService> logger)
+    private readonly AppStorage? _storage;
+
+    public FileUploadService(IWebHostEnvironment env, ILogger<FileUploadService> logger, AppStorage? storage = null)
     {
         _env = env;
+        _storage = storage;
         _logger = logger;
     }
 
@@ -73,7 +76,7 @@ public class FileUploadService
             return (null, "File must be 8 MB or smaller.");
         }
 
-        var directory = Path.Combine(_env.WebRootPath, "uploads", folder);
+        var directory = Path.Combine(_storage?.UploadsRoot ?? Path.Combine(_env.WebRootPath, "uploads"), folder);
         Directory.CreateDirectory(directory);
         var fileName = $"{prefix}_{Guid.NewGuid():N}{extension}";
         var physicalPath = Path.Combine(directory, fileName);
